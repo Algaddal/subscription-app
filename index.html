@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مبادرة وحدة وتعمير ودنور الدائم</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Cairo:wght@300;400;600;700;900&display=swap');
+
+:root {
+  --gold:#C9A84C; --gold-l:#E8C97A; --gold-d:#9A7530;
+  --deep:#0D1117; --s1:#161B22; --s2:#1E2530; --s3:#252D3A;
+  --tx:#F0EDE8; --tx2:#8B9299;
+  --green:#3FB68A; --red:#E05C5C; --blue:#4A9ECC; --purple:#9B59B6;
+  --border:rgba(201,168,76,0.18);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--deep);color:var(--tx);font-family:'Cairo',sans-serif;min-height:100vh;
+  background-image:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(201,168,76,0.07) 0%,transparent 60%)}
+
+/* ══════ LOGIN SCREEN ══════ */
+#loginScreen{position:fixed;inset:0;background:var(--deep);background-image:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,168,76,0.1) 0%,transparent 70%);z-index:9999;display:flex;align-items:center;justify-content:center}
+.login-box{background:var(--s1);border:1px solid var(--border);border-radius:24px;padding:40px 36px;width:400px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.6);animation:fadeUp .4s ease}
+@keyframes fadeUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo .ico{width:64px;height:64px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:18px;display:inline-flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:0 6px 20px rgba(201,168,76,0.3);margin-bottom:14px}
+.login-logo h1{font-family:'Tajawal',sans-serif;font-weight:800;font-size:1.15rem;background:linear-gradient(135deg,var(--gold-l),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.4}
+.login-logo p{font-size:.78rem;color:var(--tx2);margin-top:4px}
+.login-box label{display:block;font-size:.82rem;font-weight:600;color:var(--gold-l);margin-bottom:7px}
+.login-box input{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.92rem;outline:none;margin-bottom:18px;transition:border-color .2s}
+.login-box input:focus{border-color:var(--gold)}
+.login-box input::placeholder{color:var(--tx2)}
+.btn-login{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--deep);font-family:'Cairo',sans-serif;font-weight:800;font-size:.95rem;padding:13px;border-radius:10px;border:none;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(201,168,76,0.25)}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 7px 22px rgba(201,168,76,0.35)}
+.login-err{background:rgba(224,92,92,.1);border:1px solid rgba(224,92,92,.25);border-radius:9px;padding:10px 14px;color:var(--red);font-size:.82rem;margin-bottom:16px;display:none;text-align:center}
+.login-roles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:22px}
+.role-hint{background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .2s;font-size:.75rem}
+.role-hint:hover{border-color:var(--gold);background:var(--s3)}
+.role-hint .rh-ico{font-size:1.3rem;margin-bottom:4px}
+.role-hint .rh-name{font-weight:700;color:var(--gold-l)}
+.role-hint .rh-desc{color:var(--tx2);font-size:.68rem;margin-top:2px}
+.role-hint.selected{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.login-divider{text-align:center;color:var(--tx2);font-size:.75rem;margin-bottom:16px;position:relative}
+.login-divider::before,.login-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border)}
+.login-divider::before{right:0}.login-divider::after{left:0}
+
+/* ══════ ROLE BADGE in nav ══════ */
+.role-badge{display:flex;align-items:center;gap:7px;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:.75rem;cursor:default}
+.role-badge .rb-ico{font-size:.9rem}
+.role-badge .rb-name{font-weight:700}
+.role-badge.admin{border-color:rgba(201,168,76,.4);color:var(--gold-l)}
+.role-badge.accountant{border-color:rgba(74,158,204,.4);color:var(--blue)}
+.role-badge.viewer{border-color:rgba(63,182,138,.4);color:var(--green)}
+.btn-logout{background:none;border:1px solid rgba(224,92,92,.3);color:var(--red);font-family:'Cairo',sans-serif;font-size:.75rem;font-weight:600;padding:5px 12px;border-radius:20px;cursor:pointer;transition:all .2s;margin-right:6px}
+.btn-logout:hover{background:rgba(224,92,92,.1)}
+
+/* ══════ LOCKED OVERLAY ══════ */
+.locked{pointer-events:none;opacity:.35;user-select:none;position:relative}
+.locked::after{content:'🔒 غير مسموح';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:var(--red);background:rgba(0,0,0,.3);border-radius:inherit;pointer-events:none}
+
+/* NAV */
+.nav{background:var(--s1);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 3px 12px rgba(201,168,76,0.25)}
+.logo h1{font-family:'Tajawal',sans-serif;font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,var(--gold-l),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo p{font-size:0.7rem;color:var(--tx2);margin-top:1px}
+.nav-tabs{display:flex;gap:4px}
+.tab-btn{background:none;border:none;color:var(--tx2);font-family:'Cairo',sans-serif;font-size:0.85rem;font-weight:600;padding:8px 20px;border-radius:10px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:7px}
+.tab-btn:hover{background:rgba(201,168,76,0.08);color:var(--tx)}
+.tab-btn.active{background:rgba(201,168,76,0.15);color:var(--gold-l)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-live{background:rgba(63,182,138,0.12);border:1px solid rgba(63,182,138,0.3);border-radius:20px;padding:5px 14px;font-size:0.75rem;color:var(--green);display:flex;align-items:center;gap:6px}
+.dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(63,182,138,0.4)}50%{box-shadow:0 0 0 5px rgba(63,182,138,0)}}
+
+/* PAGES */
+.page{display:none;padding:28px 32px;max-width:1300px;margin:0 auto}
+.page.active{display:block}
+
+/* UPLOAD SECTION */
+.upload-card{background:var(--s1);border:2px dashed var(--border);border-radius:18px;padding:40px;text-align:center;cursor:pointer;transition:all .25s;margin-bottom:24px;position:relative}
+.upload-card:hover,.upload-card.over{border-color:var(--gold);background:var(--s2)}
+.upload-card h3{font-size:1.1rem;font-weight:700;margin:12px 0 6px}
+.upload-card p{color:var(--tx2);font-size:0.85rem}
+.upload-icon{font-size:2.5rem}
+.month-picker{display:flex;gap:12px;justify-content:center;align-items:center;margin-top:18px;flex-wrap:wrap}
+.month-picker label{font-size:0.85rem;color:var(--gold-l);font-weight:600}
+.month-picker select,.month-picker input[type=number]{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:0.85rem;outline:none;cursor:pointer}
+.month-picker select:focus,.month-picker input[type=number]:focus{border-color:var(--gold)}
+.month-picker option{background:var(--s2)}
+#fileInput{display:none}
+.btn-upload{display:inline-flex;align-items:center;gap:8px;margin-top:16px;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--deep);font-family:'Cairo',sans-serif;font-weight:700;font-size:0.9rem;padding:11px 28px;border-radius:10px;border:none;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(201,168,76,0.25)}
+.btn-upload:hover{transform:translateY(-1px);box-shadow:0 7px 20px rgba(201,168,76,0.35)}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:transform .2s}
+.stat:hover{transform:translateY(-2px)}
+.stat::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:0 16px 0 60px;opacity:.12}
+.stat.gold::after{background:var(--gold)}.stat.green::after{background:var(--green)}.stat.blue::after{background:var(--blue)}.stat.purple::after{background:var(--purple)}
+.stat-ico{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:12px}
+.stat.gold .stat-ico{background:rgba(201,168,76,.12)}.stat.green .stat-ico{background:rgba(63,182,138,.12)}.stat.blue .stat-ico{background:rgba(74,158,204,.12)}.stat.purple .stat-ico{background:rgba(155,89,182,.12)}
+.stat-lbl{font-size:0.75rem;color:var(--tx2);font-weight:500;margin-bottom:4px}
+.stat-val{font-family:'Tajawal',sans-serif;font-size:1.8rem;font-weight:900;line-height:1}
+.stat.gold .stat-val{color:var(--gold-l)}.stat.green .stat-val{color:var(--green)}.stat.blue .stat-val{color:var(--blue)}.stat.purple .stat-val{color:#C39BD3}
+.stat-sub{font-size:0.7rem;color:var(--tx2);margin-top:5px}
+
+/* CONTROLS */
+.controls{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.srch{flex:1;min-width:180px;position:relative}
+.srch input{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:9px 14px 9px 38px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:0.85rem;outline:none;transition:border-color .2s}
+.srch input:focus{border-color:var(--gold)}
+.srch input::placeholder{color:var(--tx2)}
+.srch-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tx2);font-size:.9rem}
+.filt{background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:9px 14px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:0.85rem;outline:none;cursor:pointer;min-width:160px}
+.filt:focus{border-color:var(--gold)}
+.filt option{background:var(--s2)}
+.btn-sm{background:var(--s3);border:1px solid var(--border);color:var(--tx2);font-family:'Cairo',sans-serif;font-weight:600;font-size:0.8rem;padding:9px 16px;border-radius:9px;cursor:pointer;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.btn-sm:hover{border-color:var(--gold);color:var(--gold-l)}
+.btn-wa{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border:none}
+.btn-wa:hover{box-shadow:0 5px 14px rgba(37,211,102,0.25);color:#fff}
+
+/* TABLE */
+.tbl-wrap{background:var(--s1);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.tbl-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}
+.tbl-title{font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:8px}
+.badge{background:rgba(201,168,76,.12);color:var(--gold-l);border-radius:20px;padding:3px 12px;font-size:.75rem;font-weight:600}
+.tbl-info{font-size:.75rem;color:var(--tx2);padding:0 22px 10px}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--s2);padding:12px 20px;text-align:right;font-size:.75rem;font-weight:700;color:var(--gold-l);border-bottom:1px solid var(--border)}
+tbody tr{border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s}
+tbody tr:hover{background:rgba(201,168,76,.04)}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:12px 20px;font-size:.88rem;vertical-align:middle}
+.rnk{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;font-weight:700;font-size:.8rem}
+.r1{background:linear-gradient(135deg,#FFD700,#FFA500);color:#000}.r2{background:linear-gradient(135deg,#C0C0C0,#A0A0A0);color:#000}.r3{background:linear-gradient(135deg,#CD7F32,#A0522D);color:#fff}.ro{background:var(--s3);color:var(--tx2)}
+.amt{font-family:'Tajawal',sans-serif;font-weight:700;font-size:.95rem;color:var(--green)}
+.nm{font-weight:600}
+.empty{text-align:center;padding:52px 24px;color:var(--tx2);font-size:.9rem}
+.empty .ei{font-size:2.5rem;margin-bottom:12px;opacity:.4}
+
+/* REPORTS PAGE */
+.rpt-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.rpt-header h2{font-family:'Tajawal',sans-serif;font-size:1.3rem;font-weight:800;color:var(--gold-l)}
+.rpt-actions{display:flex;gap:10px}
+.btn-danger{background:rgba(224,92,92,.12);border:1px solid rgba(224,92,92,.3);color:var(--red);font-family:'Cairo',sans-serif;font-size:.8rem;font-weight:600;padding:8px 16px;border-radius:9px;cursor:pointer;transition:all .2s}
+.btn-danger:hover{background:rgba(224,92,92,.2)}
+.rpt-empty{text-align:center;padding:80px 24px;color:var(--tx2)}
+.rpt-empty .rei{font-size:3rem;opacity:.3;margin-bottom:16px}
+.rpt-empty p{font-size:.9rem}
+.months-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:32px}
+.month-card{background:var(--s1);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .2s;cursor:pointer}
+.month-card:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.mc-top{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mc-name{font-family:'Tajawal',sans-serif;font-weight:800;font-size:1.1rem;color:var(--gold-l)}
+.mc-year{font-size:.75rem;color:var(--tx2)}
+.mc-del{background:none;border:none;color:var(--tx2);font-size:1rem;cursor:pointer;padding:4px 8px;border-radius:6px;transition:all .2s}
+.mc-del:hover{background:rgba(224,92,92,.12);color:var(--red)}
+.mc-body{padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.mc-stat .ms-lbl{font-size:.7rem;color:var(--tx2);margin-bottom:2px}
+.mc-stat .ms-val{font-family:'Tajawal',sans-serif;font-size:1.05rem;font-weight:800}
+.mc-stat.gold .ms-val{color:var(--gold-l)}.mc-stat.green .ms-val{color:var(--green)}.mc-stat.blue .ms-val{color:var(--blue)}
+.mc-foot{padding:10px 20px;border-top:1px solid var(--border);font-size:.75rem;color:var(--tx2);display:flex;align-items:center;gap:6px}
+
+/* SUMMARY CHART */
+.summary-section{background:var(--s1);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:24px}
+.ss-title{font-weight:700;font-size:.95rem;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.chart-bars{display:flex;align-items:flex-end;gap:8px;height:160px;padding:0 4px}
+.bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:40px}
+.bar-wrap{width:100%;display:flex;align-items:flex-end;justify-content:center;height:130px}
+.bar-fill{width:80%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--gold-l),var(--gold-d));transition:height .5s ease;min-height:4px;cursor:pointer;position:relative}
+.bar-fill:hover{background:linear-gradient(180deg,#fff0b0,var(--gold))}
+.bar-fill .bar-tip{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:.7rem;white-space:nowrap;color:var(--tx);display:none}
+.bar-fill:hover .bar-tip{display:block}
+.bar-lbl{font-size:.65rem;color:var(--tx2);text-align:center;line-height:1.2}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--s1);border:1px solid var(--border);border-radius:18px;padding:28px;width:420px;max-width:92vw;box-shadow:0 20px 50px rgba(0,0,0,.5);animation:min .3s ease}
+@keyframes min{from{transform:scale(.93) translateY(16px);opacity:0}to{transform:scale(1) translateY(0);opacity:1}}
+.modal h3{font-size:1.1rem;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.modal p{color:var(--tx2);font-size:.82rem;margin-bottom:20px}
+.modal label{display:block;font-size:.82rem;font-weight:600;color:var(--gold-l);margin-bottom:7px}
+.modal input{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.9rem;outline:none;margin-bottom:18px;direction:ltr;text-align:left}
+.modal input:focus{border-color:var(--gold)}
+.modal-btns{display:flex;gap:10px}
+.btn-cancel{flex:1;background:var(--s3);color:var(--tx2);font-family:'Cairo',sans-serif;font-weight:600;font-size:.88rem;padding:11px;border-radius:9px;border:1px solid var(--border);cursor:pointer}
+.btn-cancel:hover{color:var(--tx)}
+.btn-send{flex:2;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;font-family:'Cairo',sans-serif;font-weight:700;font-size:.88rem;padding:11px;border-radius:9px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.btn-send:hover{box-shadow:0 5px 18px rgba(37,211,102,.3)}
+
+/* TOAST */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(90px);background:var(--s2);border:1px solid var(--border);border-radius:11px;padding:12px 22px;font-size:.88rem;font-weight:600;z-index:2000;transition:transform .3s ease;display:flex;align-items:center;gap:9px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--green);color:var(--green)}.toast.err{border-color:var(--red);color:var(--red)}
+
+/* DETAIL MODAL */
+.dm-content{max-height:60vh;overflow-y:auto}
+.dm-content table{width:100%}
+.dm-content td{padding:9px 14px;font-size:.82rem;border-bottom:1px solid rgba(201,168,76,.06)}
+
+/* EXPENSES SECTION */
+.exp-section{background:var(--s1);border:1px solid var(--border);border-radius:16px;margin-top:22px;overflow:hidden}
+.exp-header{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--border)}
+.exp-title{font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:8px}
+.exp-body{padding:18px 22px}
+.exp-form{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.exp-form input{background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:9px 14px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s}
+.exp-form input:focus{border-color:var(--gold)}
+.exp-form input::placeholder{color:var(--tx2)}
+.exp-form .inp-desc{flex:2;min-width:160px}
+.exp-form .inp-amt{flex:1;min-width:110px}
+.btn-add-exp{background:linear-gradient(135deg,var(--red),#A02020);color:#fff;font-family:'Cairo',sans-serif;font-weight:700;font-size:.85rem;padding:9px 20px;border-radius:9px;border:none;cursor:pointer;white-space:nowrap;transition:all .2s}
+.btn-add-exp:hover{box-shadow:0 4px 14px rgba(224,92,92,.3);transform:translateY(-1px)}
+.exp-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:220px;overflow-y:auto}
+.exp-item{display:flex;align-items:center;justify-content:space-between;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 14px;gap:12px}
+.exp-item-desc{flex:1;font-size:.88rem;font-weight:600}
+.exp-item-amt{font-family:'Tajawal',sans-serif;font-weight:700;color:var(--red);font-size:.95rem;white-space:nowrap}
+.btn-del-exp{background:none;border:none;color:var(--tx2);cursor:pointer;font-size:.9rem;padding:2px 6px;border-radius:5px;transition:all .2s}
+.btn-del-exp:hover{background:rgba(224,92,92,.12);color:var(--red)}
+.balance-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding-top:14px;border-top:1px solid var(--border)}
+.bal-box{border-radius:11px;padding:14px;text-align:center}
+.bal-box .bl-lbl{font-size:.72rem;color:var(--tx2);margin-bottom:4px}
+.bal-box .bl-val{font-family:'Tajawal',sans-serif;font-weight:900;font-size:1.2rem}
+.bal-box.income{background:rgba(63,182,138,.08);border:1px solid rgba(63,182,138,.2)}.bal-box.income .bl-val{color:var(--green)}
+.bal-box.expense{background:rgba(224,92,92,.08);border:1px solid rgba(224,92,92,.2)}.bal-box.expense .bl-val{color:var(--red)}
+.bal-box.surplus{background:rgba(63,182,138,.1);border:1px solid rgba(63,182,138,.3)}.bal-box.surplus .bl-val{color:var(--green)}
+.bal-box.deficit{background:rgba(224,92,92,.1);border:1px solid rgba(224,92,92,.3)}.bal-box.deficit .bl-val{color:var(--red)}
+.mc-balance{display:flex;align-items:center;justify-content:space-between;padding:8px 20px;border-top:1px solid var(--border);font-size:.78rem;font-weight:700}
+.mc-balance .bal-label{color:var(--tx2)}
+.mc-balance .bal-surplus{color:var(--green)}.mc-balance .bal-deficit{color:var(--red)}
+
+/* ADMIN PANEL */
+.admin-panel{background:var(--s1);border:1px solid rgba(201,168,76,.3);border-radius:16px;padding:22px;margin-bottom:24px}
+.admin-panel-title{font-family:'Tajawal',sans-serif;font-weight:800;font-size:1rem;color:var(--gold-l);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.users-table{width:100%;border-collapse:collapse}
+.users-table th{background:var(--s2);padding:10px 16px;text-align:right;font-size:.75rem;color:var(--gold-l);border-bottom:1px solid var(--border)}
+.users-table td{padding:10px 16px;font-size:.82rem;border-bottom:1px solid rgba(201,168,76,.06)}
+.users-table tr:last-child td{border-bottom:none}
+.role-tag{display:inline-flex;align-items:center;gap:5px;border-radius:12px;padding:3px 10px;font-size:.72rem;font-weight:700}
+.rt-admin{background:rgba(201,168,76,.12);color:var(--gold-l);border:1px solid rgba(201,168,76,.2)}
+.rt-accountant{background:rgba(74,158,204,.1);color:var(--blue);border:1px solid rgba(74,158,204,.2)}
+.rt-viewer{background:rgba(63,182,138,.1);color:var(--green);border:1px solid rgba(63,182,138,.2)}
+.btn-chpw{background:var(--s3);border:1px solid var(--border);color:var(--tx2);font-family:'Cairo',sans-serif;font-size:.75rem;padding:5px 10px;border-radius:7px;cursor:pointer;transition:all .2s}
+.btn-chpw:hover{border-color:var(--gold);color:var(--gold-l)}
+
+@media(max-width:700px){
+  .nav{padding:0 14px}.nav-tabs .tab-btn span{display:none}
+  .page{padding:18px 12px}.stats-row{grid-template-columns:1fr 1fr}
+  .controls{flex-direction:column}.srch{min-width:100%}.filt{min-width:100%}
+  thead th:nth-child(3){display:none}tbody td:nth-child(3){display:none}
+  .balance-row{grid-template-columns:1fr}
+  .exp-form{flex-direction:column}
+  .nav-right .role-badge .rb-name{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ LOGIN SCREEN ══════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="ico">🌿</div>
+      <h1>مبادرة وحدة وتعمير ودنور الدائم</h1>
+      <p>لوحة إدارة الاشتراكات</p>
+    </div>
+
+    <div class="login-divider">اختر دورك</div>
+    <div class="login-roles">
+      <div class="role-hint" id="rh-admin" onclick="selectRole('admin')">
+        <div class="rh-ico">👑</div>
+        <div class="rh-name">مشرف</div>
+        <div class="rh-desc">كامل الصلاحيات</div>
+      </div>
+      <div class="role-hint" id="rh-accountant" onclick="selectRole('accountant')">
+        <div class="rh-ico">📊</div>
+        <div class="rh-name">محاسب</div>
+        <div class="rh-desc">رفع وتعديل</div>
+      </div>
+      <div class="role-hint" id="rh-viewer" onclick="selectRole('viewer')">
+        <div class="rh-ico">👁️</div>
+        <div class="rh-name">مشاهد</div>
+        <div class="rh-desc">عرض فقط</div>
+      </div>
+    </div>
+
+    <div id="loginErr" class="login-err">❌ كلمة المرور غير صحيحة</div>
+
+    <label>كلمة المرور</label>
+    <div style="position:relative;margin-bottom:18px">
+      <input type="password" id="pwInput" placeholder="أدخل كلمة المرور..."
+        autocomplete="current-password" autocorrect="off" autocapitalize="none" spellcheck="false"
+        style="margin-bottom:0;padding-left:48px;width:100%;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px 48px 12px 16px;color:var(--tx);font-family:Cairo,sans-serif;font-size:.92rem;outline:none;transition:border-color .2s"
+        onkeydown="if(event.key==='Enter')doLogin()">
+      <button onclick="togglePw()" type="button"
+        style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.1rem;padding:4px">👁</button>
+    </div>
+    <button class="btn-login" onclick="doLogin()">🔓 دخول</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="mainNav" style="display:none">
+  <div class="logo">
+    <div class="logo-icon">🌿</div>
+    <div>
+      <h1>مبادرة وحدة وتعمير ودنور الدائم</h1>
+      <p>لوحة إدارة الاشتراكات</p>
+    </div>
+  </div>
+  <div class="nav-tabs" id="navTabs">
+    <button class="tab-btn active" onclick="showPage('upload')" id="tab-upload">
+      📊 <span>الاشتراكات</span>
+    </button>
+    <button class="tab-btn" onclick="showPage('reports')" id="tab-reports">
+      📅 <span>التقارير الشهرية</span>
+      <span class="badge" id="months-count">0</span>
+    </button>
+    <button class="tab-btn" onclick="showPage('admin')" id="tab-admin" style="display:none">
+      ⚙️ <span>الإدارة</span>
+    </button>
+  </div>
+  <div class="nav-right">
+    <div class="role-badge" id="roleBadge">
+      <span class="rb-ico">👤</span>
+      <span class="rb-name" id="roleLabel">—</span>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">خروج ↩</button>
+  </div>
+</nav>
+
+<!-- ═══════════ PAGE 1: UPLOAD ═══════════ -->
+<div class="page active" id="page-upload" style="display:none">
+
+  <div class="upload-card" id="uploadZone">
+    <div class="upload-icon">📂</div>
+    <h3>استيراد بيانات الاشتراكات</h3>
+    <p>يمكنك رفع ملف يحتوي على شيت واحد أو أكثر — كل شيت = شهر مستقل</p>
+    <p style="margin-top:8px;font-size:.78rem;color:var(--gold-l)">📌 اسم الشيت يُستخدم اسم الشهر — مثال: يناير 2025 أو فبراير 2025</p>
+    <button class="btn-upload" onclick="document.getElementById('fileInput').click()">📤 اختر ملف Excel</button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls">
+  </div>
+  <div id="importSummary" style="display:none;margin-bottom:20px"></div>
+
+  <div id="statsSection" style="display:none">
+    <div class="stats-row" id="statsGrid">
+      <div class="stat gold"><div class="stat-ico">👥</div><div class="stat-lbl">عدد المشتركين</div><div class="stat-val" id="sCount">0</div><div class="stat-sub">مشترك مسجّل</div></div>
+      <div class="stat green"><div class="stat-ico">💰</div><div class="stat-lbl">إجمالي الاشتراكات</div><div class="stat-val" id="sTotal">0</div><div class="stat-sub">جنيه سوداني</div></div>
+      <div class="stat blue"><div class="stat-ico">📅</div><div class="stat-lbl">شهر الاشتراكات</div><div class="stat-val" id="sMonth" style="font-size:1rem;padding-top:4px">—</div><div class="stat-sub" id="sYear"></div></div>
+      <div class="stat purple"><div class="stat-ico">📈</div><div class="stat-lbl">متوسط الاشتراك</div><div class="stat-val" id="sAvg">0</div><div class="stat-sub">جنيه للمشترك</div></div>
+    </div>
+
+    <div class="controls">
+      <div class="srch"><span class="srch-ico">🔍</span><input type="text" id="searchInput" placeholder="ابحث بالاسم..." oninput="filterData()"></div>
+      <select class="filt" id="amtFilt" onchange="filterData()">
+        <option value="">جميع المبالغ</option>
+        <option value="asc">الأقل أولاً</option>
+        <option value="desc">الأعلى أولاً</option>
+        <option value="500">أكثر من 500</option>
+        <option value="1000">أكثر من 1000</option>
+        <option value="5000">أكثر من 5000</option>
+      </select>
+      <button class="btn-sm" onclick="resetFilt()">🔄 إعادة تعيين</button>
+      <button class="btn-sm btn-wa" onclick="openWA()">📸 إرسال لواتساب</button>
+    </div>
+
+    <div class="tbl-wrap">
+      <div class="tbl-head">
+        <div class="tbl-title">🗂️ قائمة المشتركين <span class="badge" id="filtCount">0</span></div>
+      </div>
+      <div class="tbl-info" id="tblInfo"></div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>الترتيب</th><th>الاسم</th><th>المبلغ (جنيه)</th></tr></thead>
+          <tbody id="tblBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="emptyState" style="display:none"><div class="ei">🔎</div><p>لا توجد نتائج مطابقة</p></div>
+    </div>
+
+    <!-- EXPENSES SECTION -->
+    <div class="exp-section" id="expSection">
+      <div class="exp-header">
+        <div class="exp-title">💸 المنصرفات — <span id="expMonthLabel" style="color:var(--gold-l)">—</span></div>
+      </div>
+      <div class="exp-body">
+        <div class="exp-form" id="expForm">
+          <input type="text" id="expDesc" class="inp-desc" placeholder="وصف المنصرف (مثال: إيجار، كهرباء...)" />
+          <input type="number" id="expAmt" class="inp-amt" placeholder="المبلغ (ج.س)" min="0" />
+          <button class="btn-add-exp" onclick="addExpense()">➕ إضافة</button>
+        </div>
+        <div class="exp-list" id="expList"></div>
+        <div class="balance-row" id="balanceRow">
+          <div class="bal-box income"><div class="bl-lbl">إجمالي الاشتراكات</div><div class="bl-val" id="balIncome">0</div></div>
+          <div class="bal-box expense"><div class="bl-lbl">إجمالي المنصرفات</div><div class="bl-val" id="balExpense">0</div></div>
+          <div class="bal-box surplus" id="balBox"><div class="bl-lbl" id="balLabel">الرصيد</div><div class="bl-val" id="balValue">0</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 2: REPORTS ═══════════ -->
+<div class="page" id="page-reports" style="display:none">
+  <div class="rpt-header">
+    <h2>📅 التقارير الشهرية</h2>
+    <div class="rpt-actions">
+      <button class="btn-sm btn-wa" onclick="openWA()">📸 إرسال لواتساب</button>
+      <button class="btn-danger" id="btnClearAll" onclick="confirmClearAll()">🗑️ حذف جميع البيانات</button>
+    </div>
+  </div>
+
+  <div class="summary-section" id="summarySection" style="display:none">
+    <div class="ss-title">📊 مقارنة الاشتراكات الشهرية</div>
+    <div class="chart-bars" id="chartBars"></div>
+  </div>
+
+  <div class="stats-row" id="overallStats" style="display:none">
+    <div class="stat gold"><div class="stat-ico">📦</div><div class="stat-lbl">إجمالي الأشهر المحفوظة</div><div class="stat-val" id="oMonths">0</div><div class="stat-sub">شهر</div></div>
+    <div class="stat green"><div class="stat-ico">💰</div><div class="stat-lbl">إجمالي كل الاشتراكات</div><div class="stat-val" id="oTotal">0</div><div class="stat-sub">جنيه سوداني</div></div>
+    <div class="stat blue"><div class="stat-ico">👥</div><div class="stat-lbl">إجمالي عدد المشتركين</div><div class="stat-val" id="oSubs">0</div><div class="stat-sub">مشترك (جميع الأشهر)</div></div>
+    <div class="stat purple"><div class="stat-ico">📈</div><div class="stat-lbl">متوسط الاشتراك الكلي</div><div class="stat-val" id="oAvg">0</div><div class="stat-sub">جنيه سوداني</div></div>
+  </div>
+
+  <div class="months-grid" id="monthsGrid"></div>
+  <div class="rpt-empty" id="rptEmpty">
+    <div class="rei">📭</div>
+    <p>لا توجد بيانات محفوظة بعد.<br>ارفع ملف Excel من صفحة الاشتراكات لبدء الحفظ.</p>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 3: ADMIN ═══════════ -->
+<div class="page" id="page-admin" style="display:none">
+  <div class="rpt-header">
+    <h2>⚙️ إدارة المستخدمين والصلاحيات</h2>
+  </div>
+
+  <div class="admin-panel">
+    <div class="admin-panel-title">👥 المستخدمون والكلمات السرية</div>
+    <div style="background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:.82rem;line-height:2">
+      <div style="font-weight:700;color:var(--gold-l);margin-bottom:6px">📝 كيف تغيّر كلمة المرور؟</div>
+      <div>١. افتح الملف index.html في GitHub</div>
+      <div>٢. ابحث عن كلمة: <b style="color:var(--gold-l)">const PASSWORDS</b></div>
+      <div>٣. غيّر الكلمة واحفظ (Commit) — ستعمل على جميع الأجهزة فوراً ✅</div>
+    </div>
+    <table class="users-table">
+      <thead><tr><th>الدور</th><th>الصلاحيات</th><th>كلمة المرور</th><th></th></tr></thead>
+      <tbody id="usersTableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="admin-panel">
+    <div class="admin-panel-title">📋 ملخص الصلاحيات</div>
+    <table class="users-table">
+      <thead><tr><th>الميزة</th><th>👑 مشرف</th><th>📊 محاسب</th><th>👁️ مشاهد</th></tr></thead>
+      <tbody>
+        <tr><td>عرض البيانات والتقارير</td><td style="color:var(--green)">✅</td><td style="color:var(--green)">✅</td><td style="color:var(--green)">✅</td></tr>
+        <tr><td>رفع ملفات Excel</td><td style="color:var(--green)">✅</td><td style="color:var(--green)">✅</td><td style="color:var(--red)">❌</td></tr>
+        <tr><td>إضافة وحذف المنصرفات</td><td style="color:var(--green)">✅</td><td style="color:var(--green)">✅</td><td style="color:var(--red)">❌</td></tr>
+        <tr><td>حذف بيانات شهر</td><td style="color:var(--green)">✅</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td></tr>
+        <tr><td>حذف جميع البيانات</td><td style="color:var(--green)">✅</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td></tr>
+        <tr><td>إدارة المستخدمين وكلمات المرور</td><td style="color:var(--green)">✅</td><td style="color:var(--red)">❌</td><td style="color:var(--red)">❌</td></tr>
+        <tr><td>إرسال لواتساب</td><td style="color:var(--green)">✅</td><td style="color:var(--green)">✅</td><td style="color:var(--green)">✅</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- WHATSAPP MODAL -->
+<div class="modal-bg" id="waModal">
+  <div class="modal">
+    <h3>📱 إرسال لواتساب</h3>
+    <p>سيُحمَّل سكرين شوت للوحة وتُفتح محادثة واتساب تلقائياً</p>
+    <label>رقم الواتساب (مع رمز الدولة)</label>
+    <input type="tel" id="waNum" placeholder="+249912345678">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeWA()">إلغاء</button>
+      <button class="btn-send" onclick="sendWA()">📤 إرسال الآن</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-bg" id="confirmModal">
+  <div class="modal">
+    <h3>⚠️ تأكيد الحذف</h3>
+    <p>هل أنت متأكد من حذف جميع البيانات المحفوظة؟ لا يمكن التراجع عن هذا الإجراء.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">إلغاء</button>
+      <button class="btn-send" style="background:linear-gradient(135deg,#E05C5C,#A02020)" onclick="clearAll()">🗑️ حذف الكل</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-bg" id="chpwModal">
+  <div class="modal">
+    <h3>🔑 تغيير كلمة المرور</h3>
+    <p id="chpwRoleLabel">—</p>
+    <label>كلمة المرور الجديدة</label>
+    <input type="password" id="newPwInput" placeholder="أدخل كلمة المرور الجديدة...">
+    <label>تأكيد كلمة المرور</label>
+    <input type="password" id="confirmPwInput" placeholder="أعد الكتابة للتأكيد...">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeChpw()">إلغاء</button>
+      <button class="btn-send" onclick="saveNewPw()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════ AUTH CONFIG ══════════ */
+// كلمات المرور الافتراضية — يمكن تغييرها من لوحة الإدارة
+// ✏️ غيّر كلمات المرور هنا ثم ارفع الملف على GitHub
+const PASSWORDS = {
+  admin:      'admin123',      // 👑 المشرف
+  accountant: 'account2025',   // 📊 المحاسب
+  viewer:     'viewer2025'     // 👁️ المشاهد
+};
+
+function getPasswords(){ return PASSWORDS; }
+function savePasswords(pw){ /* كلمات المرور ثابتة في الكود */ }
+
+const ROLE_CONFIG = {
+  admin:      { label:'مشرف', ico:'👑', cls:'admin',      canUpload:true,  canExpense:true, canDelete:true,  canAdmin:true  },
+  accountant: { label:'محاسب', ico:'📊', cls:'accountant', canUpload:true,  canExpense:true, canDelete:false, canAdmin:false },
+  viewer:     { label:'مشاهد', ico:'👁️', cls:'viewer',     canUpload:false, canExpense:false,canDelete:false, canAdmin:false }
+};
+
+/* ══════════ AUTH STATE ══════════ */
+let currentRole = null;
+let selectedRole = null;
+let changingPwRole = null;
+
+function togglePw(){
+  const inp=document.getElementById("pwInput");
+  inp.type = inp.type==="password" ? "text" : "password";
+}
+
+function selectRole(role){
+  selectedRole = role;
+  document.querySelectorAll('.role-hint').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('rh-'+role).classList.add('selected');
+  document.getElementById('pwInput').focus();
+}
+
+function doLogin(){
+  if(!selectedRole){ toast('⚠️ اختر دورك أولاً','err'); return; }
+  const pw = document.getElementById('pwInput').value;
+  const passwords = getPasswords();
+  if(pw !== passwords[selectedRole]){
+    document.getElementById('loginErr').style.display='block';
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwInput').focus();
+    return;
+  }
+  document.getElementById('loginErr').style.display='none';
+  currentRole = selectedRole;
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainNav').style.display='flex';
+  // Show pages
+  document.querySelectorAll('.page').forEach(p=>p.style.display='');
+  showPage('upload');
+  applyRolePermissions();
+  toast(`✅ مرحباً! دخلت كـ ${ROLE_CONFIG[currentRole].label}`,'ok');
+}
+
+function doLogout(){
+  currentRole = null; selectedRole = null;
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('mainNav').style.display='none';
+  document.querySelectorAll('.page').forEach(p=>{p.style.display='none';p.classList.remove('active')});
+  document.getElementById('pwInput').value='';
+  document.getElementById('loginErr').style.display='none';
+  document.querySelectorAll('.role-hint').forEach(el=>el.classList.remove('selected'));
+}
+
+function applyRolePermissions(){
+  const rc = ROLE_CONFIG[currentRole];
+
+  // Role badge in nav
+  const badge = document.getElementById('roleBadge');
+  badge.className = 'role-badge '+rc.cls;
+  document.getElementById('roleLabel').textContent = rc.ico+' '+rc.label;
+
+  // Admin tab visibility
+  document.getElementById('tab-admin').style.display = rc.canAdmin ? 'flex' : 'none';
+
+  // Upload zone
+  const uz = document.getElementById('uploadZone');
+  if(!rc.canUpload){
+    uz.style.pointerEvents='none'; uz.style.opacity='.4';
+    uz.querySelector('h3').textContent='🔒 رفع الملفات متاح للمحاسب والمشرف فقط';
+  } else {
+    uz.style.pointerEvents=''; uz.style.opacity='';
+    uz.querySelector('h3').textContent='استيراد بيانات الاشتراكات';
+  }
+
+  // Expense form
+  const expForm = document.getElementById('expForm');
+  if(!rc.canExpense){ expForm.style.display='none'; }
+  else { expForm.style.display=''; }
+
+  // Delete buttons (handled dynamically in renderReports)
+  // Clear all button
+  const btnClear = document.getElementById('btnClearAll');
+  if(!rc.canDelete){ btnClear.style.display='none'; } else { btnClear.style.display=''; }
+
+  // Re-render if on reports page
+  if(document.getElementById('page-reports').classList.contains('active')) renderReports();
+  if(rc.canAdmin) renderAdminPanel();
+}
+
+/* ══════════ ADMIN PANEL ══════════ */
+function renderAdminPanel(){
+  const tbody = document.getElementById('usersTableBody');
+  tbody.innerHTML = Object.entries(ROLE_CONFIG).map(([role,rc])=>`
+    <tr>
+      <td><span class="role-tag rt-${role}">${rc.ico} ${rc.label}</span></td>
+      <td style="font-size:.75rem;color:var(--tx2)">${role==='admin'?'كاملة':role==='accountant'?'رفع + تعديل':'عرض فقط'}</td>
+      <td style="font-family:monospace;letter-spacing:.05em;color:var(--tx2)">${'●'.repeat(Math.min(PASSWORDS[role].length,8))}</td>
+      <td style="font-size:.72rem;color:var(--tx2)">عدّل الكود وارفعه</td>
+    </tr>`).join('');
+}
+
+function openChpw(role){ toast('لتغيير كلمة المرور عدّل الكود مباشرة في GitHub','err'); }
+function closeChpw(){ document.getElementById('chpwModal').classList.remove('open'); }
+function saveNewPw(){ closeChpw(); }
+
+/* ══════════ STATE ══════════ */
+const STORAGE_KEY = 'wohda_months_v2';
+let allData = [], filteredData = [];
+let activeMonthKey = null;
+const AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+function getMonthName(m){ return AR_MONTHS[parseInt(m)-1] || '—' }
+
+/* ══════════ LOCAL STORAGE ══════════ */
+function loadSavedMonths(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {} }catch(e){ return {} } }
+function saveMonths(data){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+function deleteMonth(key){ const d=loadSavedMonths(); delete d[key]; saveMonths(d); }
+
+/* ══════════ PAGES ══════════ */
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+  if(name==='reports') renderReports();
+  if(name==='admin' && currentRole==='admin') renderAdminPanel();
+}
+
+/* ══════════ DRAG & DROP ══════════ */
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('over')});
+zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
+zone.addEventListener('drop',e=>{
+  e.preventDefault();zone.classList.remove('over');
+  if(!currentRole || !ROLE_CONFIG[currentRole].canUpload){ toast('🔒 غير مسموح لك برفع الملفات','err'); return; }
+  const f=e.dataTransfer.files[0]; if(f) processFile(f);
+});
+document.getElementById('fileInput').addEventListener('change',e=>{
+  if(!currentRole || !ROLE_CONFIG[currentRole].canUpload){ toast('🔒 غير مسموح لك برفع الملفات','err'); return; }
+  if(e.target.files[0]) processFile(e.target.files[0]);
+});
+
+/* ══════════ PARSE SHEET NAME ══════════ */
+function parseSheetName(name){
+  const monthMap = {
+    'يناير':1,'جانفي':1,'january':1,'jan':1,
+    'فبراير':2,'فيفري':2,'february':2,'feb':2,
+    'مارس':3,'march':3,'mar':3,
+    'أبريل':4,'ابريل':4,'april':4,'apr':4,
+    'مايو':5,'may':5,
+    'يونيو':6,'june':6,'jun':6,
+    'يوليو':7,'july':7,'jul':7,
+    'أغسطس':8,'اغسطس':8,'august':8,'aug':8,
+    'سبتمبر':9,'september':9,'sep':9,
+    'أكتوبر':10,'اكتوبر':10,'october':10,'oct':10,
+    'نوفمبر':11,'november':11,'nov':11,
+    'ديسمبر':12,'december':12,'dec':12
+  };
+  const lower = name.trim().toLowerCase();
+  let month=null, year=null;
+  for(const [k,v] of Object.entries(monthMap)){ if(lower.includes(k)){month=v;break;} }
+  const yMatch = name.match(/20\d{2}/); if(yMatch) year=yMatch[0];
+  if(!month){ const nm=name.match(/(\d{1,2})[-\/](\d{4})/); if(nm){month=parseInt(nm[1]);year=nm[2];} const mn=name.match(/(\d{4})[-\/](\d{1,2})/); if(mn){year=mn[1];month=parseInt(mn[2]);} }
+  if(!year) year=new Date().getFullYear().toString();
+  if(!month) month=null;
+  return {month,year,label:name.trim()};
+}
+
+/* ══════════ PROCESS FILE ══════════ */
+function processFile(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      if(!wb.SheetNames.length){toast('❌ الملف فارغ','err');return;}
+      const saved=loadSavedMonths();
+      const results=[], skippedSheets=[];
+      wb.SheetNames.forEach(sheetName=>{
+        const sheet=wb.Sheets[sheetName];
+        const json=XLSX.utils.sheet_to_json(sheet,{defval:''});
+        if(!json.length){skippedSheets.push(sheetName+' (فارغ)');return;}
+        const keys=Object.keys(json[0]);
+        const rk=keys.find(k=>/ترتيب|رقم|#|rank|id|no/i.test(k))||keys[0];
+        const nk=keys.find(k=>/اسم|name/i.test(k))||keys[1];
+        const ak=keys.find(k=>/مبلغ|amount|قيمة|اشتراك|value/i.test(k))||keys[2];
+        const rows=json.map((row,i)=>({rank:row[rk]||(i+1),name:String(row[nk]||'—'),amount:parseFloat(String(row[ak]).replace(/[,،]/g,''))||0})).filter(r=>r.name&&r.name!=='—');
+        if(!rows.length){skippedSheets.push(sheetName+' (لا بيانات)');return;}
+        const parsed=parseSheetName(sheetName);
+        const month=parsed.month||1; const year=parsed.year;
+        const monthKey=`${year}-${String(month).padStart(2,'0')}`;
+        saved[monthKey]={month:String(month),year,label:parsed.label,data:rows,savedAt:new Date().toLocaleDateString('ar-SA')};
+        const total=rows.reduce((s,r)=>s+r.amount,0);
+        results.push({sheetName,monthKey,month,year,count:rows.length,total});
+      });
+      if(!results.length){toast('❌ لم يتم استيراد أي بيانات صالحة','err');return;}
+      saveMonths(saved);
+      const last=results[results.length-1];
+      allData=saved[last.monthKey].data; filteredData=[...allData]; activeMonthKey=last.monthKey;
+      updateStats(last.month,last.year); renderTable();
+      document.getElementById('statsSection').style.display='block';
+      document.getElementById('months-count').textContent=Object.keys(loadSavedMonths()).length;
+      showImportSummary(results,skippedSheets);
+    }catch(err){toast('❌ خطأ: '+err.message,'err');console.error(err);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ══════════ IMPORT SUMMARY ══════════ */
+function showImportSummary(results,skipped){
+  const box=document.getElementById('importSummary');
+  const total=results.reduce((s,r)=>s+r.count,0);
+  box.style.display='block';
+  box.innerHTML=`<div style="background:var(--s1);border:1px solid rgba(63,182,138,.3);border-radius:14px;padding:16px 20px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <span style="font-size:1.2rem">✅</span><strong style="color:var(--green)">تم الاستيراد بنجاح</strong>
+      <span style="color:var(--tx2);font-size:.8rem">— ${results.length} شيت، ${total} مشترك</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">
+      ${results.map(r=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:.78rem;cursor:pointer;transition:border-color .2s"
+          onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor=''"
+          onclick="switchToMonth('${r.monthKey}')">
+        <span style="color:var(--gold-l);font-weight:700">${getMonthName(r.month)} ${r.year}</span>
+        <span style="color:var(--tx2);margin-right:6px">${r.count} مشترك</span>
+      </div>`).join('')}
+      ${skipped.length?`<div style="color:var(--red);font-size:.75rem;align-self:center">⚠️ تم تخطي: ${skipped.join('، ')}</div>`:''}
+    </div>
+  </div>`;
+  toast(`✅ تم استيراد ${results.length} شهر (${total} مشترك)`,'ok');
+}
+
+/* ══════════ SWITCH MONTH ══════════ */
+function switchToMonth(key){
+  const saved=loadSavedMonths(); const m=saved[key]; if(!m) return;
+  allData=m.data; filteredData=[...allData]; activeMonthKey=key;
+  updateStats(m.month,m.year); renderTable();
+  document.getElementById('statsSection').scrollIntoView({behavior:'smooth'});
+}
+
+/* ══════════ STATS ══════════ */
+function updateStats(month,year){
+  const total=allData.reduce((s,r)=>s+r.amount,0);
+  const avg=allData.length?Math.round(total/allData.length):0;
+  document.getElementById('sCount').textContent=allData.length.toLocaleString('ar');
+  document.getElementById('sTotal').textContent=total.toLocaleString('ar');
+  document.getElementById('sAvg').textContent=avg.toLocaleString('ar');
+  document.getElementById('sMonth').textContent=getMonthName(month);
+  document.getElementById('sYear').textContent=year;
+  renderExpenses();
+}
+
+/* ══════════ TABLE ══════════ */
+function renderTable(){
+  const tbody=document.getElementById('tblBody');
+  const empty=document.getElementById('emptyState');
+  document.getElementById('filtCount').textContent=filteredData.length;
+  if(!filteredData.length){tbody.innerHTML='';empty.style.display='block';document.getElementById('tblInfo').textContent='';return;}
+  empty.style.display='none';
+  document.getElementById('tblInfo').textContent=filteredData.length<allData.length?`عرض ${filteredData.length} من ${allData.length} مشترك`:'';
+  tbody.innerHTML=filteredData.map(r=>{
+    const rc=r.rank==1?'r1':r.rank==2?'r2':r.rank==3?'r3':'ro';
+    return `<tr><td><span class="rnk ${rc}">${r.rank}</span></td><td class="nm">${esc(r.name)}</td><td class="amt">${r.amount.toLocaleString('ar')} ج.س</td></tr>`;
+  }).join('');
+}
+
+function filterData(){
+  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  const s=document.getElementById('amtFilt').value;
+  let res=allData.filter(r=>!q||r.name.toLowerCase().includes(q)||String(r.amount).includes(q));
+  if(s==='asc') res.sort((a,b)=>a.amount-b.amount);
+  else if(s==='desc') res.sort((a,b)=>b.amount-a.amount);
+  else if(parseInt(s)) res=res.filter(r=>r.amount>parseInt(s));
+  filteredData=res; renderTable();
+}
+
+function resetFilt(){
+  document.getElementById('searchInput').value='';
+  document.getElementById('amtFilt').value='';
+  filteredData=[...allData]; renderTable();
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+
+/* ══════════ REPORTS PAGE ══════════ */
+function renderReports(){
+  const saved=loadSavedMonths();
+  const keys=Object.keys(saved).sort();
+  document.getElementById('months-count').textContent=keys.length;
+  const isEmpty=!keys.length;
+  document.getElementById('rptEmpty').style.display=isEmpty?'block':'none';
+  document.getElementById('summarySection').style.display=isEmpty?'none':'block';
+  document.getElementById('overallStats').style.display=isEmpty?'none':'grid';
+  if(isEmpty){document.getElementById('monthsGrid').innerHTML='';return;}
+
+  let oTotal=0,oSubs=0;
+  keys.forEach(k=>{const m=saved[k];oTotal+=m.data.reduce((s,r)=>s+r.amount,0);oSubs+=m.data.length;});
+  const oAvg=oSubs?Math.round(oTotal/oSubs):0;
+  document.getElementById('oMonths').textContent=keys.length;
+  document.getElementById('oTotal').textContent=oTotal.toLocaleString('ar');
+  document.getElementById('oSubs').textContent=oSubs.toLocaleString('ar');
+  document.getElementById('oAvg').textContent=oAvg.toLocaleString('ar');
+  renderChart(saved,keys);
+
+  const canDel = currentRole && ROLE_CONFIG[currentRole].canDelete;
+  document.getElementById('monthsGrid').innerHTML=keys.map(k=>{
+    const m=saved[k];
+    const total=m.data.reduce((s,r)=>s+r.amount,0);
+    const expenses=(m.expenses||[]).reduce((s,e)=>s+e.amount,0);
+    const balance=total-expenses;
+    const balClass=balance>=0?'bal-surplus':'bal-deficit';
+    const balText=balance>=0?`فائض: ${balance.toLocaleString('ar')} ج.س`:`عجز: ${Math.abs(balance).toLocaleString('ar')} ج.س`;
+    return `<div class="month-card" onclick="showMonthDetail('${k}')">
+      <div class="mc-top">
+        <div><div class="mc-name">${getMonthName(m.month)} ${m.year}</div><div class="mc-year">تاريخ الرفع: ${m.savedAt||'—'}</div></div>
+        ${canDel?`<button class="mc-del" onclick="event.stopPropagation();deleteMonthConfirm('${k}')" title="حذف">🗑️</button>`:'<span style="font-size:.7rem;color:var(--tx2)">🔒</span>'}
+      </div>
+      <div class="mc-body">
+        <div class="mc-stat green"><div class="ms-lbl">إجمالي الاشتراكات</div><div class="ms-val">${total.toLocaleString('ar')}</div></div>
+        <div class="mc-stat gold"><div class="ms-lbl">عدد المشتركين</div><div class="ms-val">${m.data.length}</div></div>
+        <div class="mc-stat blue"><div class="ms-lbl">إجمالي المنصرفات</div><div class="ms-val" style="color:var(--red)">${expenses.toLocaleString('ar')}</div></div>
+      </div>
+      <div class="mc-balance"><span class="bal-label">الرصيد الشهري:</span><span class="${balClass}">${balance>=0?'✅':'⚠️'} ${balText}</span></div>
+      <div class="mc-foot">📋 انقر لعرض التفاصيل</div>
+    </div>`;
+  }).join('');
+}
+
+function renderChart(saved,keys){
+  const bars=document.getElementById('chartBars');
+  const totals=keys.map(k=>saved[k].data.reduce((s,r)=>s+r.amount,0));
+  const maxVal=Math.max(...totals,1);
+  bars.innerHTML=keys.map((k,i)=>{
+    const m=saved[k];const total=totals[i];
+    const h=Math.max(10,Math.round((total/maxVal)*120));
+    return `<div class="bar-group"><div class="bar-wrap"><div class="bar-fill" style="height:${h}px"><div class="bar-tip">${total.toLocaleString('ar')} ج.س<br>${m.data.length} مشترك</div></div></div><div class="bar-lbl">${getMonthName(m.month)}<br>${m.year}</div></div>`;
+  }).join('');
+}
+
+/* ══════════ MONTH DETAIL MODAL ══════════ */
+function showMonthDetail(key){
+  const saved=loadSavedMonths(); const m=saved[key]; if(!m) return;
+  const total=m.data.reduce((s,r)=>s+r.amount,0);
+  const avg=m.data.length?Math.round(total/m.data.length):0;
+  const expenses=(m.expenses||[]);
+  const totalExp=expenses.reduce((s,e)=>s+e.amount,0);
+  const balance=total-totalExp;
+  const balClass=balance>=0?'color:var(--green)':'color:var(--red)';
+  const balText=balance>=0?`فائض: ${balance.toLocaleString('ar')} ج.س`:`عجز: ${Math.abs(balance).toLocaleString('ar')} ج.س`;
+
+  const modal=document.createElement('div');
+  modal.className='modal-bg open';
+  modal.innerHTML=`<div class="modal" style="width:580px;max-width:95vw">
+    <h3>📋 ${getMonthName(m.month)} ${m.year}</h3>
+    <p>المشتركون: ${m.data.length} | الإجمالي: ${total.toLocaleString('ar')} ج.س | المتوسط: ${avg.toLocaleString('ar')} ج.س</p>
+    <div class="dm-content">
+      <table>
+        <thead style="position:sticky;top:0;background:var(--s1)">
+          <tr><th style="padding:8px 14px;text-align:right;font-size:.75rem;color:var(--gold-l)">الترتيب</th><th style="padding:8px 14px;text-align:right;font-size:.75rem;color:var(--gold-l)">الاسم</th><th style="padding:8px 14px;text-align:right;font-size:.75rem;color:var(--gold-l)">المبلغ</th></tr>
+        </thead>
+        <tbody>${m.data.map(r=>`<tr><td>${r.rank}</td><td>${esc(r.name)}</td><td class="amt">${r.amount.toLocaleString('ar')} ج.س</td></tr>`).join('')}</tbody>
+      </table>
+    </div>
+    <div class="modal-btns" style="margin-top:16px">
+      <button class="btn-cancel" onclick="this.closest('.modal-bg').remove()">إغلاق</button>
+      <button class="btn-sm btn-wa" onclick="loadMonthData('${key}');this.closest('.modal-bg').remove();showPage('upload')" style="flex:2;justify-content:center;padding:11px">📂 تحميل هذه البيانات</button>
+    </div>
+    ${expenses.length?`
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-weight:700;font-size:.88rem;margin-bottom:10px;color:var(--red)">💸 المنصرفات</div>
+      ${expenses.map(e=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(201,168,76,.06);font-size:.82rem"><span>${esc(e.desc)}</span><span style="color:var(--red);font-family:'Tajawal',sans-serif;font-weight:700">${e.amount.toLocaleString('ar')} ج.س</span></div>`).join('')}
+      <div style="display:flex;justify-content:space-between;margin-top:10px;font-weight:700;font-size:.9rem;padding-top:8px"><span>إجمالي المنصرفات</span><span style="color:var(--red);font-family:'Tajawal',sans-serif">${totalExp.toLocaleString('ar')} ج.س</span></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-weight:800;font-size:1rem;padding:10px;border-radius:9px;background:var(--s2);border:1px solid var(--border)"><span>${balance>=0?'✅ فائض':'⚠️ عجز'}</span><span style="${balClass};font-family:'Tajawal',sans-serif">${Math.abs(balance).toLocaleString('ar')} ج.س</span></div>
+    </div>`:''}
+  </div>`;
+  modal.addEventListener('click',e=>{if(e.target===modal)modal.remove()});
+  document.body.appendChild(modal);
+}
+
+function loadMonthData(key){
+  const saved=loadSavedMonths(); const m=saved[key]; if(!m) return;
+  allData=m.data; filteredData=[...allData]; activeMonthKey=key;
+  updateStats(m.month,m.year); renderTable();
+  document.getElementById('statsSection').style.display='block';
+  toast(`✅ تم تحميل بيانات ${getMonthName(m.month)} ${m.year}`,'ok');
+}
+
+/* ══════════ DELETE ══════════ */
+function deleteMonthConfirm(key){
+  if(!currentRole || !ROLE_CONFIG[currentRole].canDelete){ toast('🔒 غير مسموح لك بالحذف','err'); return; }
+  const saved=loadSavedMonths(); const m=saved[key];
+  if(!confirm(`هل تريد حذف بيانات ${getMonthName(m.month)} ${m.year}؟`)) return;
+  deleteMonth(key);
+  toast(`🗑️ تم حذف ${getMonthName(m.month)} ${m.year}`,'ok');
+  renderReports();
+}
+function confirmClearAll(){
+  if(!currentRole || !ROLE_CONFIG[currentRole].canDelete){ toast('🔒 غير مسموح لك بالحذف','err'); return; }
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm(){ document.getElementById('confirmModal').classList.remove('open'); }
+function clearAll(){
+  localStorage.removeItem(STORAGE_KEY);
+  closeConfirm(); renderReports();
+  toast('🗑️ تم حذف جميع البيانات','ok');
+}
+
+/* ══════════ EXPENSES ══════════ */
+function getExpenses(monthKey){ const saved=loadSavedMonths(); return (saved[monthKey]&&saved[monthKey].expenses)?saved[monthKey].expenses:[]; }
+function saveExpenses(monthKey,expenses){ const saved=loadSavedMonths(); if(!saved[monthKey]) return; saved[monthKey].expenses=expenses; saveMonths(saved); }
+
+function addExpense(){
+  if(!currentRole||!ROLE_CONFIG[currentRole].canExpense){ toast('🔒 غير مسموح لك بإضافة المنصرفات','err'); return; }
+  if(!activeMonthKey){ toast('⚠️ يجب تحميل بيانات شهر أولاً','err'); return; }
+  const desc=document.getElementById('expDesc').value.trim();
+  const amt=parseFloat(document.getElementById('expAmt').value);
+  if(!desc){ toast('⚠️ أدخل وصف المنصرف','err'); return; }
+  if(!amt||amt<=0){ toast('⚠️ أدخل مبلغاً صحيحاً','err'); return; }
+  const expenses=getExpenses(activeMonthKey);
+  expenses.push({id:Date.now(),desc,amount:amt});
+  saveExpenses(activeMonthKey,expenses);
+  document.getElementById('expDesc').value='';
+  document.getElementById('expAmt').value='';
+  renderExpenses();
+  toast('✅ تم إضافة المنصرف','ok');
+}
+
+function deleteExpense(id){
+  if(!currentRole||!ROLE_CONFIG[currentRole].canExpense){ toast('🔒 غير مسموح','err'); return; }
+  if(!activeMonthKey) return;
+  const expenses=getExpenses(activeMonthKey).filter(e=>e.id!==id);
+  saveExpenses(activeMonthKey,expenses); renderExpenses();
+}
+
+function renderExpenses(){
+  if(!activeMonthKey) return;
+  const expenses=getExpenses(activeMonthKey);
+  const saved=loadSavedMonths(); const m=saved[activeMonthKey];
+  const income=allData.reduce((s,r)=>s+r.amount,0);
+  const totalExp=expenses.reduce((s,e)=>s+e.amount,0);
+  const balance=income-totalExp;
+  document.getElementById('expMonthLabel').textContent=m?`${getMonthName(m.month)} ${m.year}`:'—';
+  const list=document.getElementById('expList');
+  const canExp=currentRole&&ROLE_CONFIG[currentRole].canExpense;
+  if(!expenses.length){ list.innerHTML=`<div style="text-align:center;color:var(--tx2);font-size:.82rem;padding:14px">لا توجد منصرفات مسجّلة لهذا الشهر</div>`; }
+  else { list.innerHTML=expenses.map(e=>`<div class="exp-item"><span class="exp-item-desc">${esc(e.desc)}</span><span class="exp-item-amt">${e.amount.toLocaleString('ar')} ج.س</span>${canExp?`<button class="btn-del-exp" onclick="deleteExpense(${e.id})" title="حذف">✕</button>`:''}</div>`).join(''); }
+  document.getElementById('balIncome').textContent=income.toLocaleString('ar')+' ج.س';
+  document.getElementById('balExpense').textContent=totalExp.toLocaleString('ar')+' ج.س';
+  document.getElementById('balValue').textContent=Math.abs(balance).toLocaleString('ar')+' ج.س';
+  const balBox=document.getElementById('balBox'); const balLabel=document.getElementById('balLabel');
+  balBox.className='bal-box '+(balance>=0?'surplus':'deficit');
+  balLabel.textContent=balance>=0?'✅ فائض':'⚠️ عجز';
+}
+
+/* ══════════ WHATSAPP ══════════ */
+function openWA(){ document.getElementById('waModal').classList.add('open'); }
+function closeWA(){ document.getElementById('waModal').classList.remove('open'); }
+
+async function sendWA(){
+  const num=document.getElementById('waNum').value.trim().replace(/\s+/g,'');
+  if(!num){ toast('⚠️ أدخل رقم الواتساب','err'); return; }
+  closeWA(); toast('📸 جاري التقاط الصورة...','ok');
+  try{
+    const activePage=document.querySelector('.page.active');
+    const captureEl=activePage.id==='page-upload'?document.getElementById('statsGrid'):document.getElementById('overallStats');
+    if(!captureEl){ toast('⚠️ لا توجد بيانات للإرسال','err'); return; }
+    const canvas=await html2canvas(captureEl,{backgroundColor:'#0D1117',scale:2,useCORS:true,logging:false});
+    const img=canvas.toDataURL('image/png');
+    const saved=loadSavedMonths(); const keys=Object.keys(saved);
+    const totals=keys.map(k=>saved[k].data.reduce((s,r)=>s+r.amount,0));
+    const grandTotal=totals.reduce((a,b)=>a+b,0);
+    const grandSubs=keys.reduce((a,k)=>a+saved[k].data.length,0);
+    let msg=`📊 *تقرير مبادرة وحدة وتعمير ودنور الدائم*\n\n`;
+    if(allData.length&&activePage.id==='page-upload'){
+      const t=allData.reduce((s,r)=>s+r.amount,0);
+      msg+=`📅 الشهر: ${document.getElementById('sMonth').textContent} ${document.getElementById('sYear').textContent}\n`;
+      msg+=`👥 المشتركون: ${allData.length}\n`;
+      msg+=`💰 الإجمالي: ${t.toLocaleString('ar')} جنيه\n`;
+    } else if(keys.length){
+      msg+=`📦 الأشهر: ${keys.length}\n`;
+      msg+=`👥 مجموع المشتركين: ${grandSubs.toLocaleString('ar')}\n`;
+      msg+=`💰 إجمالي كل الاشتراكات: ${grandTotal.toLocaleString('ar')} جنيه\n`;
+    }
+    msg+=`\n📅 ${new Date().toLocaleDateString('ar-SA')}`;
+    const clean=num.replace(/^\+/,'');
+    window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`,'_blank');
+    const a=document.createElement('a'); a.href=img; a.download='تقرير_وحدة_وتعمير.png'; a.click();
+    toast('✅ تم فتح واتساب + تحميل الصورة','ok');
+  }catch(err){ toast('❌ فشل التقاط الصورة','err'); }
+}
+
+/* ══════════ TOAST ══════════ */
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* ══════════ INIT ══════════ */
+(function init(){
+  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  ['waModal','confirmModal','chpwModal'].forEach(id=>{
+    document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
+  });
+})();
+</script>
+</body>
+</html>
