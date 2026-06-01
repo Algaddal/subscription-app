@@ -6,6 +6,8 @@
 <title>مبادرة وحدة وتعمير ودنور الدائم</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Cairo:wght@300;400;600;700;900&display=swap');
 
@@ -325,6 +327,7 @@ tbody td{padding:12px 20px;font-size:.88rem;vertical-align:middle}
     </button>
   </div>
   <div class="nav-right">
+    <div class="nav-live" id="syncStatus"><div class="dot"></div>متزامن</div>
     <div class="role-badge" id="roleBadge">
       <span class="rb-ico">👤</span>
       <span class="rb-name" id="roleLabel">—</span>
@@ -520,9 +523,9 @@ tbody td{padding:12px 20px;font-size:.88rem;vertical-align:middle}
 // كلمات المرور الافتراضية — يمكن تغييرها من لوحة الإدارة
 // ✏️ غيّر كلمات المرور هنا ثم ارفع الملف على GitHub
 const PASSWORDS = {
-  admin:      '@P19872320',      // 👑 المشرف
-  accountant: '@P19872320',   // 📊 المحاسب
-  viewer:     '1234'     // 👁️ المشاهد
+  admin:      'admin123',      // 👑 المشرف
+  accountant: 'account2025',   // 📊 المحاسب
+  viewer:     'viewer2025'     // 👁️ المشاهد
 };
 
 function getPasswords(){ return PASSWORDS; }
@@ -569,6 +572,7 @@ function doLogin(){
   document.querySelectorAll('.page').forEach(p=>p.style.display='');
   showPage('upload');
   applyRolePermissions();
+  startRealtimeSync();
   toast(`✅ مرحباً! دخلت كـ ${ROLE_CONFIG[currentRole].label}`,'ok');
 }
 
@@ -634,17 +638,58 @@ function openChpw(role){ toast('لتغيير كلمة المرور عدّل ال
 function closeChpw(){ document.getElementById('chpwModal').classList.remove('open'); }
 function saveNewPw(){ closeChpw(); }
 
+/* ══════════ FIREBASE INIT ══════════ */
+const firebaseConfig = {
+  databaseURL: "https://subscription-app-865cd-default-rtdb.firebaseio.com"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const MONTHS_REF = db.ref('wohda_months');
+
 /* ══════════ STATE ══════════ */
-const STORAGE_KEY = 'wohda_months_v2';
 let allData = [], filteredData = [];
 let activeMonthKey = null;
+let cachedMonths = {};
 const AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 function getMonthName(m){ return AR_MONTHS[parseInt(m)-1] || '—' }
 
-/* ══════════ LOCAL STORAGE ══════════ */
-function loadSavedMonths(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {} }catch(e){ return {} } }
-function saveMonths(data){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-function deleteMonth(key){ const d=loadSavedMonths(); delete d[key]; saveMonths(d); }
+/* ══════════ FIREBASE STORAGE ══════════ */
+function loadSavedMonths(){ return cachedMonths || {}; }
+
+function saveMonths(data){
+  cachedMonths = data;
+  MONTHS_REF.set(data).catch(e=>console.error('Firebase save error:',e));
+}
+
+function deleteMonth(key){
+  delete cachedMonths[key];
+  MONTHS_REF.child(key).remove().catch(e=>console.error(e));
+}
+
+// Listen for real-time updates from all devices
+function startRealtimeSync(){
+  MONTHS_REF.on('value', snapshot => {
+    cachedMonths = snapshot.val() || {};
+    // Update badge
+    document.getElementById('months-count').textContent = Object.keys(cachedMonths).length;
+    // If on reports page, re-render
+    if(document.getElementById('page-reports').classList.contains('active')){
+      renderReports();
+    }
+    // If data loaded, refresh current view
+    if(activeMonthKey && cachedMonths[activeMonthKey]){
+      const m = cachedMonths[activeMonthKey];
+      allData = m.data; filteredData=[...allData];
+      updateStats(m.month, m.year);
+      renderTable();
+    }
+  }, error => {
+    console.error('Firebase sync error:', error);
+    toast('⚠️ تعذّر الاتصال بقاعدة البيانات','err');
+    const s = document.getElementById('syncStatus');
+    if(s) s.innerHTML = '<div class="dot" style="background:var(--red)"></div>غير متصل';
+  });
+}
 
 /* ══════════ PAGES ══════════ */
 function showPage(name){
@@ -928,7 +973,8 @@ function confirmClearAll(){
 }
 function closeConfirm(){ document.getElementById('confirmModal').classList.remove('open'); }
 function clearAll(){
-  localStorage.removeItem(STORAGE_KEY);
+  cachedMonths = {};
+  MONTHS_REF.remove().catch(e=>console.error(e));
   closeConfirm(); renderReports();
   toast('🗑️ تم حذف جميع البيانات','ok');
 }
