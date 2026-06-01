@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>مبادرة وحدة وتعمير ودنور الدائم</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -522,6 +525,9 @@ tbody td{padding:12px 20px;font-size:.88rem;vertical-align:middle}
 /* ══════════ AUTH CONFIG ══════════ */
 // كلمات المرور الافتراضية — يمكن تغييرها من لوحة الإدارة
 // ✏️ غيّر كلمات المرور هنا ثم ارفع الملف على GitHub
+// ⚡ مهم: عند تغيير كلمة المرور غيّر APP_VERSION أيضاً (مثلاً من v1 إلى v2)
+//         هذا يجبر جميع الأجهزة على تحميل النسخة الجديدة فوراً
+const APP_VERSION = 'v1';
 const PASSWORDS = {
   admin:      '@P19872320',      // 👑 المشرف
   accountant: '@P19872320',   // 📊 المحاسب
@@ -530,6 +536,21 @@ const PASSWORDS = {
 
 function getPasswords(){ return PASSWORDS; }
 function savePasswords(pw){ /* كلمات المرور ثابتة في الكود */ }
+
+// إجبار المتصفح على تحميل النسخة الجديدة عند تغيير APP_VERSION
+(function checkVersion(){
+  const stored = localStorage.getItem('wohda_app_version');
+  if(stored !== APP_VERSION){
+    localStorage.setItem('wohda_app_version', APP_VERSION);
+    if(stored !== null){
+      // نسخة جديدة — امسح الكاش وأعد التحميل
+      if('caches' in window){
+        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      }
+      window.location.reload(true);
+    }
+  }
+})();
 
 const ROLE_CONFIG = {
   admin:      { label:'مشرف', ico:'👑', cls:'admin',      canUpload:true,  canExpense:true, canDelete:true,  canAdmin:true  },
