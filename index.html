@@ -1811,11 +1811,12 @@ _db.ref('wodnour_settings').on('value', snap => {
 });
 
 // ── ٢. الاشتراكات والمصروفات (قسم أثرنا) ──────────
+// ── ٢+٥. الاشتراكات — listener واحد يخدم أثرنا والشفافية ──
 _db.ref('wohda_months').on('value', snap => {
   const months = snap.val() || {};
   const keys   = Object.keys(months).sort();
 
-  // مؤشر الحالة
+  // ── مؤشر الحالة ──
   const ind = document.getElementById('impactLiveIndicator');
   if (ind) ind.innerHTML = keys.length
     ? '<span style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(74,170,114,.1);border:1px solid rgba(74,170,114,.25);padding:.25rem .8rem;border-radius:50px;"><span style="width:7px;height:7px;background:#4aaa72;border-radius:50%;animation:impPulse 2s infinite;display:inline-block;"></span><span style="color:#4aaa72;font-size:.78rem;">بيانات حية — تتحدث تلقائياً</span></span>'
@@ -1823,56 +1824,51 @@ _db.ref('wohda_months').on('value', snap => {
 
   if (!keys.length) return;
 
+  // ── حساب الإجماليات ──
   let totalIncome=0, totalExpense=0, totalSubsAllMonths=0;
   keys.forEach(k => {
     const m = months[k];
-    totalIncome  += m.data.reduce((s,r) => s+r.amount, 0);
-    totalExpense += (m.expenses||[]).reduce((s,e) => s+e.amount, 0);
-    totalSubsAllMonths += m.data.length; // ← إجمالي كل الشهور
+    totalIncome         += (m.data||[]).reduce((s,r) => s+r.amount, 0);
+    totalExpense        += (m.expenses||[]).reduce((s,e) => s+e.amount, 0);
+    totalSubsAllMonths  += (m.data||[]).length;
   });
-
   const balance = totalIncome - totalExpense;
 
-  // تحديث بطاقات أثرنا الحية
+  // ── أثرنا: تحريك الأرقام ──
   const impGrid = document.getElementById('impactGrid');
-  if (!impGrid) return;
-
-  const doAnimate = () => {
-    _animNum(document.getElementById('imp-subs'),    totalSubsAllMonths); // ← إجمالي كل الشهور
-    _animNum(document.getElementById('imp-income'),  totalIncome);
-    _animNum(document.getElementById('imp-expense'), totalExpense);
-    _animNum(document.getElementById('imp-balance'), Math.abs(balance));
-    _animNum(document.getElementById('imp-months'),  keys.length);
-
-    const balEl  = document.getElementById('imp-balance');
-    const balLbl = document.getElementById('imp-balance-lbl');
-    if (balEl) balEl.style.color = balance>=0 ? 'var(--green-mid)' : '#c0392b';
-    if (balLbl) balLbl.textContent = balance>=0 ? '✅ الرصيد المتاح (ج.س)' : '⚠️ العجز الحالي (ج.س)';
-  };
-
-  const rect = impGrid.getBoundingClientRect();
-  if (rect.top < window.innerHeight && rect.bottom > 0) {
-    doAnimate();
-  } else {
-    const obs = new IntersectionObserver(en => {
-      if (en[0].isIntersecting) { doAnimate(); obs.disconnect(); }
-    }, { threshold:0.15 });
-    obs.observe(impGrid);
+  if (impGrid) {
+    const doAnimate = () => {
+      _animNum(document.getElementById('imp-subs'),    totalSubsAllMonths);
+      _animNum(document.getElementById('imp-income'),  totalIncome);
+      _animNum(document.getElementById('imp-expense'), totalExpense);
+      _animNum(document.getElementById('imp-balance'), Math.abs(balance));
+      _animNum(document.getElementById('imp-months'),  keys.length);
+      const balEl  = document.getElementById('imp-balance');
+      const balLbl = document.getElementById('imp-balance-lbl');
+      if (balEl) balEl.style.color = balance>=0 ? 'var(--green-mid)' : '#c0392b';
+      if (balLbl) balLbl.textContent = balance>=0 ? '✅ الرصيد المتاح (ج.س)' : '⚠️ العجز الحالي (ج.س)';
+    };
+    const rect = impGrid.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) { doAnimate(); }
+    else {
+      const obs = new IntersectionObserver(en => { if(en[0].isIntersecting){doAnimate();obs.disconnect();} }, {threshold:0.15});
+      obs.observe(impGrid);
+    }
   }
 
-  // الرسم البياني
+  // ── الرسم البياني ──
   const chartWrap = document.getElementById('impactChartWrap');
   const chartBars = document.getElementById('impactChartBars');
-  if (chartWrap && chartBars) {
+  if (chartWrap && chartBars && keys.length) {
     chartWrap.style.display = 'block';
-    const totals = keys.map(k => months[k].data.reduce((s,r)=>s+r.amount,0));
+    const totals = keys.map(k => (months[k].data||[]).reduce((s,r)=>s+r.amount,0));
     const maxV   = Math.max(...totals, 1);
     chartBars.innerHTML = keys.map((k,i) => {
       const m=months[k], h=Math.max(12, Math.round((totals[i]/maxV)*110));
-      const mn=_AR_MONTHS[(parseInt(m.month)-1)] || m.month;
+      const mn=_AR_MONTHS[(parseInt(m.month)-1)]||m.month;
       return `<div style="flex:1;min-width:44px;display:flex;flex-direction:column;align-items:center;gap:4px;">
         <div style="font-size:.6rem;color:#999">${_toAr(totals[i])}</div>
-        <div style="width:80%;height:${h}px;background:linear-gradient(180deg,var(--green-light),var(--green-deep));border-radius:6px 6px 0 0;" title="${mn} ${m.year}"></div>
+        <div style="width:80%;height:${h}px;background:linear-gradient(180deg,var(--green-light),var(--green-deep));border-radius:6px 6px 0 0;"></div>
         <div style="font-size:.62rem;color:#888;text-align:center;line-height:1.3">${mn}<br>${m.year}</div>
       </div>`;
     }).join('');
@@ -1880,60 +1876,64 @@ _db.ref('wohda_months').on('value', snap => {
     if (lastU && months[keys[keys.length-1]].savedAt)
       lastU.textContent = 'آخر تحديث: ' + months[keys[keys.length-1]].savedAt;
   }
-});
 
-// ── تحكم في ظهور بطاقات أثرنا ─────────────────────
-_db.ref('wodnour_settings/impactCards').on('value', snap => {
-  const vis = snap.val() || {};
-  document.querySelectorAll('[data-card-id]').forEach(card => {
-    const id = card.dataset.cardId;
-    // إذا لم يُحدَّد بعد → اعرض الكل افتراضياً
-    if (id in vis) {
-      card.style.display = vis[id] ? '' : 'none';
+  // ── الشفافية المالية ──
+  _db.ref('wodnour_settings/financeDisplay').once('value', dSnap => {
+    const disp = dSnap.val() || { mode:'last', monthKey:'' };
+    const AR_MF = _AR_MONTHS;
+    let displayKeys = disp.mode==='all' ? keys
+      : (disp.mode==='specific' && disp.monthKey && months[disp.monthKey]) ? [disp.monthKey]
+      : [keys[keys.length-1]];
+
+    let tInc=0, tExp=0;
+    const expCats = {};
+    displayKeys.forEach(k => {
+      const m = months[k];
+      tInc += (m.data||[]).reduce((s,r)=>s+r.amount,0);
+      (m.expenses||[]).forEach(e => { tExp+=e.amount; expCats[e.desc]=(expCats[e.desc]||0)+e.amount; });
+    });
+
+    const labelParts = displayKeys.map(k=>{ const m=months[k]; return (AR_MF[parseInt(m.month)-1]||'')+' '+m.year; });
+    const displayLabel = disp.mode==='all' ? 'جميع الأشهر' : labelParts.join(' + ');
+
+    const titleInc=document.getElementById('financeIncomeTitle');
+    const titleExp=document.getElementById('financeExpenseTitle');
+    const incRows=document.getElementById('financeIncomeRows');
+    const expRows=document.getElementById('financeExpenseRows');
+    const indicator=document.getElementById('financeMonthIndicator');
+    const monthLbl=document.getElementById('financeMonthLabel');
+
+    if(titleInc) titleInc.textContent = disp.mode==='all' ? '💰 إجمالي الإيرادات الكلية' : `💰 إيرادات ${displayLabel}`;
+    if(titleExp) titleExp.textContent = disp.mode==='all' ? '📤 إجمالي المصروفات الكلية' : `📤 مصروفات ${displayLabel}`;
+    if(incRows)  incRows.innerHTML  = `<div class="finance-item"><span class="label">اشتراكات المشتركين</span><span class="amount">${_toAr(tInc)} ج.س</span></div>`;
+    if(expRows) {
+      const cats=Object.entries(expCats);
+      expRows.innerHTML = cats.length
+        ? cats.map(([d,a])=>`<div class="finance-item"><span class="label">${d}</span><span class="amount expense">${_toAr(a)} ج.س</span></div>`).join('')
+        : `<div class="finance-item"><span class="label" style="color:#999">لا توجد مصروفات مسجلة</span><span class="amount expense">٠ ج.س</span></div>`;
+    }
+    const tiEl=document.getElementById('financeTotalIncome');
+    const teEl=document.getElementById('financeTotalExpense');
+    if(tiEl) tiEl.textContent=_toAr(tInc)+' ج.س';
+    if(teEl) teEl.textContent=_toAr(tExp)+' ج.س';
+    if(indicator&&monthLbl){indicator.style.display='block';monthLbl.textContent=displayLabel;}
+
+    // دونات
+    const DCOLS=['#4aaa72','#c9a84c','#3a9b9b','#8e6bbf','#e74c3c','#3498db'];
+    const dHole=document.getElementById('donutHole');
+    const dLeg=document.getElementById('donutLegend');
+    const dChart=document.getElementById('donutChart');
+    if(dHole) dHole.textContent=displayLabel;
+    const cats=Object.entries(expCats);
+    if(dLeg&&cats.length>0){
+      const tot=cats.reduce((s,[,v])=>s+v,0);
+      let p=0;
+      const segs=cats.map(([d,a],i)=>{ const pct=tot?Math.round((a/tot)*100):0;const fr=p;p+=pct;return{d,a,pct,color:DCOLS[i%DCOLS.length],fr}; });
+      if(dChart) dChart.style.background=`conic-gradient(${segs.map(s=>`${s.color} ${s.fr}% ${s.fr+s.pct}%`).join(',')})`;
+      dLeg.innerHTML=segs.map(s=>`<div class="legend-item"><div class="legend-dot" style="background:${s.color}"></div> ${s.d} (${s.pct}٪)</div>`).join('');
     }
   });
 });
-
-// ── ٣. قائمة المشتركين (قسم شركاؤنا) ──────────────
-_db.ref('wodnour_subscribers').on('value', snap => {
-  const data = snap.val() || {};
-  const arr  = Object.values(data);
-  window._honorList = arr; // تخزين للاستخدام في بناء البطاقات
-  if (typeof window._buildSubsFromFirebase === 'function') {
-    window._buildSubsFromFirebase(arr);
-  }
-});
-
-// ── ٤. طلبات الانضمام ──────────────────────────────
-window._saveJoinRequest = function(name, phone, location, level) {
-  const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
-  _db.ref('wodnour_requests').child(id).set({
-    id, name, phone, location, level,
-    status: 'pending',
-    date: new Date().toLocaleDateString('ar-SA'),
-    ts: Date.now()
-  });
-};
-
-// ── ٩. المشاريع من Firebase ────────────────────────
-let _allProjects = [];
-
-_db.ref('wodnour_projects').on('value', snap => {
-  const data = snap.val() || {};
-  _allProjects = Object.values(data).sort((a,b) => {
-    const order = { 'منجز':0, 'جارٍ':1, 'مستهدف':2 };
-    return (order[a.status]||3) - (order[b.status]||3);
-  });
-
-  const activeFilter = document.querySelector('.proj-filter-btn.active')?.dataset.pf || 'all';
-  renderProjects(_allProjects, activeFilter);
-});
-
-function filterProjects(filter, btn) {
-  document.querySelectorAll('.proj-filter-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderProjects(_allProjects, filter);
-}
 
 function renderProjects(projects, filter) {
   const grid = document.getElementById('projectsGrid');
@@ -1941,7 +1941,9 @@ function renderProjects(projects, filter) {
   const progressBars = document.getElementById('progressBars');
   if (!grid) return;
 
-  const filtered = filter === 'all' ? projects : projects.filter(p => p.status === filter);
+  const filtered = (filter === 'all' || !filter)
+    ? projects
+    : projects.filter(p => p.status === filter);
 
   if (!filtered.length) {
     grid.innerHTML = `
@@ -1953,26 +1955,25 @@ function renderProjects(projects, filter) {
     return;
   }
 
-  // config لكل حالة
   const STATUS_CFG = {
-    'منجز':    { bg:'linear-gradient(135deg,var(--green-deep),var(--green-light))', badgeCls:'badge-after',   badgeTxt:'✅ منجز',          statusCls:'status-done',     emoji:'🏫' },
-    'جارٍ':    { bg:'linear-gradient(135deg,#e65100,#ff8f00)',                       badgeCls:'badge-planned', badgeTxt:'🔄 جارٍ التنفيذ', statusCls:'status-progress', emoji:'⚡' },
-    'مستهدف':  { bg:'linear-gradient(135deg,#2980b9,#3a9b9b)',                       badgeCls:'badge-planned', badgeTxt:'📋 مستهدف',       statusCls:'status-planned',  emoji:'🎯' },
+    'منجز':   { bg:'linear-gradient(135deg,var(--green-deep),var(--green-light))', badgeCls:'badge-after',   badgeTxt:'✅ منجز',           statusCls:'status-done',     emoji:'🏫' },
+    'جارٍ':   { bg:'linear-gradient(135deg,#e65100,#ff8f00)',                      badgeCls:'badge-planned', badgeTxt:'🔄 جارٍ التنفيذ',  statusCls:'status-progress', emoji:'⚡' },
+    'مستهدف': { bg:'linear-gradient(135deg,#2980b9,#3a9b9b)',                      badgeCls:'badge-planned', badgeTxt:'📋 مستهدف',        statusCls:'status-planned',  emoji:'🎯' },
   };
 
   grid.innerHTML = filtered.map(p => {
     const cfg = STATUS_CFG[p.status] || STATUS_CFG['مستهدف'];
-    const pct = p.cost > 0 ? Math.min(100, Math.round((p.spent / p.cost) * 100)) : 0;
+    const pct = (p.cost > 0 && p.spent >= 0) ? Math.min(100, Math.round((p.spent / p.cost) * 100)) : 0;
     const costFmt = p.cost ? Number(p.cost).toLocaleString('ar-EG') + ' ج.س' : '—';
     return `
-      <div class="project-card reveal" data-status="${p.status}">
+      <div class="project-card" data-status="${p.status}" style="opacity:1;transform:none;">
         <div class="project-img" style="background:${cfg.bg}">
           ${cfg.emoji}
           <span class="before-after-badge ${cfg.badgeCls}">${cfg.badgeTxt}</span>
         </div>
         <div class="project-body">
           <h3>${p.name || ''}</h3>
-          ${p.school ? `<p style="font-size:.8rem;color:var(--green-mid);margin-bottom:.4rem">📍 ${p.school}</p>` : ''}
+          ${p.school ? `<p style="font-size:.8rem;color:var(--green-mid);margin-bottom:.4rem;font-weight:600">📍 ${p.school}</p>` : ''}
           <p>${p.desc || ''}</p>
           <div class="project-meta">
             <span class="project-cost">${costFmt}</span>
@@ -1997,7 +1998,7 @@ function renderProjects(projects, filter) {
     if (inProgress.length) {
       progressWrap.style.display = 'block';
       progressBars.innerHTML = inProgress.map(p => {
-        const pct = Math.min(100, Math.round((p.spent / p.cost) * 100));
+        const pct = Math.min(100, Math.round(((p.spent||0) / p.cost) * 100));
         return `
           <div class="progress-item">
             <div class="progress-header">
@@ -2005,7 +2006,7 @@ function renderProjects(projects, filter) {
               <span class="progress-pct">${pct}٪</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill" style="width:${pct}%" data-width="${pct}"></div>
+              <div class="progress-fill" style="width:${pct}%"></div>
             </div>
           </div>`;
       }).join('');
@@ -2013,115 +2014,42 @@ function renderProjects(projects, filter) {
       progressWrap.style.display = 'none';
     }
   }
+}
 
-  // تفعيل Reveal للبطاقات الجديدة
-  setTimeout(() => {
-    document.querySelectorAll('#projectsGrid .reveal:not(.visible)').forEach(el => {
-      el.classList.add('visible');
-    });
-  }, 100);
-} — من Firebase بالتحكم في الشهر ──
-_db.ref('wohda_months').on('value', snap => {
-  const months = snap.val() || {};
-  const keys   = Object.keys(months).sort();
-  if (!keys.length) return;
+// الآن سجّل الـ listener بعد تعريف الدوال
+_db.ref('wodnour_projects').on('value', snap => {
+  const data = snap.val() || {};
+  _allProjects = Object.values(data).sort((a,b) => {
+    const order = { 'منجز':0, 'جارٍ':1, 'مستهدف':2 };
+    return (order[a.status]||3) - (order[b.status]||3);
+  });
+  const activeFilter = document.querySelector('.proj-filter-btn.active')?.dataset.pf || 'all';
+  renderProjects(_allProjects, activeFilter);
+});
 
-  // قراءة إعداد عرض الشهر من الإعدادات
-  _db.ref('wodnour_settings/financeDisplay').once('value', dSnap => {
-    const disp = dSnap.val() || { mode:'last', monthKey:'' };
-    const AR_MONTHS_F = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-
-    let displayKeys = [];
-    if (disp.mode === 'all') {
-      displayKeys = keys;
-    } else if (disp.mode === 'specific' && disp.monthKey && months[disp.monthKey]) {
-      displayKeys = [disp.monthKey];
-    } else {
-      // آخر شهر افتراضياً
-      displayKeys = [keys[keys.length - 1]];
-    }
-
-    let totalInc = 0, totalExp = 0;
-    const expCategories = {};
-
-    displayKeys.forEach(k => {
-      const m = months[k];
-      totalInc += m.data.reduce((s,r) => s + r.amount, 0);
-      (m.expenses || []).forEach(e => {
-        totalExp += e.amount;
-        expCategories[e.desc] = (expCategories[e.desc] || 0) + e.amount;
-      });
-    });
-
-    // عنوان الشهر
-    const labelParts = displayKeys.map(k => {
-      const m = months[k];
-      return (AR_MONTHS_F[parseInt(m.month)-1] || '') + ' ' + m.year;
-    });
-    const displayLabel = disp.mode === 'all' ? 'جميع الأشهر' : labelParts.join(' + ');
-
-    // إيرادات
-    const incRows = document.getElementById('financeIncomeRows');
-    const expRows = document.getElementById('financeExpenseRows');
-    const titleInc = document.getElementById('financeIncomeTitle');
-    const titleExp = document.getElementById('financeExpenseTitle');
-    const indicator = document.getElementById('financeMonthIndicator');
-    const monthLbl  = document.getElementById('financeMonthLabel');
-
-    if (titleInc) titleInc.textContent = disp.mode === 'all' ? '💰 إجمالي الإيرادات الكلية' : `💰 إيرادات ${displayLabel}`;
-    if (titleExp) titleExp.textContent = disp.mode === 'all' ? '📤 إجمالي المصروفات الكلية' : `📤 مصروفات ${displayLabel}`;
-
-    if (incRows) {
-      incRows.innerHTML = `
-        <div class="finance-item">
-          <span class="label">اشتراكات المشتركين</span>
-          <span class="amount">${_toAr(totalInc)} ج.س</span>
-        </div>`;
-    }
-
-    if (expRows) {
-      const cats = Object.entries(expCategories);
-      expRows.innerHTML = cats.length
-        ? cats.map(([desc, amt]) => `
-          <div class="finance-item">
-            <span class="label">${desc}</span>
-            <span class="amount expense">${_toAr(amt)} ج.س</span>
-          </div>`).join('')
-        : `<div class="finance-item"><span class="label" style="color:#999">لا توجد مصروفات مسجلة</span><span class="amount expense">٠ ج.س</span></div>`;
-    }
-
-    document.getElementById('financeTotalIncome')  && (document.getElementById('financeTotalIncome').textContent  = _toAr(totalInc) + ' ج.س');
-    document.getElementById('financeTotalExpense') && (document.getElementById('financeTotalExpense').textContent = _toAr(totalExp) + ' ج.س');
-
-    if (indicator && monthLbl) {
-      indicator.style.display = 'block';
-      monthLbl.textContent = displayLabel;
-    }
-
-    // دوناّت المصروفات
-    const DONUT_COLORS = ['#4aaa72','#c9a84c','#3a9b9b','#8e6bbf','#e74c3c','#3498db'];
-    const donutHole = document.getElementById('donutHole');
-    const donutLegend = document.getElementById('donutLegend');
-    if (donutHole) donutHole.textContent = displayLabel;
-    if (donutLegend && cats.length > 0) {
-      const total = Object.values(expCategories).reduce((s,v)=>s+v,0);
-      let pct = 0;
-      const segments = Object.entries(expCategories).map(([desc,amt],i) => {
-        const p = total ? Math.round((amt/total)*100) : 0;
-        const from = pct; pct += p;
-        return { desc, amt, p, color: DONUT_COLORS[i % DONUT_COLORS.length], from };
-      });
-      const gradient = segments.map(s => `${s.color} ${s.from}% ${s.from+s.p}%`).join(',');
-      const donutChart = document.getElementById('donutChart');
-      if (donutChart) donutChart.style.background = `conic-gradient(${gradient})`;
-      donutLegend.innerHTML = segments.map(s =>
-        `<div class="legend-item"><div class="legend-dot" style="background:${s.color}"></div> ${s.desc} (${s.p}٪)</div>`
-      ).join('');
-    }
+// ── تحكم في ظهور بطاقات أثرنا ──────────────────────
+_db.ref('wodnour_settings/impactCards').on('value', snap => {
+  const vis = snap.val() || {};
+  document.querySelectorAll('[data-card-id]').forEach(card => {
+    const id = card.dataset.cardId;
+    if (id in vis) card.style.display = vis[id] ? '' : 'none';
   });
 });
 
-// ── ٦. الشهادات من Firebase ──────────────────────────
+// ── قائمة المشتركين ──────────────────────────────
+_db.ref('wodnour_subscribers').on('value', snap => {
+  const arr = Object.values(snap.val() || {});
+  window._honorList = arr;
+  if (typeof window._buildSubsFromFirebase === 'function') window._buildSubsFromFirebase(arr);
+});
+
+// ── طلبات الانضمام ──────────────────────────────
+window._saveJoinRequest = function(name, phone, location, level) {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+  _db.ref('wodnour_requests').child(id).set({ id, name, phone, location, level, status:'pending', date:new Date().toLocaleDateString('ar-SA'), ts:Date.now() });
+};
+
+// ── الشهادات من Firebase ──────────────────────────
 _db.ref('wodnour_testimonials').on('value', snap => {
   const data = snap.val();
   if (!data) return; // اترك الافتراضية
