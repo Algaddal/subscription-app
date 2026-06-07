@@ -640,6 +640,14 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
         <div id="testimonialsList"></div>
       </div>
     </div>
+
+    <div class="setting-card" style="grid-column:1/-1">
+      <h3>📊 التحكم في بطاقات "أرقام تتحدث عن نفسها"</h3>
+      <p style="font-size:.75rem;color:var(--tx2);margin-bottom:14px">اختر البطاقات التي تريد إظهارها للزوار</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:14px" id="impactCardsControl"></div>
+      <button class="btn btn-gold" onclick="saveImpactCards()">💾 حفظ إعدادات البطاقات</button>
+    </div>
+
       <div class="form-row" style="align-items:flex-end">
         <div class="form-group" style="flex:3"><label>الرابط</label><input class="inp" id="set-site-url" placeholder="https://algaddal.github.io/subscription-app/"></div>
         <button class="btn btn-gold" onclick="window.open(document.getElementById('set-site-url').value,'_blank')">🌐 فتح الموقع</button>
@@ -1344,6 +1352,43 @@ function getReqAmount(level) {
   return AMTS[level] || 0;
 }
 
+/* ══════════ IMPACT CARDS CONTROL ══════════ */
+const IMPACT_CARDS_DEF = [
+  { id:'total-subs', label:'إجمالي المشتركين' },
+  { id:'income',     label:'إجمالي الاشتراكات' },
+  { id:'expense',    label:'إجمالي المصروفات' },
+  { id:'balance',    label:'الرصيد المتاح' },
+  { id:'months',     label:'عدد الأشهر' },
+  { id:'schools',    label:'عدد المدارس' },
+  { id:'students',   label:'عدد الطلاب' },
+  { id:'teachers',   label:'عدد المعلمين' },
+  { id:'projects',   label:'المشاريع المكتملة' },
+];
+
+function renderImpactCardsControl() {
+  const el = document.getElementById('impactCardsControl');
+  if (!el) return;
+  REF.settings.child('impactCards').once('value', snap => {
+    const saved = snap.val() || {};
+    el.innerHTML = IMPACT_CARDS_DEF.map(card => {
+      const checked = (card.id in saved) ? saved[card.id] : true;
+      return `<label style="display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 13px;cursor:pointer;transition:border-color .2s;" onmouseover="this.style.borderColor='var(--gold)'" onmouseout="this.style.borderColor=''">
+        <input type="checkbox" id="ic-${card.id}" ${checked?'checked':''} style="accent-color:var(--gold);width:16px;height:16px;">
+        <span style="font-size:.85rem;font-weight:600">${card.label}</span>
+      </label>`;
+    }).join('');
+  });
+}
+
+function saveImpactCards() {
+  const vis = {};
+  IMPACT_CARDS_DEF.forEach(card => {
+    const el = document.getElementById('ic-'+card.id);
+    if (el) vis[card.id] = el.checked;
+  });
+  REF.settings.child('impactCards').set(vis).then(()=>toast('✅ تم حفظ إعدادات البطاقات — تتحدث على الموقع فوراً','ok'));
+}
+
 /* ══════════ SETTINGS ADDITIONS ══════════ */
 function loadSettings(){
   const s=C.settings||{};
@@ -1376,6 +1421,7 @@ function loadSettings(){
   }
   populateMonthSelect();
   renderTestimonials();
+  renderImpactCardsControl();
 }
 
 function saveSettings(type){
