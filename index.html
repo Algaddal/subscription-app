@@ -1767,40 +1767,41 @@
       </p>
     </div>
 
-    <!-- dynamic cards from Firebase -->
+    <!-- dynamic cards — يتحكم فيها من لوحة التحكم -->
     <div class="impact-grid reveal" id="impactGrid">
-      <div class="impact-card"><span class="impact-num" id="imp-subs" style="font-size:2rem;">—</span>
-        <div class="impact-label">مشترك فاعل هذا الشهر</div>
+      <div class="impact-card" data-card-id="total-subs">
+        <span class="impact-num" id="imp-subs" style="font-size:1.8rem;">—</span>
+        <div class="impact-label">إجمالي المشتركين في جميع الأشهر</div>
       </div>
-      <div class="impact-card">
-        <span class="impact-num" id="imp-income" style="font-size:1.6rem;">—</span>
+      <div class="impact-card" data-card-id="income">
+        <span class="impact-num" id="imp-income" style="font-size:1.5rem;">—</span>
         <div class="impact-label">إجمالي الاشتراكات المحصَّلة (ج.س)</div>
       </div>
-      <div class="impact-card">
-        <span class="impact-num" id="imp-expense" style="font-size:1.6rem;">—</span>
+      <div class="impact-card" data-card-id="expense">
+        <span class="impact-num" id="imp-expense" style="font-size:1.5rem;">—</span>
         <div class="impact-label">إجمالي المصروفات (ج.س)</div>
       </div>
-      <div class="impact-card">
-        <span class="impact-num" id="imp-balance" style="font-size:1.6rem;">—</span>
+      <div class="impact-card" data-card-id="balance">
+        <span class="impact-num" id="imp-balance" style="font-size:1.5rem;">—</span>
         <div class="impact-label" id="imp-balance-lbl">الرصيد المتاح (ج.س)</div>
       </div>
-      <div class="impact-card">
+      <div class="impact-card" data-card-id="months">
         <span class="impact-num" id="imp-months" style="font-size:2rem;">—</span>
         <div class="impact-label">أشهر من السجلات المحفوظة</div>
       </div>
-      <div class="impact-card">
+      <div class="impact-card" data-card-id="schools">
         <span class="impact-num" id="stat-schools">١٢</span>
         <div class="impact-label">مدرسة استفادت من برنامج الصيانة</div>
       </div>
-      <div class="impact-card">
+      <div class="impact-card" data-card-id="students">
         <span class="impact-num" id="stat-students">٤٢٠٠</span>
         <div class="impact-label">طالب وطالبة في بيئة أفضل</div>
       </div>
-      <div class="impact-card">
+      <div class="impact-card" data-card-id="teachers">
         <span class="impact-num" id="stat-teachers">٣١٠</span>
         <div class="impact-label">معلم ومعلمة في مكاتب محسّنة</div>
       </div>
-      <div class="impact-card">
+      <div class="impact-card" data-card-id="projects">
         <span class="impact-num" id="stat-done">٨</span>
         <div class="impact-label">مشاريع مكتملة منذ التأسيس</div>
       </div>
@@ -1898,24 +1899,22 @@ _db.ref('wohda_months').on('value', snap => {
 
   if (!keys.length) return;
 
-  let totalIncome=0, totalExpense=0, totalSubs=0;
+  let totalIncome=0, totalExpense=0, totalSubsAllMonths=0;
   keys.forEach(k => {
     const m = months[k];
     totalIncome  += m.data.reduce((s,r) => s+r.amount, 0);
     totalExpense += (m.expenses||[]).reduce((s,e) => s+e.amount, 0);
-    totalSubs    += m.data.length;
+    totalSubsAllMonths += m.data.length; // ← إجمالي كل الشهور
   });
 
-  const lastMonth = months[keys[keys.length-1]];
-  const lastSubs  = lastMonth ? lastMonth.data.length : 0;
-  const balance   = totalIncome - totalExpense;
+  const balance = totalIncome - totalExpense;
 
   // تحديث بطاقات أثرنا الحية
   const impGrid = document.getElementById('impactGrid');
   if (!impGrid) return;
 
   const doAnimate = () => {
-    _animNum(document.getElementById('imp-subs'),    lastSubs);
+    _animNum(document.getElementById('imp-subs'),    totalSubsAllMonths); // ← إجمالي كل الشهور
     _animNum(document.getElementById('imp-income'),  totalIncome);
     _animNum(document.getElementById('imp-expense'), totalExpense);
     _animNum(document.getElementById('imp-balance'), Math.abs(balance));
@@ -1927,7 +1926,6 @@ _db.ref('wohda_months').on('value', snap => {
     if (balLbl) balLbl.textContent = balance>=0 ? '✅ الرصيد المتاح (ج.س)' : '⚠️ العجز الحالي (ج.س)';
   };
 
-  // شغّل مباشرة إذا القسم مرئي، وإلا انتظر التمرير
   const rect = impGrid.getBoundingClientRect();
   if (rect.top < window.innerHeight && rect.bottom > 0) {
     doAnimate();
@@ -1958,6 +1956,18 @@ _db.ref('wohda_months').on('value', snap => {
     if (lastU && months[keys[keys.length-1]].savedAt)
       lastU.textContent = 'آخر تحديث: ' + months[keys[keys.length-1]].savedAt;
   }
+});
+
+// ── تحكم في ظهور بطاقات أثرنا ─────────────────────
+_db.ref('wodnour_settings/impactCards').on('value', snap => {
+  const vis = snap.val() || {};
+  document.querySelectorAll('[data-card-id]').forEach(card => {
+    const id = card.dataset.cardId;
+    // إذا لم يُحدَّد بعد → اعرض الكل افتراضياً
+    if (id in vis) {
+      card.style.display = vis[id] ? '' : 'none';
+    }
+  });
 });
 
 // ── ٣. قائمة المشتركين (قسم شركاؤنا) ──────────────
@@ -2116,32 +2126,6 @@ _db.ref('wodnour_settings/joinMessage').on('value', snap => {
     el.style.display = 'none';
   }
 });
-
-// ── ٨. أرقام تتحدث — كل المشتركين الفاعلين ──────────
-// تُحسب من wohda_months (كل الأشهر مجمّعة فريدة)
-_db.ref('wohda_months').on('value', snap => {
-  const months = snap.val() || {};
-  const keys   = Object.keys(months).sort();
-  if (!keys.length) return;
-
-  // جمع أسماء المشتركين الفريدة عبر كل الأشهر
-  const uniqueNames = new Set();
-  keys.forEach(k => {
-    (months[k].data || []).forEach(r => {
-      if (r.name && r.name !== '—') uniqueNames.add(r.name.trim());
-    });
-  });
-  const totalUnique = uniqueNames.size;
-
-  // تحديث بطاقة المشتركين في أثرنا
-  const subsEl = document.getElementById('imp-subs');
-  if (subsEl) {
-    _animNum(subsEl, totalUnique);
-    // تحديث التسمية
-    const lbl = subsEl.closest('.impact-card')?.querySelector('.impact-label');
-    if (lbl) lbl.textContent = 'مشترك فاعل في جميع الأشهر';
-  }
-}, { onlyOnce: false });
 </script>
 
 <!-- TESTIMONIALS — من Firebase -->
