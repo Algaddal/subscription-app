@@ -1139,18 +1139,30 @@ function addQuickExp(key) {
   const amt  = parseFloat(document.getElementById(`qe-amt-${key}`)?.value);
   if(!desc||!amt||amt<=0){toast('⚠️ أدخل الوصف والمبلغ','err');return;}
   const m = C.months[key]; if(!m) return;
-  const expenses = [...(m.expenses||[]),{id:uid(),desc,amount:amt}];
+  const newExp = { id: uid(), desc, amount: amt };
+  const expenses = [...(m.expenses||[]), newExp];
   REF.months.child(key+'/expenses').set(expenses).then(()=>{
     document.getElementById(`qe-desc-${key}`).value='';
     document.getElementById(`qe-amt-${key}`).value='';
     toast('✅ تم إضافة المصروف','ok');
+    // تحديث القائمة المضمّنة فوراً
+    const listEl = document.getElementById(`qe-list-${key}`);
+    const canWrite = currentRole && ROLE_CFG[currentRole].canWrite;
+    if (listEl) listEl.innerHTML = _expListHtml(expenses, key, canWrite);
   });
 }
 
 function delQuickExp(key, expId) {
   const m = C.months[key]; if(!m) return;
-  REF.months.child(key+'/expenses').set((m.expenses||[]).filter(e=>e.id!==expId))
-    .then(()=>toast('🗑️ تم الحذف','ok'));
+  const expenses = (m.expenses||[]).filter(e => String(e.id) !== String(expId));
+  REF.months.child(key+'/expenses').set(expenses.length ? expenses : null)
+    .then(() => {
+      toast('🗑️ تم الحذف','ok');
+      // تحديث القائمة المضمّنة فوراً
+      const listEl = document.getElementById(`qe-list-${key}`);
+      const canWrite = currentRole && ROLE_CFG[currentRole].canWrite;
+      if (listEl) listEl.innerHTML = _expListHtml(expenses, key, canWrite);
+    });
 }
 
 /* ══════════ MONTH DETAIL MODAL ══════════ */
