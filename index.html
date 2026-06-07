@@ -1435,117 +1435,41 @@
       <p class="section-desc">شفافية كاملة في عرض المشاريع المنجزة وتكاليفها والمشاريع المستهدفة المقبلة.</p>
     </div>
 
-    <div class="projects-grid">
-      <!-- Done -->
-      <div class="project-card reveal">
-        <div class="project-img after">
-          🏫
-          <span class="before-after-badge badge-after">✅ منجز</span>
-        </div>
-        <div class="project-body">
-          <h3>صيانة مدرسة البنات الأولى</h3>
-          <p>إصلاح شامل للفصول الدراسية، طلاء الجدران، إصلاح المرافق الصحية وتركيب شبابيك جديدة.</p>
-          <div class="project-meta">
-            <span class="project-cost">٤٢,٠٠٠ ج.س</span>
-            <span class="project-status status-done">منجز ✓</span>
-          </div>
-        </div>
-      </div>
+    <!-- فلاتر الحالة -->
+    <div class="reveal" style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:2rem;" id="projFilterBtns">
+      <button class="proj-filter-btn active" data-pf="all" onclick="filterProjects('all',this)">الكل</button>
+      <button class="proj-filter-btn" data-pf="منجز" onclick="filterProjects('منجز',this)">✅ منجز</button>
+      <button class="proj-filter-btn" data-pf="جارٍ" onclick="filterProjects('جارٍ',this)">🔄 جارٍ</button>
+      <button class="proj-filter-btn" data-pf="مستهدف" onclick="filterProjects('مستهدف',this)">📋 مستهدف</button>
+    </div>
 
-      <div class="project-card reveal">
-        <div class="project-img after">
-          🚻
-          <span class="before-after-badge badge-after">✅ منجز</span>
-        </div>
-        <div class="project-body">
-          <h3>تأهيل المرافق الصحية — مدرسة الشهيد</h3>
-          <p>إعادة بناء وتأهيل دورات المياه بالكامل وتوصيل المياه وتركيب خزانات احتياطية.</p>
-          <div class="project-meta">
-            <span class="project-cost">٢٨,٥٠٠ ج.س</span>
-            <span class="project-status status-done">منجز ✓</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="project-card reveal">
-        <div class="project-img planned" style="background: linear-gradient(135deg,#e65100,#ff8f00)">
-          ⚡
-          <span class="before-after-badge badge-planned">🔄 جارٍ</span>
-        </div>
-        <div class="project-body">
-          <h3>توصيل الكهرباء الشمسية — ثلاث مدارس</h3>
-          <p>تركيب ألواح طاقة شمسية لضمان انقطاع التيار لا يؤثر على سير العملية التعليمية.</p>
-          <div class="project-meta">
-            <span class="project-cost">٩٥,٠٠٠ ج.س</span>
-            <span class="project-status status-progress">جارٍ التنفيذ</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="project-card reveal">
-        <div class="project-img planned">
-          🖥️
-          <span class="before-after-badge badge-planned">📋 مستهدف</span>
-        </div>
-        <div class="project-body">
-          <h3>مختبر الحاسوب — مدرسة النيل</h3>
-          <p>إنشاء مختبر حاسوب متكامل بـ٢٥ جهاز وتدريب المعلمين على استخدامه في التعليم.</p>
-          <div class="project-meta">
-            <span class="project-cost">١٢٠,٠٠٠ ج.س</span>
-            <span class="project-status status-planned">مستهدف</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="project-card reveal">
-        <div class="project-img after" style="background: linear-gradient(135deg,#1a237e,#3949ab)">
-          📖
-          <span class="before-after-badge badge-after">✅ منجز</span>
-        </div>
-        <div class="project-body">
-          <h3>مكتبة مدرسة العلوم</h3>
-          <p>تجديد قاعة المكتبة وتجهيزها بالرفوف وتبرّع بـ٨٠٠ كتاب من أبناء المنطقة.</p>
-          <div class="project-meta">
-            <span class="project-cost">١٨,٢٠٠ ج.س</span>
-            <span class="project-status status-done">منجز ✓</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="project-card reveal">
-        <div class="project-img planned" style="background: linear-gradient(135deg,#006064,#00897b)">
-          🏃
-          <span class="before-after-badge badge-planned">📋 مستهدف</span>
-        </div>
-        <div class="project-body">
-          <h3>ملعب مدرسة البنين المركزية</h3>
-          <p>تأهيل الملعب الرياضي وتسويته وتجهيزه بالمعدات الأساسية لممارسة الأنشطة البدنية.</p>
-          <div class="project-meta">
-            <span class="project-cost">٦٥,٠٠٠ ج.س</span>
-            <span class="project-status status-planned">مستهدف</span>
-          </div>
-        </div>
+    <!-- شبكة المشاريع — تُملأ من Firebase -->
+    <div class="projects-grid" id="projectsGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#999;">
+        <div style="font-size:2rem;margin-bottom:.5rem">⏳</div>
+        <p>جارٍ تحميل المشاريع...</p>
       </div>
     </div>
 
-    <!-- Progress bars -->
-    <div class="progress-section reveal" style="margin-top: 3rem; background:#fff; padding:2rem; border-radius:20px;">
-      <h3 style="font-size:1.3rem; font-weight:700; color:var(--green-deep); margin-bottom:1.5rem;">📊 نسب إنجاز المشاريع الجارية</h3>
-      <div class="progress-item">
-        <div class="progress-header"><span class="progress-label">مشروع الطاقة الشمسية</span><span class="progress-pct">٦٥٪</span></div>
-        <div class="progress-bar"><div class="progress-fill" data-width="65"></div></div>
-      </div>
-      <div class="progress-item">
-        <div class="progress-header"><span class="progress-label">جمع تبرعات مختبر الحاسوب</span><span class="progress-pct">٤٠٪</span></div>
-        <div class="progress-bar"><div class="progress-fill" data-width="40"></div></div>
-      </div>
-      <div class="progress-item">
-        <div class="progress-header"><span class="progress-label">تجهيزات غرف المعلمين</span><span class="progress-pct">٨٠٪</span></div>
-        <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
-      </div>
+    <!-- أشرطة التقدم — للمشاريع الجارية فقط -->
+    <div class="progress-section reveal" id="projectsProgress" style="margin-top:3rem;background:#fff;padding:2rem;border-radius:20px;display:none;">
+      <h3 style="font-size:1.3rem;font-weight:700;color:var(--green-deep);margin-bottom:1.5rem;">📊 نسب إنجاز المشاريع الجارية</h3>
+      <div id="progressBars"></div>
     </div>
   </div>
 </section>
+
+<style>
+  .proj-filter-btn {
+    padding:.5rem 1.4rem; border-radius:50px;
+    border:1px solid rgba(45,122,79,.25);
+    color:var(--green-mid); font-size:.88rem;
+    cursor:pointer; transition:all .25s;
+    font-family:'Tajawal',sans-serif; background:transparent;
+  }
+  .proj-filter-btn:hover { border-color:var(--green-mid); background:rgba(45,122,79,.06); }
+  .proj-filter-btn.active { background:var(--green-mid); border-color:var(--green-mid); color:#fff; font-weight:700; }
+</style>
 
 <!-- BEFORE/AFTER -->
 <section class="ba-section" id="gallery">
@@ -1991,7 +1915,112 @@ window._saveJoinRequest = function(name, phone, location, level) {
   });
 };
 
-// ── ٥. الشفافية المالية — من Firebase بالتحكم في الشهر ──
+// ── ٩. المشاريع من Firebase ────────────────────────
+let _allProjects = [];
+
+_db.ref('wodnour_projects').on('value', snap => {
+  const data = snap.val() || {};
+  _allProjects = Object.values(data).sort((a,b) => {
+    const order = { 'منجز':0, 'جارٍ':1, 'مستهدف':2 };
+    return (order[a.status]||3) - (order[b.status]||3);
+  });
+
+  const activeFilter = document.querySelector('.proj-filter-btn.active')?.dataset.pf || 'all';
+  renderProjects(_allProjects, activeFilter);
+});
+
+function filterProjects(filter, btn) {
+  document.querySelectorAll('.proj-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderProjects(_allProjects, filter);
+}
+
+function renderProjects(projects, filter) {
+  const grid = document.getElementById('projectsGrid');
+  const progressWrap = document.getElementById('projectsProgress');
+  const progressBars = document.getElementById('progressBars');
+  if (!grid) return;
+
+  const filtered = filter === 'all' ? projects : projects.filter(p => p.status === filter);
+
+  if (!filtered.length) {
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#999;">
+        <div style="font-size:2.5rem;margin-bottom:.8rem">🏗️</div>
+        <p>${projects.length ? 'لا توجد مشاريع في هذه الفئة' : 'لا توجد مشاريع بعد — أضفها من لوحة التحكم'}</p>
+      </div>`;
+    if (progressWrap) progressWrap.style.display = 'none';
+    return;
+  }
+
+  // config لكل حالة
+  const STATUS_CFG = {
+    'منجز':    { bg:'linear-gradient(135deg,var(--green-deep),var(--green-light))', badgeCls:'badge-after',   badgeTxt:'✅ منجز',          statusCls:'status-done',     emoji:'🏫' },
+    'جارٍ':    { bg:'linear-gradient(135deg,#e65100,#ff8f00)',                       badgeCls:'badge-planned', badgeTxt:'🔄 جارٍ التنفيذ', statusCls:'status-progress', emoji:'⚡' },
+    'مستهدف':  { bg:'linear-gradient(135deg,#2980b9,#3a9b9b)',                       badgeCls:'badge-planned', badgeTxt:'📋 مستهدف',       statusCls:'status-planned',  emoji:'🎯' },
+  };
+
+  grid.innerHTML = filtered.map(p => {
+    const cfg = STATUS_CFG[p.status] || STATUS_CFG['مستهدف'];
+    const pct = p.cost > 0 ? Math.min(100, Math.round((p.spent / p.cost) * 100)) : 0;
+    const costFmt = p.cost ? Number(p.cost).toLocaleString('ar-EG') + ' ج.س' : '—';
+    return `
+      <div class="project-card reveal" data-status="${p.status}">
+        <div class="project-img" style="background:${cfg.bg}">
+          ${cfg.emoji}
+          <span class="before-after-badge ${cfg.badgeCls}">${cfg.badgeTxt}</span>
+        </div>
+        <div class="project-body">
+          <h3>${p.name || ''}</h3>
+          ${p.school ? `<p style="font-size:.8rem;color:var(--green-mid);margin-bottom:.4rem">📍 ${p.school}</p>` : ''}
+          <p>${p.desc || ''}</p>
+          <div class="project-meta">
+            <span class="project-cost">${costFmt}</span>
+            <span class="project-status ${cfg.statusCls}">${p.status}</span>
+          </div>
+          ${p.status === 'جارٍ' && p.cost > 0 ? `
+          <div style="margin-top:.8rem">
+            <div style="display:flex;justify-content:space-between;font-size:.75rem;color:#888;margin-bottom:.3rem">
+              <span>نسبة الإنجاز</span><span>${pct}٪</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${pct}%;background:linear-gradient(90deg,var(--green-mid),var(--green-light))"></div>
+            </div>
+          </div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  // أشرطة التقدم للمشاريع الجارية
+  const inProgress = projects.filter(p => p.status === 'جارٍ' && p.cost > 0);
+  if (progressWrap && progressBars) {
+    if (inProgress.length) {
+      progressWrap.style.display = 'block';
+      progressBars.innerHTML = inProgress.map(p => {
+        const pct = Math.min(100, Math.round((p.spent / p.cost) * 100));
+        return `
+          <div class="progress-item">
+            <div class="progress-header">
+              <span class="progress-label">${p.name}</span>
+              <span class="progress-pct">${pct}٪</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${pct}%" data-width="${pct}"></div>
+            </div>
+          </div>`;
+      }).join('');
+    } else {
+      progressWrap.style.display = 'none';
+    }
+  }
+
+  // تفعيل Reveal للبطاقات الجديدة
+  setTimeout(() => {
+    document.querySelectorAll('#projectsGrid .reveal:not(.visible)').forEach(el => {
+      el.classList.add('visible');
+    });
+  }, 100);
+} — من Firebase بالتحكم في الشهر ──
 _db.ref('wohda_months').on('value', snap => {
   const months = snap.val() || {};
   const keys   = Object.keys(months).sort();
