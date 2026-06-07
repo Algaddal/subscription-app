@@ -1355,15 +1355,15 @@
 
     <div class="hero-stats">
       <div class="hero-stat">
-        <span class="num">١٢+</span>
+        <span class="num" id="hero-schools">١٢+</span>
         <span class="lbl">مدرسة مستفيدة</span>
       </div>
       <div class="hero-stat">
-        <span class="num">٣٠٠+</span>
+        <span class="num" id="hero-subs">٣٠٠+</span>
         <span class="lbl">مشترك فاعل</span>
       </div>
       <div class="hero-stat">
-        <span class="num">٨</span>
+        <span class="num" id="hero-projects">٨</span>
         <span class="lbl">مشاريع منجزة</span>
       </div>
     </div>
@@ -1739,7 +1739,6 @@ _db.ref('wodnour_settings').on('value', snap => {
     document.querySelectorAll('[data-live="bank-acc"]').forEach(el   => el.textContent = s.bank.acc   || el.textContent);
     const accEl = document.getElementById('accNumEl');
     if (accEl && s.bank.acc) accEl.textContent = s.bank.acc;
-    // حفظ للاستخدام في نموذج الانضمام
     window._bankData = s.bank;
   }
 
@@ -1748,18 +1747,25 @@ _db.ref('wodnour_settings').on('value', snap => {
     window._waNum = s.contact.wa.replace(/^\+/,'');
   }
 
-  // إحصائيات أثرنا الثابتة
+  // إحصائيات أثرنا الثابتة + الهيرو
   if (s.stats) {
-    const map = {
+    // أثرنا
+    const impMap = {
       'stat-schools':  s.stats.schools,
       'stat-students': s.stats.students,
       'stat-teachers': s.stats.teachers,
       'stat-done':     s.stats.doneProj,
     };
-    Object.entries(map).forEach(([id, val]) => {
+    Object.entries(impMap).forEach(([id, val]) => {
       const el = document.getElementById(id);
       if (el && val != null) el.textContent = Number(val).toLocaleString('ar-EG');
     });
+
+    // الهيرو — المدارس من الإعدادات
+    const heroSchools = document.getElementById('hero-schools');
+    if (heroSchools && s.stats.schools != null) {
+      heroSchools.textContent = Number(s.stats.schools).toLocaleString('ar-EG') + '+';
+    }
   }
 });
 
@@ -1786,6 +1792,12 @@ _db.ref('wohda_months').on('value', snap => {
     totalSubsAllMonths  += (m.data||[]).length;
   });
   const balance = totalIncome - totalExpense;
+
+  // ── الهيرو: عدد المشتركين الكلي ──
+  const heroSubs = document.getElementById('hero-subs');
+  if (heroSubs) {
+    heroSubs.textContent = totalSubsAllMonths.toLocaleString('ar-EG') + '+';
+  }
 
   // ── أثرنا: تحريك الأرقام ──
   const impGrid = document.getElementById('impactGrid');
@@ -1976,6 +1988,20 @@ _db.ref('wodnour_projects').on('value', snap => {
     const order = { 'منجز':0, 'جارٍ':1, 'مستهدف':2 };
     return (order[a.status]||3) - (order[b.status]||3);
   });
+
+  // ── الهيرو: المشاريع المنجزة فقط ──
+  const doneProjCount = _allProjects.filter(p => p.status === 'منجز').length;
+  const heroProjects = document.getElementById('hero-projects');
+  if (heroProjects && doneProjCount > 0) {
+    heroProjects.textContent = doneProjCount.toLocaleString('ar-EG');
+  }
+
+  // تحديث بطاقة أثرنا أيضاً
+  const statDone = document.getElementById('stat-done');
+  if (statDone && doneProjCount > 0) {
+    statDone.textContent = doneProjCount.toLocaleString('ar-EG');
+  }
+
   const activeFilter = document.querySelector('.proj-filter-btn.active')?.dataset.pf || 'all';
   renderProjects(_allProjects, activeFilter);
 });
