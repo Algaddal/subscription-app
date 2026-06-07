@@ -1544,27 +1544,28 @@
 
     <div class="trans-header reveal">
       <div class="trans-header-text">
-        <p class="section-desc">نؤمن أن الثقة تُبنى بالشفافية. كل ريال يُجمع ويُصرف بعلم المشتركين وأمام أعينهم. ننشر تقارير مالية دورية، ونُتيح لكل مشترك الاطلاع على حسابات المبادرة في أي وقت.</p>
+        <p class="section-desc" id="transparencyDesc">نؤمن أن الثقة تُبنى بالشفافية. كل ريال يُجمع ويُصرف بعلم المشتركين وأمام أعينهم. ننشر تقارير مالية دورية، ونُتيح لكل مشترك الاطلاع على حسابات المبادرة في أي وقت.</p>
 
-        <div class="progress-section" style="margin-top:1.5rem;">
+        <div class="progress-section" style="margin-top:1.5rem;" id="transparencyBars">
+          <!-- تُملأ من Firebase -->
           <div class="progress-item">
-            <div class="progress-header"><span class="progress-label">نسبة الصرف على المشاريع مباشرة</span><span class="progress-pct">٨٧٪</span></div>
-            <div class="progress-bar"><div class="progress-fill" data-width="87"></div></div>
+            <div class="progress-header"><span class="progress-label">نسبة الصرف على المشاريع مباشرة</span><span class="progress-pct" id="pct0">٨٧٪</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="pfill0" style="width:87%"></div></div>
           </div>
           <div class="progress-item">
-            <div class="progress-header"><span class="progress-label">المصاريف الإدارية</span><span class="progress-pct">٨٪</span></div>
-            <div class="progress-bar"><div class="progress-fill" data-width="8" style="background:var(--gold)"></div></div>
+            <div class="progress-header"><span class="progress-label">المصاريف الإدارية</span><span class="progress-pct" id="pct1">٨٪</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="pfill1" style="width:8%;background:var(--gold)"></div></div>
           </div>
           <div class="progress-item">
-            <div class="progress-header"><span class="progress-label">الاحتياطي للطوارئ</span><span class="progress-pct">٥٪</span></div>
-            <div class="progress-bar"><div class="progress-fill" data-width="5" style="background:#3a9b9b"></div></div>
+            <div class="progress-header"><span class="progress-label">الاحتياطي للطوارئ</span><span class="progress-pct" id="pct2">٥٪</span></div>
+            <div class="progress-bar"><div class="progress-fill" id="pfill2" style="width:5%;background:#3a9b9b"></div></div>
           </div>
         </div>
       </div>
 
       <div class="pledge-box">
-        <h3>ميثاق الشفافية</h3>
-        <p>نتعهد بنشر كشف حساب تفصيلي كل شهر، وعقد اجتماع ربع سنوي مفتوح لجميع المشتركين للمراجعة والمحاسبة. لا مصروف يُصرف إلا بموافقة لجنة المتابعة وتوثيق فواتيره.</p>
+        <h3 id="pledgeTitle">ميثاق الشفافية</h3>
+        <p id="pledgeText">نتعهد بنشر كشف حساب تفصيلي كل شهر، وعقد اجتماع ربع سنوي مفتوح لجميع المشتركين للمراجعة والمحاسبة. لا مصروف يُصرف إلا بموافقة لجنة المتابعة وتوثيق فواتيره.</p>
       </div>
     </div>
 
@@ -2095,11 +2096,45 @@ _db.ref('wodnour_sub_plans').on('value', snap => {
   updateSummary();
 });
 
+// ── الشفافية — نصوص وأشرطة التقدم ──────────────────
+_db.ref('wodnour_settings/transparency').on('value', snap => {
+  const t = snap.val();
+  if (!t) return;
+
+  // النص التعريفي
+  const descEl = document.getElementById('transparencyDesc');
+  if (descEl && t.desc) descEl.textContent = t.desc;
+
+  // ميثاق الشفافية
+  const pledgeTitle = document.getElementById('pledgeTitle');
+  const pledgeText  = document.getElementById('pledgeText');
+  if (pledgeTitle && t.pledgeTitle) pledgeTitle.textContent = t.pledgeTitle;
+  if (pledgeText  && t.pledgeText)  pledgeText.textContent  = t.pledgeText;
+
+  // أشرطة التقدم (تصل إلى ٥)
+  const COLORS = ['var(--green-light)', 'var(--gold)', '#3a9b9b', '#8e6bbf', '#e74c3c'];
+  const barsContainer = document.getElementById('transparencyBars');
+  if (barsContainer && t.bars && t.bars.length) {
+    barsContainer.innerHTML = t.bars.map((bar, i) => `
+      <div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-label">${bar.label}</span>
+          <span class="progress-pct">${bar.pct}٪</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${bar.pct}%;background:${COLORS[i % COLORS.length]}"></div>
+        </div>
+      </div>`).join('');
+  }
+});
+
 // ── الشهادات من Firebase ──────────────────────────
 _db.ref('wodnour_testimonials').on('value', snap => {
   const data = snap.val();
-  if (!data) return; // اترك الافتراضية
-  const list = Object.values(data).filter(t => t.visible !== false);
+  if (!data) return;
+  const list = Object.values(data)
+    .filter(t => t.visible !== false)
+    .sort((a,b) => (a.order||99) - (b.order||99)); // ← ترتيب حسب order
   if (!list.length) return;
   const grid = document.getElementById('quotesGrid');
   if (!grid) return;
