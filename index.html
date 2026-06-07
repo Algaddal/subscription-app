@@ -1846,148 +1846,162 @@
   }
 </style>
 
-<!-- Firebase SDK (compat v9) -->
+<!-- Firebase SDK — تهيئة واحدة موحدة للموقع كله -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
-(function initImpact(){
-  // ── نفس إعدادات Firebase في لوحة الإدارة ──
-  const fbConfig = {
-    databaseURL: "https://subscription-app-865cd-default-rtdb.firebaseio.com"
-  };
+// ══════════════════════════════════════════════════
+//  FIREBASE — تهيئة واحدة تخدم كل أقسام الموقع
+// ══════════════════════════════════════════════════
+const _fbApp = firebase.initializeApp({
+  databaseURL: "https://subscription-app-865cd-default-rtdb.firebaseio.com"
+});
+const _db = firebase.database(_fbApp);
 
-  // تهيئة آمنة — لا تعيد التهيئة إن كان Firebase مهيأً مسبقاً
-  let app;
-  try {
-    app = firebase.app('impactModule');
-  } catch(e) {
-    app = firebase.initializeApp(fbConfig, 'impactModule');
-  }
-  const db = firebase.database(app);
-  const AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
-                     'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const _AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
+                    'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
-  function toAr(n) {
-    return Math.round(n).toLocaleString('ar-EG');
-  }
+function _toAr(n){ return Math.round(n||0).toLocaleString('ar-EG'); }
+function _animNum(el, to) {
+  if (!el) return;
+  const dur=1600, t0=performance.now();
+  (function tick(now){
+    const p=Math.min((now-t0)/dur,1), e=1-Math.pow(1-p,3);
+    el.textContent=_toAr(Math.round(to*e));
+    if(p<1) requestAnimationFrame(tick);
+  })(t0);
+}
 
-  // تحريك الأرقام بسلاسة
-  function animateImpact(el, target) {
-    const dur = 1600, t0 = performance.now();
-    const isLarge = target > 9999;
-    (function tick(now) {
-      const p  = Math.min((now - t0) / dur, 1);
-      const e  = 1 - Math.pow(1 - p, 3);
-      const v  = Math.round(target * e);
-      el.textContent = toAr(v);
-      if (p < 1) requestAnimationFrame(tick);
-    })(t0);
-  }
+// ── ١. الإعدادات (بنك، واتساب، إحصائيات) ──────────
+_db.ref('wodnour_settings').on('value', snap => {
+  const s = snap.val() || {};
 
-  // رسم الأعمدة الشهرية
-  function renderImpactChart(months, keys) {
-    const wrap = document.getElementById('impactChartWrap');
-    const bars = document.getElementById('impactChartBars');
-    if (!keys.length) { wrap.style.display = 'none'; return; }
-    wrap.style.display = 'block';
-
-    const totals = keys.map(k => months[k].data.reduce((s,r) => s + r.amount, 0));
-    const maxVal = Math.max(...totals, 1);
-
-    bars.innerHTML = keys.map((k, i) => {
-      const m   = months[k];
-      const tot = totals[i];
-      const h   = Math.max(12, Math.round((tot / maxVal) * 110));
-      const mn  = AR_MONTHS[(parseInt(m.month) - 1)] || m.month;
-      return `
-        <div style="flex:1;min-width:44px;display:flex;flex-direction:column;align-items:center;gap:4px;">
-          <div style="font-size:.65rem;color:#999;margin-bottom:2px;">${toAr(tot)}</div>
-          <div style="width:80%;height:${h}px;background:linear-gradient(180deg,var(--green-light),var(--green-deep));
-               border-radius:6px 6px 0 0;cursor:default;transition:opacity .2s;"
-               title="${mn} ${m.year}: ${toAr(tot)} ج.س"></div>
-          <div style="font-size:.62rem;color:#888;text-align:center;line-height:1.3;">${mn}<br>${m.year}</div>
-        </div>`;
-    }).join('');
-
-    // آخر تحديث
-    const lastKey = keys[keys.length - 1];
-    const lastM   = months[lastKey];
-    if (lastM && lastM.savedAt) {
-      document.getElementById('impactLastUpdate').textContent = `آخر تحديث: ${lastM.savedAt}`;
-    }
+  // البنك
+  if (s.bank) {
+    document.querySelectorAll('[data-live="bank-name"]').forEach(el  => el.textContent = s.bank.name  || el.textContent);
+    document.querySelectorAll('[data-live="bank-owner"]').forEach(el => el.textContent = s.bank.owner || el.textContent);
+    document.querySelectorAll('[data-live="bank-acc"]').forEach(el   => el.textContent = s.bank.acc   || el.textContent);
+    const accEl = document.getElementById('accNumEl');
+    if (accEl && s.bank.acc) accEl.textContent = s.bank.acc;
+    // حفظ للاستخدام في نموذج الانضمام
+    window._bankData = s.bank;
   }
 
-  // الاستماع للتغييرات من Firebase في الوقت الحقيقي
-  db.ref('wohda_months').on('value', snapshot => {
-    const months = snapshot.val() || {};
-    const keys   = Object.keys(months).sort();
+  // واتساب
+  if (s.contact && s.contact.wa) {
+    window._waNum = s.contact.wa.replace(/^\+/,'');
+  }
 
-    if (!keys.length) {
-      // لا بيانات بعد — أبق الأرقام كما هي (ثابتة)
-      ['imp-subs','imp-income','imp-expense','imp-balance','imp-months']
-        .forEach(id => { document.getElementById(id).textContent = '—'; });
-      return;
-    }
-
-    // ── حساب الإجماليات الكلية ──
-    let totalIncome  = 0;
-    let totalExpense = 0;
-    let totalSubs    = 0;
-
-    keys.forEach(k => {
-      const m = months[k];
-      const inc = m.data.reduce((s, r) => s + r.amount, 0);
-      const exp = (m.expenses || []).reduce((s, e) => s + e.amount, 0);
-      totalIncome  += inc;
-      totalExpense += exp;
-      totalSubs    += m.data.length;
+  // إحصائيات أثرنا الثابتة
+  if (s.stats) {
+    const map = {
+      'stat-schools':  s.stats.schools,
+      'stat-students': s.stats.students,
+      'stat-teachers': s.stats.teachers,
+      'stat-done':     s.stats.doneProj,
+    };
+    Object.entries(map).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el && val != null) el.textContent = Number(val).toLocaleString('ar-EG');
     });
+  }
+});
 
-    // آخر شهر — لعرض عدد المشتركين الحالي
-    const lastMonth = months[keys[keys.length - 1]];
-    const lastSubs  = lastMonth ? lastMonth.data.length : 0;
-    const balance   = totalIncome - totalExpense;
+// ── ٢. الاشتراكات والمصروفات (قسم أثرنا) ──────────
+_db.ref('wohda_months').on('value', snap => {
+  const months = snap.val() || {};
+  const keys   = Object.keys(months).sort();
 
-    // ── تحديث الواجهة ──
-    const impGrid = document.getElementById('impactGrid');
+  // مؤشر الحالة
+  const ind = document.getElementById('impactLiveIndicator');
+  if (ind) ind.innerHTML = keys.length
+    ? '<span style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(74,170,114,.1);border:1px solid rgba(74,170,114,.25);padding:.25rem .8rem;border-radius:50px;"><span style="width:7px;height:7px;background:#4aaa72;border-radius:50%;animation:impPulse 2s infinite;display:inline-block;"></span><span style="color:#4aaa72;font-size:.78rem;">بيانات حية — تتحدث تلقائياً</span></span>'
+    : '<span style="color:#999;font-size:.78rem;">في انتظار البيانات</span>';
 
-    // تحريك الأرقام عند الدخول للقسم
-    const impObs = new IntersectionObserver(entries => {
-      if (!entries[0].isIntersecting) return;
-      animateImpact(document.getElementById('imp-subs'),    lastSubs);
-      animateImpact(document.getElementById('imp-income'),  totalIncome);
-      animateImpact(document.getElementById('imp-expense'), totalExpense);
-      animateImpact(document.getElementById('imp-balance'), Math.abs(balance));
-      animateImpact(document.getElementById('imp-months'),  keys.length);
+  if (!keys.length) return;
 
-      // لون الرصيد
-      const balEl  = document.getElementById('imp-balance');
-      const balLbl = document.getElementById('imp-balance-lbl');
-      if (balance >= 0) {
-        balEl.style.color = 'var(--green-mid)';
-        balLbl.textContent = '✅ الرصيد المتاح (ج.س)';
-        balEl.closest('.impact-card').style.borderTop = '4px solid var(--green-light)';
-      } else {
-        balEl.style.color = '#c0392b';
-        balLbl.textContent = '⚠️ العجز الحالي (ج.س)';
-        balEl.closest('.impact-card').style.borderTop = '4px solid #c0392b';
-      }
-
-      impObs.disconnect();
-    }, { threshold: 0.2 });
-    impObs.observe(impGrid);
-
-    // رسم الرسم البياني
-    renderImpactChart(months, keys);
-
-  }, err => {
-    console.warn('Impact Firebase error:', err);
-    document.getElementById('impactLiveIndicator').innerHTML =
-      '<span style="color:#e74c3c;font-size:.78rem;">⚠️ تعذّر تحميل البيانات الحية</span>';
+  let totalIncome=0, totalExpense=0, totalSubs=0;
+  keys.forEach(k => {
+    const m = months[k];
+    totalIncome  += m.data.reduce((s,r) => s+r.amount, 0);
+    totalExpense += (m.expenses||[]).reduce((s,e) => s+e.amount, 0);
+    totalSubs    += m.data.length;
   });
 
-})();
+  const lastMonth = months[keys[keys.length-1]];
+  const lastSubs  = lastMonth ? lastMonth.data.length : 0;
+  const balance   = totalIncome - totalExpense;
+
+  // تحديث بطاقات أثرنا الحية
+  const impGrid = document.getElementById('impactGrid');
+  if (!impGrid) return;
+
+  const doAnimate = () => {
+    _animNum(document.getElementById('imp-subs'),    lastSubs);
+    _animNum(document.getElementById('imp-income'),  totalIncome);
+    _animNum(document.getElementById('imp-expense'), totalExpense);
+    _animNum(document.getElementById('imp-balance'), Math.abs(balance));
+    _animNum(document.getElementById('imp-months'),  keys.length);
+
+    const balEl  = document.getElementById('imp-balance');
+    const balLbl = document.getElementById('imp-balance-lbl');
+    if (balEl) balEl.style.color = balance>=0 ? 'var(--green-mid)' : '#c0392b';
+    if (balLbl) balLbl.textContent = balance>=0 ? '✅ الرصيد المتاح (ج.س)' : '⚠️ العجز الحالي (ج.س)';
+  };
+
+  // شغّل مباشرة إذا القسم مرئي، وإلا انتظر التمرير
+  const rect = impGrid.getBoundingClientRect();
+  if (rect.top < window.innerHeight && rect.bottom > 0) {
+    doAnimate();
+  } else {
+    const obs = new IntersectionObserver(en => {
+      if (en[0].isIntersecting) { doAnimate(); obs.disconnect(); }
+    }, { threshold:0.15 });
+    obs.observe(impGrid);
+  }
+
+  // الرسم البياني
+  const chartWrap = document.getElementById('impactChartWrap');
+  const chartBars = document.getElementById('impactChartBars');
+  if (chartWrap && chartBars) {
+    chartWrap.style.display = 'block';
+    const totals = keys.map(k => months[k].data.reduce((s,r)=>s+r.amount,0));
+    const maxV   = Math.max(...totals, 1);
+    chartBars.innerHTML = keys.map((k,i) => {
+      const m=months[k], h=Math.max(12, Math.round((totals[i]/maxV)*110));
+      const mn=_AR_MONTHS[(parseInt(m.month)-1)] || m.month;
+      return `<div style="flex:1;min-width:44px;display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="font-size:.6rem;color:#999">${_toAr(totals[i])}</div>
+        <div style="width:80%;height:${h}px;background:linear-gradient(180deg,var(--green-light),var(--green-deep));border-radius:6px 6px 0 0;" title="${mn} ${m.year}"></div>
+        <div style="font-size:.62rem;color:#888;text-align:center;line-height:1.3">${mn}<br>${m.year}</div>
+      </div>`;
+    }).join('');
+    const lastU = document.getElementById('impactLastUpdate');
+    if (lastU && months[keys[keys.length-1]].savedAt)
+      lastU.textContent = 'آخر تحديث: ' + months[keys[keys.length-1]].savedAt;
+  }
+});
+
+// ── ٣. قائمة المشتركين (قسم شركاؤنا) ──────────────
+_db.ref('wodnour_subscribers').on('value', snap => {
+  const data = snap.val() || {};
+  const arr  = Object.values(data);
+  window._honorList = arr; // تخزين للاستخدام في بناء البطاقات
+  if (typeof window._buildSubsFromFirebase === 'function') {
+    window._buildSubsFromFirebase(arr);
+  }
+});
+
+// ── ٤. طلبات الانضمام ──────────────────────────────
+window._saveJoinRequest = function(name, phone, location, level) {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+  _db.ref('wodnour_requests').child(id).set({
+    id, name, phone, location, level,
+    status: 'pending',
+    date: new Date().toLocaleDateString('ar-SA'),
+    ts: Date.now()
+  });
+};
 </script>
 
 <!-- TESTIMONIALS -->
@@ -2378,103 +2392,6 @@
   // ════════════════════════════════════════
   const LEVEL_ANNUAL = { 'داعم': 600, 'شريك': 1800, 'راعي': 6000 };
 
-  // قيم افتراضية — تُستبدل من Firebase
-  let WHATSAPP_NUM = '249912345678';
-  let BANK_NAME    = 'بنك الخرطوم';
-  let BANK_OWNER   = 'مبادرة ودنور الدائم';
-  let BANK_ACC     = '١٢٣٤٥٦٧٨٩٠١٢٣';
-
-  // Firebase settings ref (نفس المشروع)
-  (function loadSiteSettings() {
-    try {
-      let settApp;
-      try { settApp = firebase.app('siteSettings'); }
-      catch(e) { settApp = firebase.initializeApp({ databaseURL:"https://subscription-app-865cd-default-rtdb.firebaseio.com" }, 'siteSettings'); }
-
-      const settDb = firebase.database(settApp);
-
-      settDb.ref('wodnour_settings').on('value', snap => {
-        const s = snap.val() || {};
-
-        // ── البنك ──
-        if (s.bank) {
-          BANK_NAME  = s.bank.name  || BANK_NAME;
-          BANK_OWNER = s.bank.owner || BANK_OWNER;
-          BANK_ACC   = s.bank.acc   || BANK_ACC;
-          // تحديث العناصر في الصفحة إن كانت مرئية
-          const bankNameEls  = document.querySelectorAll('[data-live="bank-name"]');
-          const bankOwnerEls = document.querySelectorAll('[data-live="bank-owner"]');
-          const bankAccEls   = document.querySelectorAll('[data-live="bank-acc"]');
-          bankNameEls.forEach(el  => el.textContent = BANK_NAME);
-          bankOwnerEls.forEach(el => el.textContent = BANK_OWNER);
-          bankAccEls.forEach(el   => el.textContent = BANK_ACC);
-          // تحديث عنصر رقم الحساب في نموذج الانضمام
-          const accEl = document.getElementById('accNumEl');
-          if (accEl) accEl.textContent = BANK_ACC;
-        }
-
-        // ── واتساب ──
-        if (s.contact && s.contact.wa) {
-          WHATSAPP_NUM = s.contact.wa.replace(/^\+/,'');
-          // تحديث أزرار واتساب الثابتة في الصفحة
-          document.querySelectorAll('[data-live="wa-btn"]').forEach(el => {
-            const msg = el.dataset.wamsg || '';
-            el.href = `https://wa.me/${WHATSAPP_NUM}${msg ? '?text='+encodeURIComponent(msg) : ''}`;
-          });
-          // تحديث زر واتساب في الفوتر
-          const waFooter = document.getElementById('footerWaBtn');
-          if (waFooter) waFooter.href = `https://wa.me/${WHATSAPP_NUM}`;
-        }
-
-        // ── فيسبوك ──
-        if (s.contact && s.contact.fb) {
-          const fbBtn = document.getElementById('footerFbBtn');
-          if (fbBtn) fbBtn.href = s.contact.fb;
-        }
-
-        // ── إحصائيات الهيرو ──
-        if (s.stats) {
-          const map = {
-            'stat-schools':  s.stats.schools,
-            'stat-students': s.stats.students,
-            'stat-teachers': s.stats.teachers,
-            'stat-done':     s.stats.doneProj,
-          };
-          Object.entries(map).forEach(([id, val]) => {
-            const el = document.getElementById(id);
-            if (el && val) el.textContent = Number(val).toLocaleString('ar-EG');
-          });
-          // تحديث الهيرو stats
-          const heroStat = document.getElementById('hero-schools');
-          if (heroStat && s.stats.schools) heroStat.textContent = Number(s.stats.schools).toLocaleString('ar-EG') + '+';
-        }
-      });
-    } catch(e) { console.warn('Settings load error:', e); }
-  })();
-
-  // ════════════════════════════════════════
-  // JOIN REQUESTS — حفظ طلبات الانضمام في Firebase
-  // ════════════════════════════════════════
-  (function initJoinRequests() {
-    try {
-      let reqApp;
-      try { reqApp = firebase.app('joinReqs'); }
-      catch(e) { reqApp = firebase.initializeApp({ databaseURL:"https://subscription-app-865cd-default-rtdb.firebaseio.com" }, 'joinReqs'); }
-      window._reqDb = firebase.database(reqApp).ref('wodnour_requests');
-    } catch(e) { console.warn('Requests init error:', e); }
-  })();
-
-  function saveJoinRequest(name, phone, location, level) {
-    if (!window._reqDb) return;
-    const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
-    window._reqDb.child(id).set({
-      id, name, phone, location, level,
-      status: 'pending',
-      date: new Date().toLocaleDateString('ar-SA'),
-      ts: Date.now()
-    });
-  }
-
   let selectedLevel = 'شريك';
 
   function openModal() {
@@ -2534,7 +2451,9 @@
     const annual   = LEVEL_ANNUAL[selectedLevel];
 
     // ── حفظ الطلب في Firebase ──
-    saveJoinRequest(name, phone, location, selectedLevel);
+    if (typeof window._saveJoinRequest === 'function') {
+      window._saveJoinRequest(name, phone, location, selectedLevel);
+    }
 
     // Populate step 2
     document.getElementById('s2Name').textContent = name.split(' ')[0];
@@ -2551,7 +2470,7 @@
       `المبلغ المحوَّل: ${annual.toLocaleString('ar-EG')} ج.س\n\n` +
       `مرفق إيصال التحويل`
     );
-    document.getElementById('waBtn').href = `https://wa.me/${WHATSAPP_NUM}?text=${msg}`;
+    document.getElementById('waBtn').href = `https://wa.me/${window._waNum || '249912345678'}?text=${msg}`;
 
     // Switch steps with animation
     const box = document.getElementById('joinModalBox');
@@ -2633,31 +2552,12 @@
       animN(document.getElementById('sSharikCount'), subs.filter(x=>x.level==='شريك').length);
     }
 
-    // قراءة من Firebase
-    try {
-      let subsApp;
-      try { subsApp = firebase.app('subsModule'); }
-      catch(e2) { subsApp = firebase.initializeApp({databaseURL:"https://subscription-app-865cd-default-rtdb.firebaseio.com"}, 'subsModule'); }
+    // تسجيل الدالة كـ callback عام — يستدعيها Firebase listener في الأعلى
+    window._buildSubsFromFirebase = processAndRender;
 
-      firebase.database(subsApp).ref('wodnour_subscribers').on('value', snap => {
-        const data = snap.val() || {};
-        const arr  = Object.values(data);
-        if (arr.length > 0) {
-          processAndRender(arr);
-        } else {
-          // لا يوجد مشتركون في Firebase — اعرض رسالة
-          document.getElementById('sGrid').innerHTML =
-            `<div style="text-align:center;color:rgba(255,255,255,.4);padding:3rem;grid-column:1/-1">
-               <div style="font-size:2.5rem;margin-bottom:.8rem">👥</div>
-               <p>لم يُضف أي مشترك بعد — أضفهم من لوحة التحكم</p>
-             </div>`;
-          document.getElementById('sPodium').innerHTML = '';
-          ['sTotalSubs','sTotalAmt','sRawiCount','sSharikCount'].forEach(id=>
-            document.getElementById(id).textContent='٠');
-        }
-      });
-    } catch(err) {
-      console.warn('Subscribers Firebase error:', err);
+    // إذا كانت البيانات محملة مسبقاً (race condition) شغّلها فوراً
+    if (window._honorList && window._honorList.length) {
+      processAndRender(window._honorList);
     }
 
     // Podium
