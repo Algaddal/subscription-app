@@ -649,6 +649,33 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
     </div>
 
     <div class="setting-card" style="grid-column:1/-1">
+      <h3>🔍 قسم الشفافية المالية — النصوص والأشرطة</h3>
+      <div class="form-group" style="margin-bottom:10px">
+        <label>النص التعريفي للقسم</label>
+        <textarea class="inp textarea" id="set-trans-desc" rows="2" placeholder="نؤمن أن الثقة تُبنى بالشفافية..."></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
+          <label style="font-size:.78rem;color:var(--gold-l);font-weight:600;display:block;margin-bottom:6px">عنوان ميثاق الشفافية</label>
+          <input class="inp" id="set-pledge-title" placeholder="ميثاق الشفافية">
+        </div>
+        <div>
+          <label style="font-size:.78rem;color:var(--gold-l);font-weight:600;display:block;margin-bottom:6px">نص الميثاق</label>
+          <textarea class="inp textarea" id="set-pledge-text" rows="3" placeholder="نتعهد بنشر كشف حساب..."></textarea>
+        </div>
+      </div>
+
+      <!-- أشرطة التقدم -->
+      <label style="font-size:.78rem;color:var(--gold-l);font-weight:600;display:block;margin-bottom:8px">📊 أشرطة التقدم (الاسم + النسبة %)</label>
+      <div id="transBarsInputs" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="btn btn-ghost btn-sm" onclick="addTransBar()">➕ إضافة شريط</button>
+        <button class="btn btn-ghost btn-sm" onclick="initDefaultTransBars()">↺ استعادة الافتراضية</button>
+      </div>
+      <button class="btn btn-gold" onclick="saveSettings('transparency')">💾 حفظ قسم الشفافية</button>
+    </div>
+
+    <div class="setting-card" style="grid-column:1/-1">
       <h3>💰 التحكم في عرض الشفافية المالية</h3>
       <p style="font-size:.75rem;color:var(--tx2);margin-bottom:12px">اختر ما يظهر في قسم "الشفافية المالية" للزوار</p>
       <div class="form-row" style="align-items:flex-end">
@@ -680,27 +707,36 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
       <button class="btn btn-gold" onclick="saveSettings('joinMsg')">💾 حفظ الرسالة</button>
     </div>
 
-    <div class="setting-card" style="grid-column:1/-1">
+    <div class="setting-card" style="grid-column:1/-1" id="testimonialsAdmin">
       <h3>🗣️ إدارة الشهادات</h3>
-      <div class="card-body" id="testimonialsAdmin">
-        <div class="form-row">
-          <div class="form-group" style="flex:2"><label>النص</label><textarea class="inp textarea" id="t-text" rows="2" placeholder="نص الشهادة..."></textarea></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label>الاسم والمنصب</label><input class="inp" id="t-name" placeholder="اسم — منصب"></div>
-          <div class="form-group"><label>الدور</label><input class="inp" id="t-role" placeholder="مثال: مشترك منذ التأسيس"></div>
-          <div class="form-group"><label>الجنس</label>
-            <select class="inp" id="t-gender">
-              <option value="male">👨 ذكر</option>
-              <option value="female">👩 أنثى</option>
-            </select>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:14px">
-          <button class="btn btn-gold" onclick="addTestimonial()">➕ إضافة شهادة</button>
-        </div>
-        <div id="testimonialsList"></div>
+
+      <!-- نموذج الإضافة/التعديل -->
+      <input type="hidden" id="t-edit-id">
+      <div class="form-row">
+        <div class="form-group" style="flex:2"><label>النص *</label><textarea class="inp textarea" id="t-text" rows="2" placeholder="نص الشهادة..."></textarea></div>
       </div>
+      <div class="form-row">
+        <div class="form-group"><label>الاسم والمنصب *</label><input class="inp" id="t-name" placeholder="اسم — منصب"></div>
+        <div class="form-group"><label>الدور</label><input class="inp" id="t-role" placeholder="مثال: مشترك منذ التأسيس"></div>
+        <div class="form-group"><label>الجنس</label>
+          <select class="inp" id="t-gender">
+            <option value="male">👨 ذكر</option>
+            <option value="female">👩 أنثى</option>
+          </select>
+        </div>
+        <div class="form-group"><label>الترتيب</label><input class="inp" type="number" id="t-order" placeholder="1" min="1" style="width:80px"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:20px">
+        <button class="btn btn-gold" onclick="saveTestimonial()">💾 حفظ الشهادة</button>
+        <button class="btn btn-ghost" id="t-cancel-btn" onclick="cancelEditTestimonial()" style="display:none">إلغاء التعديل</button>
+      </div>
+
+      <!-- قائمة الشهادات مع السحب والإفلات -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <span style="font-size:.82rem;color:var(--tx2)">اسحب ↕ لإعادة الترتيب — التغيير يتحدث على الموقع فوراً</span>
+        <span class="badge" id="testimonialCount">0</span>
+      </div>
+      <div id="testimonialsList" style="min-height:40px"></div>
     </div>
 
     <div class="setting-card" style="grid-column:1/-1">
@@ -1519,6 +1555,43 @@ function renderPlansPreview() {
   }).join('');
 }
 
+/* ══════════ TRANSPARENCY SECTION ══════════ */
+const DEFAULT_TRANS_BARS = [
+  { label:'نسبة الصرف على المشاريع مباشرة', pct:87 },
+  { label:'المصاريف الإدارية',               pct:8  },
+  { label:'الاحتياطي للطوارئ',               pct:5  },
+];
+
+function addTransBar(label='', pct='') {
+  const el = document.getElementById('transBarsInputs');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:8px;align-items:center';
+  div.innerHTML = `
+    <input class="inp" type="text" placeholder="مثال: نسبة الصرف المباشر" value="${label}" style="flex:3">
+    <input class="inp" type="number" placeholder="%" value="${pct}" min="0" max="100" style="flex:1;max-width:80px">
+    <button class="btn btn-red btn-sm" onclick="this.parentElement.remove()" style="padding:6px 10px">✕</button>`;
+  el.appendChild(div);
+}
+
+function initDefaultTransBars() {
+  document.getElementById('transBarsInputs').innerHTML = '';
+  DEFAULT_TRANS_BARS.forEach(b => addTransBar(b.label, b.pct));
+}
+
+function loadTransparencySettings(t) {
+  if (!t) return;
+  if (t.desc)        document.getElementById('set-trans-desc').value   = t.desc;
+  if (t.pledgeTitle) document.getElementById('set-pledge-title').value  = t.pledgeTitle;
+  if (t.pledgeText)  document.getElementById('set-pledge-text').value   = t.pledgeText;
+  const el = document.getElementById('transBarsInputs');
+  el.innerHTML = '';
+  if (t.bars && t.bars.length) {
+    t.bars.forEach(b => addTransBar(b.label, b.pct));
+  } else {
+    initDefaultTransBars();
+  }
+}
+
 /* ══════════ FINANCE DISPLAY ══════════ */
 function toggleFinanceMonth() {
   const mode = document.getElementById('set-fin-mode').value;
@@ -1537,52 +1610,193 @@ function populateMonthSelect() {
 }
 
 /* ══════════ TESTIMONIALS ══════════ */
-function addTestimonial() {
+/* ══════════ TESTIMONIALS ══════════ */
+let _testimonials = {};  // cache
+let _dragSrcId = null;
+
+// تهيئة Real-time listener مرة واحدة
+function renderTestimonials() {
+  REF.months.root.child('wodnour_testimonials').on('value', snap => {
+    _testimonials = snap.val() || {};
+    _renderTestimonialsList();
+  });
+}
+
+function _renderTestimonialsList() {
+  const el = document.getElementById('testimonialsList');
+  const badge = document.getElementById('testimonialCount');
+  if (!el) return;
+
+  const list = Object.values(_testimonials)
+    .sort((a,b) => (a.order||99) - (b.order||99));
+
+  if (badge) badge.textContent = list.length;
+
+  if (!list.length) {
+    el.innerHTML = '<p style="color:var(--tx2);font-size:.82rem;padding:16px 0">لا توجد شهادات — سيتم استخدام الافتراضية في الموقع</p>';
+    return;
+  }
+
+  el.innerHTML = list.map((t,i) => `
+    <div class="t-row" data-id="${t.id}" draggable="true"
+         style="display:flex;align-items:center;gap:10px;background:var(--s2);
+                border:1px solid ${t.visible===false?'rgba(224,92,92,.25)':'var(--border)'};
+                border-radius:11px;padding:11px 14px;margin-bottom:8px;
+                flex-wrap:wrap;cursor:grab;transition:all .2s;opacity:${t.visible===false?.5:1}">
+
+      <!-- مقبض السحب -->
+      <div style="color:var(--tx2);font-size:1.2rem;cursor:grab;flex-shrink:0"
+           title="اسحب لتغيير الترتيب">⠿</div>
+
+      <!-- رقم الترتيب -->
+      <div style="background:var(--s3);border:1px solid var(--border);border-radius:7px;
+                  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+                  font-size:.78rem;font-weight:700;color:var(--gold-l);flex-shrink:0">${i+1}</div>
+
+      <!-- الجنس -->
+      <span style="font-size:1.4rem;flex-shrink:0">${t.gender==='female'?'👩':'👨'}</span>
+
+      <!-- المعلومات -->
+      <div style="flex:1;min-width:160px">
+        <div style="font-weight:700;font-size:.88rem;color:var(--tx)">${esc(t.name)}</div>
+        <div style="font-size:.72rem;color:var(--tx2);margin-top:2px">${t.role||''}</div>
+        <div style="font-size:.75rem;color:var(--tx2);margin-top:3px;line-height:1.5">
+          ${esc((t.text||'').substring(0,80))}${t.text?.length>80?'...':''}
+        </div>
+      </div>
+
+      <!-- أزرار التحكم -->
+      <div style="display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0">
+        <button class="btn btn-ghost btn-sm" onclick="editTestimonial('${t.id}')">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="moveTestimonial('${t.id}','up')" ${i===0?'disabled':''}>↑</button>
+        <button class="btn btn-ghost btn-sm" onclick="moveTestimonial('${t.id}','down')" ${i===list.length-1?'disabled':''}>↓</button>
+        <label style="display:flex;align-items:center;gap:4px;font-size:.72rem;cursor:pointer;
+                      padding:5px 8px;background:var(--s3);border:1px solid var(--border);border-radius:8px">
+          <input type="checkbox" ${t.visible!==false?'checked':''} onchange="toggleTestimonial('${t.id}',this.checked)"
+                 style="accent-color:var(--gold)"> ظاهر
+        </label>
+        <button class="btn btn-red btn-sm" onclick="delTestimonial('${t.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+
+  // تفعيل السحب والإفلات
+  el.querySelectorAll('.t-row').forEach(row => {
+    row.addEventListener('dragstart', e => {
+      _dragSrcId = row.dataset.id;
+      row.style.opacity = '.4';
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', e => {
+      row.style.opacity = '';
+      el.querySelectorAll('.t-row').forEach(r => r.style.background = '');
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      el.querySelectorAll('.t-row').forEach(r => r.style.outline = '');
+      row.style.outline = '2px solid var(--gold)';
+    });
+    row.addEventListener('dragleave', () => row.style.outline = '');
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      row.style.outline = '';
+      if (_dragSrcId && _dragSrcId !== row.dataset.id) {
+        _reorderByDrop(_dragSrcId, row.dataset.id);
+      }
+      _dragSrcId = null;
+    });
+  });
+}
+
+function _getOrderedList() {
+  return Object.values(_testimonials).sort((a,b) => (a.order||99) - (b.order||99));
+}
+
+function _reorderByDrop(srcId, targetId) {
+  const list = _getOrderedList();
+  const srcIdx    = list.findIndex(t => t.id === srcId);
+  const targetIdx = list.findIndex(t => t.id === targetId);
+  if (srcIdx === -1 || targetIdx === -1) return;
+
+  // إعادة ترتيب المصفوفة
+  const item = list.splice(srcIdx, 1)[0];
+  list.splice(targetIdx, 0, item);
+
+  // حفظ الترتيب الجديد
+  const updates = {};
+  list.forEach((t,i) => { updates[t.id + '/order'] = i+1; });
+  REF.months.root.child('wodnour_testimonials').update(updates)
+    .then(()=>toast('✅ تم حفظ الترتيب الجديد','ok'));
+}
+
+function moveTestimonial(id, dir) {
+  const list = _getOrderedList();
+  const idx  = list.findIndex(t => t.id === id);
+  const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
+  if (swapIdx < 0 || swapIdx >= list.length) return;
+
+  const updates = {};
+  updates[list[idx].id    + '/order'] = swapIdx + 1;
+  updates[list[swapIdx].id + '/order'] = idx + 1;
+  REF.months.root.child('wodnour_testimonials').update(updates)
+    .then(()=>toast('✅ تم تغيير الترتيب','ok'));
+}
+
+function saveTestimonial() {
   const text   = document.getElementById('t-text').value.trim();
   const name   = document.getElementById('t-name').value.trim();
   const role   = document.getElementById('t-role').value.trim();
   const gender = document.getElementById('t-gender').value;
+  const order  = parseInt(document.getElementById('t-order').value) || (Object.keys(_testimonials).length + 1);
+  const editId = document.getElementById('t-edit-id').value;
+
   if (!text || !name) { toast('⚠️ أدخل النص والاسم','err'); return; }
-  const id = uid();
+
+  const id = editId || uid();
   REF.months.root.child('wodnour_testimonials/'+id).set({
-    id, text, name, role, gender, visible: true,
-    addedAt: new Date().toLocaleDateString('ar-SA')
+    id, text, name, role, gender, order,
+    visible: _testimonials[id]?.visible !== false,
+    addedAt: _testimonials[id]?.addedAt || new Date().toLocaleDateString('ar-SA')
   }).then(() => {
-    toast('✅ تم إضافة الشهادة','ok');
-    document.getElementById('t-text').value = '';
-    document.getElementById('t-name').value = '';
-    document.getElementById('t-role').value = '';
+    toast(editId ? '✅ تم تعديل الشهادة' : '✅ تم إضافة الشهادة', 'ok');
+    cancelEditTestimonial();
   });
 }
 
-function renderTestimonials() {
-  REF.months.root.child('wodnour_testimonials').on('value', snap => {
-    const data = snap.val() || {};
-    const list = Object.values(data);
-    const el   = document.getElementById('testimonialsList');
-    if (!el) return;
-    if (!list.length) { el.innerHTML = '<p style="color:var(--tx2);font-size:.82rem">لا توجد شهادات — سيتم استخدام الافتراضية</p>'; return; }
-    el.innerHTML = list.map(t => `
-      <div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:8px;flex-wrap:wrap;">
-        <span>${t.gender==='female'?'👩':'👨'}</span>
-        <div style="flex:1;min-width:160px">
-          <div style="font-weight:700;font-size:.85rem">${t.name}</div>
-          <div style="font-size:.75rem;color:var(--tx2)">${t.text?.substring(0,60)}...</div>
-        </div>
-        <label style="display:flex;align-items:center;gap:5px;font-size:.75rem;cursor:pointer">
-          <input type="checkbox" ${t.visible!==false?'checked':''} onchange="toggleTestimonial('${t.id}',this.checked)"> ظاهر
-        </label>
-        <button class="btn btn-red btn-sm" onclick="delTestimonial('${t.id}')">🗑️</button>
-      </div>`).join('');
-  });
+function editTestimonial(id) {
+  const t = _testimonials[id]; if (!t) return;
+  document.getElementById('t-edit-id').value   = id;
+  document.getElementById('t-text').value      = t.text   || '';
+  document.getElementById('t-name').value      = t.name   || '';
+  document.getElementById('t-role').value      = t.role   || '';
+  document.getElementById('t-gender').value    = t.gender || 'male';
+  document.getElementById('t-order').value     = t.order  || '';
+  document.getElementById('t-cancel-btn').style.display = 'inline-flex';
+  document.getElementById('testimonialsAdmin')?.scrollIntoView({behavior:'smooth'});
+  // scroll to top of setting card
+  document.getElementById('t-text').closest('.setting-card')?.scrollIntoView({behavior:'smooth'});
+}
+
+function cancelEditTestimonial() {
+  document.getElementById('t-edit-id').value  = '';
+  document.getElementById('t-text').value     = '';
+  document.getElementById('t-name').value     = '';
+  document.getElementById('t-role').value     = '';
+  document.getElementById('t-order').value    = '';
+  document.getElementById('t-gender').value   = 'male';
+  document.getElementById('t-cancel-btn').style.display = 'none';
 }
 
 function toggleTestimonial(id, visible) {
-  REF.months.root.child('wodnour_testimonials/'+id+'/visible').set(visible);
+  REF.months.root.child('wodnour_testimonials/'+id+'/visible').set(visible)
+    .then(()=>toast(visible?'👁️ ظاهر الآن':'🙈 مخفي الآن','ok'));
 }
 
 function delTestimonial(id) {
-  openConfirm('حذف هذه الشهادة؟', () => REF.months.root.child('wodnour_testimonials/'+id).remove().then(()=>toast('🗑️ تم','ok')));
+  const t = _testimonials[id];
+  openConfirm(`حذف شهادة "${t?.name}"؟`, () =>
+    REF.months.root.child('wodnour_testimonials/'+id).remove()
+      .then(()=>toast('🗑️ تم الحذف','ok')));
 }
 
 /* ══════════ REQUESTS — show amount ══════════ */
@@ -1648,6 +1862,7 @@ function loadSettings(){
     document.getElementById('set-done-proj').value=s.stats.doneProj||'';
   }
   if(s.url) document.getElementById('set-site-url').value=s.url||'';
+  loadTransparencySettings(s.transparency);
   if(s.financeDisplay){
     const fm = document.getElementById('set-fin-mode');
     if(fm){ fm.value = s.financeDisplay.mode||'last'; toggleFinanceMonth(); }
@@ -1661,6 +1876,8 @@ function loadSettings(){
   populateMonthSelect();
   renderTestimonials();
   renderImpactCardsControl();
+  // تهيئة أشرطة الشفافية إن لم تُحمَّل بعد
+  if (!document.querySelector('#transBarsInputs > div')) initDefaultTransBars();
 }
 
 function saveSettings(type){
@@ -1687,6 +1904,23 @@ function saveSettings(type){
     if(pb) saved.accountant=pb;
     if(pv) saved.viewer=pv;
     REF.settings.child('passwords').set(saved).then(()=>{ PASSWORDS={...saved}; toast('✅ تم تغيير كلمات المرور','ok'); document.getElementById('set-pw-admin').value=''; document.getElementById('set-pw-accountant').value=''; document.getElementById('set-pw-viewer').value=''; });
+  }
+  else if(type==='transparency'){
+    const bars = [];
+    document.querySelectorAll('#transBarsInputs > div').forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      const label = inputs[0]?.value.trim();
+      const pct   = parseInt(inputs[1]?.value) || 0;
+      if (label) bars.push({ label, pct });
+    });
+    const data = {
+      desc:        document.getElementById('set-trans-desc').value.trim(),
+      pledgeTitle: document.getElementById('set-pledge-title').value.trim(),
+      pledgeText:  document.getElementById('set-pledge-text').value.trim(),
+      bars
+    };
+    REF.settings.child('transparency').set(data)
+      .then(()=>toast('✅ تم حفظ قسم الشفافية — يتحدث على الموقع فوراً','ok'));
   }
   else if(type==='finance'){
     const mode = document.getElementById('set-fin-mode').value;
