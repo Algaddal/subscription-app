@@ -421,6 +421,12 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
             <option value="داعم">🌱 داعم — 50 ج.س/شهر</option>
           </select>
         </div>
+        <div class="form-group"><label>الجنس</label>
+          <select class="inp" id="ns-gender">
+            <option value="male">👨 ذكر</option>
+            <option value="female">👩 أنثى</option>
+          </select>
+        </div>
         <div class="form-group"><label>عدد الأشهر المسدَّدة</label><input class="inp" type="number" id="ns-months" placeholder="12" min="1" max="12" value="12"></div>
         <div class="form-group" style="justify-content:flex-end"><label>&nbsp;</label><button class="btn btn-gold" onclick="addSubscriber()">💾 حفظ المشترك</button></div>
       </div>
@@ -581,7 +587,59 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
     </div>
 
     <div class="setting-card" style="grid-column:1/-1">
-      <h3>🔗 رابط الموقع الرئيسي</h3>
+      <h3>💰 التحكم في عرض الشفافية المالية</h3>
+      <p style="font-size:.75rem;color:var(--tx2);margin-bottom:12px">اختر ما يظهر في قسم "الشفافية المالية" للزوار</p>
+      <div class="form-row" style="align-items:flex-end">
+        <div class="form-group">
+          <label>وضع العرض</label>
+          <select class="inp" id="set-fin-mode" onchange="toggleFinanceMonth()">
+            <option value="last">آخر شهر فقط</option>
+            <option value="specific">شهر محدد</option>
+            <option value="all">جميع الأشهر مجمّعة</option>
+          </select>
+        </div>
+        <div class="form-group" id="finMonthGroup" style="display:none">
+          <label>اختر الشهر</label>
+          <select class="inp" id="set-fin-month">
+            <option value="">— اختر —</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" onclick="saveSettings('finance')">💾 حفظ</button>
+      </div>
+    </div>
+
+    <div class="setting-card" style="grid-column:1/-1">
+      <h3>💬 رسالة نموذج الانضمام</h3>
+      <p style="font-size:.75rem;color:var(--tx2);margin-bottom:12px">تظهر للمشترك بعد إدخال بياناته — اتركها فارغة لإخفائها</p>
+      <div class="form-group" style="margin-bottom:14px">
+        <label>نص الرسالة</label>
+        <textarea class="inp textarea" id="set-join-msg" rows="3" placeholder="مثال: يُرجى التواصل معنا خلال 24 ساعة بعد التحويل لتأكيد انضمامك..."></textarea>
+      </div>
+      <button class="btn btn-gold" onclick="saveSettings('joinMsg')">💾 حفظ الرسالة</button>
+    </div>
+
+    <div class="setting-card" style="grid-column:1/-1">
+      <h3>🗣️ إدارة الشهادات</h3>
+      <div class="card-body" id="testimonialsAdmin">
+        <div class="form-row">
+          <div class="form-group" style="flex:2"><label>النص</label><textarea class="inp textarea" id="t-text" rows="2" placeholder="نص الشهادة..."></textarea></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>الاسم والمنصب</label><input class="inp" id="t-name" placeholder="اسم — منصب"></div>
+          <div class="form-group"><label>الدور</label><input class="inp" id="t-role" placeholder="مثال: مشترك منذ التأسيس"></div>
+          <div class="form-group"><label>الجنس</label>
+            <select class="inp" id="t-gender">
+              <option value="male">👨 ذكر</option>
+              <option value="female">👩 أنثى</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button class="btn btn-gold" onclick="addTestimonial()">➕ إضافة شهادة</button>
+        </div>
+        <div id="testimonialsList"></div>
+      </div>
+    </div>
       <div class="form-row" style="align-items:flex-end">
         <div class="form-group" style="flex:3"><label>الرابط</label><input class="inp" id="set-site-url" placeholder="https://algaddal.github.io/subscription-app/"></div>
         <button class="btn btn-gold" onclick="window.open(document.getElementById('set-site-url').value,'_blank')">🌐 فتح الموقع</button>
@@ -1009,6 +1067,7 @@ function addSubscriber(){
     phone: document.getElementById('ns-phone').value.trim(),
     location: document.getElementById('ns-loc').value.trim(),
     level, months,
+    gender: document.getElementById('ns-gender').value,
     total: months * (AMTS[level]||150),
     addedAt: new Date().toLocaleDateString('ar-SA')
   };
@@ -1167,34 +1226,125 @@ function renderRequests(){
   const canWrite=currentRole&&ROLE_CFG[currentRole].canWrite;
   const SBDG={'pending':'badge','accepted':'badge-green','rejected':'badge-red'};
   const SLBL={'pending':'⏳ قيد المراجعة','accepted':'✅ مقبول','rejected':'❌ مرفوض'};
+  const AMTS_R={'راعي':6000,'شريك':1800,'داعم':600};
   el.innerHTML=list.map(r=>`<div class="req-item">
     <div class="req-info">
       <div class="req-name">${esc(r.name)}</div>
       <div class="req-meta">
         <span>📞 ${r.phone||'—'}</span>
         <span>💎 ${r.level||'—'}</span>
+        <span style="color:var(--gold-l);font-weight:700;background:rgba(201,168,76,.1);padding:1px 7px;border-radius:6px">💰 ${(AMTS_R[r.level]||0).toLocaleString('ar-EG')} ج.س/سنة</span>
         <span>📍 ${r.location||'—'}</span>
         <span>📅 ${r.date||'—'}</span>
       </div>
     </div>
     <span class="${SBDG[r.status]||'badge'}">${SLBL[r.status]||r.status}</span>
     ${canWrite?`<div class="req-actions">
-      ${r.status!=='accepted'?`<button class="btn btn-green btn-sm" onclick="updateReq('${r.id}','accepted')">✅ قبول</button>`:''}
+      ${r.status!=='accepted'?`<button class="btn btn-green btn-sm" onclick="acceptReq('${r.id}')">✅ قبول وإضافة لقائمة الشرف</button>`:''}
       ${r.status!=='rejected'?`<button class="btn btn-red btn-sm" onclick="updateReq('${r.id}','rejected')">❌ رفض</button>`:''}
       <button class="btn btn-ghost btn-sm" onclick="delReq('${r.id}')">🗑️</button>
     </div>`:''}
   </div>`).join('');
 }
 
-function updateReq(id,status){
-  REF.requests.child(id+'/status').set(status).then(()=>toast(status==='accepted'?'✅ تم القبول':'❌ تم الرفض','ok'));
+function acceptReq(id){
+  const r = C.requests[id]; if(!r) return;
+  const AMTS_A={'راعي':500,'شريك':150,'داعم':50};
+  // قبول الطلب
+  REF.requests.child(id+'/status').set('accepted');
+  // إضافة تلقائية لقائمة الشرف
+  const subId = uid();
+  REF.subscribers.child(subId).set({
+    id: subId,
+    name: r.name,
+    phone: r.phone||'',
+    location: r.location||'',
+    level: r.level||'شريك',
+    gender: 'male',
+    months: 12,
+    total: 12 * (AMTS_A[r.level]||150),
+    addedAt: new Date().toLocaleDateString('ar-SA'),
+    fromRequest: true
+  }).then(()=>toast(`✅ تم قبول ${r.name} وإضافته لقائمة الشرف`,'ok'));
 }
 
 function delReq(id){
   openConfirm('حذف هذا الطلب؟',()=>REF.requests.child(id).remove().then(()=>toast('🗑️ تم الحذف','ok')));
 }
 
-/* ══════════ SETTINGS ══════════ */
+/* ══════════ FINANCE DISPLAY ══════════ */
+function toggleFinanceMonth() {
+  const mode = document.getElementById('set-fin-mode').value;
+  document.getElementById('finMonthGroup').style.display = mode === 'specific' ? 'flex' : 'none';
+}
+
+function populateMonthSelect() {
+  const sel = document.getElementById('set-fin-month');
+  if (!sel) return;
+  const keys = Object.keys(C.months).sort().reverse();
+  sel.innerHTML = '<option value="">— اختر —</option>' +
+    keys.map(k => {
+      const m = C.months[k];
+      return `<option value="${k}">${mName(m.month)} ${m.year}</option>`;
+    }).join('');
+}
+
+/* ══════════ TESTIMONIALS ══════════ */
+function addTestimonial() {
+  const text   = document.getElementById('t-text').value.trim();
+  const name   = document.getElementById('t-name').value.trim();
+  const role   = document.getElementById('t-role').value.trim();
+  const gender = document.getElementById('t-gender').value;
+  if (!text || !name) { toast('⚠️ أدخل النص والاسم','err'); return; }
+  const id = uid();
+  REF.months.root.child('wodnour_testimonials/'+id).set({
+    id, text, name, role, gender, visible: true,
+    addedAt: new Date().toLocaleDateString('ar-SA')
+  }).then(() => {
+    toast('✅ تم إضافة الشهادة','ok');
+    document.getElementById('t-text').value = '';
+    document.getElementById('t-name').value = '';
+    document.getElementById('t-role').value = '';
+  });
+}
+
+function renderTestimonials() {
+  REF.months.root.child('wodnour_testimonials').on('value', snap => {
+    const data = snap.val() || {};
+    const list = Object.values(data);
+    const el   = document.getElementById('testimonialsList');
+    if (!el) return;
+    if (!list.length) { el.innerHTML = '<p style="color:var(--tx2);font-size:.82rem">لا توجد شهادات — سيتم استخدام الافتراضية</p>'; return; }
+    el.innerHTML = list.map(t => `
+      <div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:8px;flex-wrap:wrap;">
+        <span>${t.gender==='female'?'👩':'👨'}</span>
+        <div style="flex:1;min-width:160px">
+          <div style="font-weight:700;font-size:.85rem">${t.name}</div>
+          <div style="font-size:.75rem;color:var(--tx2)">${t.text?.substring(0,60)}...</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:5px;font-size:.75rem;cursor:pointer">
+          <input type="checkbox" ${t.visible!==false?'checked':''} onchange="toggleTestimonial('${t.id}',this.checked)"> ظاهر
+        </label>
+        <button class="btn btn-red btn-sm" onclick="delTestimonial('${t.id}')">🗑️</button>
+      </div>`).join('');
+  });
+}
+
+function toggleTestimonial(id, visible) {
+  REF.months.root.child('wodnour_testimonials/'+id+'/visible').set(visible);
+}
+
+function delTestimonial(id) {
+  openConfirm('حذف هذه الشهادة؟', () => REF.months.root.child('wodnour_testimonials/'+id).remove().then(()=>toast('🗑️ تم','ok')));
+}
+
+/* ══════════ REQUESTS — show amount ══════════ */
+function getReqAmount(level) {
+  const AMTS = { 'راعي': 6000, 'شريك': 1800, 'داعم': 600 };
+  return AMTS[level] || 0;
+}
+
+/* ══════════ SETTINGS ADDITIONS ══════════ */
 function loadSettings(){
   const s=C.settings||{};
   if(s.bank){
@@ -1214,6 +1364,18 @@ function loadSettings(){
     document.getElementById('set-done-proj').value=s.stats.doneProj||'';
   }
   if(s.url) document.getElementById('set-site-url').value=s.url||'';
+  if(s.financeDisplay){
+    const fm = document.getElementById('set-fin-mode');
+    if(fm){ fm.value = s.financeDisplay.mode||'last'; toggleFinanceMonth(); }
+    const fk = document.getElementById('set-fin-month');
+    if(fk && s.financeDisplay.monthKey) fk.value = s.financeDisplay.monthKey;
+  }
+  if(s.joinMessage){
+    const jm = document.getElementById('set-join-msg');
+    if(jm) jm.value = s.joinMessage || '';
+  }
+  populateMonthSelect();
+  renderTestimonials();
 }
 
 function saveSettings(type){
@@ -1240,6 +1402,15 @@ function saveSettings(type){
     if(pb) saved.accountant=pb;
     if(pv) saved.viewer=pv;
     REF.settings.child('passwords').set(saved).then(()=>{ PASSWORDS={...saved}; toast('✅ تم تغيير كلمات المرور','ok'); document.getElementById('set-pw-admin').value=''; document.getElementById('set-pw-accountant').value=''; document.getElementById('set-pw-viewer').value=''; });
+  }
+  else if(type==='finance'){
+    const mode = document.getElementById('set-fin-mode').value;
+    const monthKey = document.getElementById('set-fin-month').value;
+    REF.settings.child('financeDisplay').set({mode, monthKey}).then(()=>toast('✅ تم حفظ إعداد الشفافية — سيظهر على الموقع فوراً','ok'));
+  }
+  else if(type==='joinMsg'){
+    const msg = document.getElementById('set-join-msg').value.trim();
+    REF.settings.child('joinMessage').set(msg).then(()=>toast('✅ تم حفظ رسالة الانضمام','ok'));
   }
   else if(type==='url'){
     REF.settings.child('url').set(document.getElementById('set-site-url').value.trim()).then(()=>toast('✅ تم حفظ الرابط','ok'));
