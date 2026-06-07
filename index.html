@@ -1644,67 +1644,45 @@
       </div>
     </div>
 
-    <div class="finance-grid reveal">
+    <div class="finance-grid reveal" id="financeGrid">
+      <!-- تُملأ من Firebase -->
       <div class="finance-card">
-        <h3>💰 إيرادات هذا الشهر</h3>
-        <div class="finance-item">
-          <span class="label">اشتراكات شهرية</span>
-          <span class="amount">٣٢,٤٠٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">تبرعات إضافية</span>
-          <span class="amount">٨,٧٥٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">دعم مؤسسي</span>
-          <span class="amount">١٥,٠٠٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">عائد الفعاليات</span>
-          <span class="amount">٣,٢٠٠ ج.س</span>
+        <h3 id="financeIncomeTitle">💰 إيرادات الشهر الحالي</h3>
+        <div id="financeIncomeRows">
+          <div class="finance-item"><span class="label">جارٍ التحميل...</span><span class="amount">—</span></div>
         </div>
         <div class="finance-total">
           <span>إجمالي الإيرادات</span>
-          <span>٥٩,٣٥٠ ج.س</span>
+          <span id="financeTotalIncome">— ج.س</span>
         </div>
       </div>
-
       <div class="finance-card">
-        <h3>📤 مصروفات هذا الشهر</h3>
-        <div class="finance-item">
-          <span class="label">مواد البناء والصيانة</span>
-          <span class="amount expense">٢٨,٦٠٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">أجور العمالة</span>
-          <span class="amount expense">١٢,٤٠٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">تجهيزات ومعدات</span>
-          <span class="amount expense">٧,٢٠٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">مصاريف إدارية</span>
-          <span class="amount expense">٢,١٠٠ ج.س</span>
+        <h3 id="financeExpenseTitle">📤 مصروفات الشهر الحالي</h3>
+        <div id="financeExpenseRows">
+          <div class="finance-item"><span class="label">جارٍ التحميل...</span><span class="amount expense">—</span></div>
         </div>
         <div class="finance-total" style="background:#c0392b;">
           <span>إجمالي المصروفات</span>
-          <span>٥٠,٣٠٠ ج.س</span>
+          <span id="financeTotalExpense">— ج.س</span>
         </div>
       </div>
     </div>
 
-    <div class="donut-wrap reveal" style="margin-top:2rem;">
-      <h3 style="font-size:1.1rem; font-weight:700; color:var(--green-deep); margin-bottom:1.5rem;">توزيع المصروفات — نظرة بيانية</h3>
-      <div class="donut-chart">
-        <div class="donut-hole">٢٠٢٥<br>يونيو</div>
+    <!-- مؤشر الشهر المعروض -->
+    <div id="financeMonthIndicator" class="reveal" style="margin-top:1rem;text-align:center;display:none;">
+      <div style="display:inline-flex;align-items:center;gap:.5rem;background:rgba(45,122,79,.08);border:1px solid rgba(45,122,79,.2);padding:.4rem 1.2rem;border-radius:50px;">
+        <span style="font-size:.8rem;color:var(--green-mid);">📅 يعرض الآن:</span>
+        <span id="financeMonthLabel" style="font-weight:700;color:var(--green-deep);font-size:.85rem;">—</span>
       </div>
-      <div class="donut-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--green-light)"></div> مواد البناء (٤٥٪)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div> أجور العمالة (٢٥٪)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#3a9b9b"></div> تجهيزات (١٥٪)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#8e6bbf"></div> إدارة (١٥٪)</div>
+    </div>
+
+    <!-- رسم دائري ديناميكي -->
+    <div class="donut-wrap reveal" style="margin-top:2rem;" id="donutWrap">
+      <h3 style="font-size:1.1rem;font-weight:700;color:var(--green-deep);margin-bottom:1.5rem;">توزيع المصروفات — نظرة بيانية</h3>
+      <div class="donut-chart" id="donutChart">
+        <div class="donut-hole" id="donutHole">—</div>
       </div>
+      <div class="donut-legend" id="donutLegend"></div>
     </div>
   </div>
 </section>
@@ -2002,16 +1980,179 @@ window._saveJoinRequest = function(name, phone, location, level) {
     ts: Date.now()
   });
 };
+
+// ── ٥. الشفافية المالية — من Firebase بالتحكم في الشهر ──
+_db.ref('wohda_months').on('value', snap => {
+  const months = snap.val() || {};
+  const keys   = Object.keys(months).sort();
+  if (!keys.length) return;
+
+  // قراءة إعداد عرض الشهر من الإعدادات
+  _db.ref('wodnour_settings/financeDisplay').once('value', dSnap => {
+    const disp = dSnap.val() || { mode:'last', monthKey:'' };
+    const AR_MONTHS_F = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+    let displayKeys = [];
+    if (disp.mode === 'all') {
+      displayKeys = keys;
+    } else if (disp.mode === 'specific' && disp.monthKey && months[disp.monthKey]) {
+      displayKeys = [disp.monthKey];
+    } else {
+      // آخر شهر افتراضياً
+      displayKeys = [keys[keys.length - 1]];
+    }
+
+    let totalInc = 0, totalExp = 0;
+    const expCategories = {};
+
+    displayKeys.forEach(k => {
+      const m = months[k];
+      totalInc += m.data.reduce((s,r) => s + r.amount, 0);
+      (m.expenses || []).forEach(e => {
+        totalExp += e.amount;
+        expCategories[e.desc] = (expCategories[e.desc] || 0) + e.amount;
+      });
+    });
+
+    // عنوان الشهر
+    const labelParts = displayKeys.map(k => {
+      const m = months[k];
+      return (AR_MONTHS_F[parseInt(m.month)-1] || '') + ' ' + m.year;
+    });
+    const displayLabel = disp.mode === 'all' ? 'جميع الأشهر' : labelParts.join(' + ');
+
+    // إيرادات
+    const incRows = document.getElementById('financeIncomeRows');
+    const expRows = document.getElementById('financeExpenseRows');
+    const titleInc = document.getElementById('financeIncomeTitle');
+    const titleExp = document.getElementById('financeExpenseTitle');
+    const indicator = document.getElementById('financeMonthIndicator');
+    const monthLbl  = document.getElementById('financeMonthLabel');
+
+    if (titleInc) titleInc.textContent = disp.mode === 'all' ? '💰 إجمالي الإيرادات الكلية' : `💰 إيرادات ${displayLabel}`;
+    if (titleExp) titleExp.textContent = disp.mode === 'all' ? '📤 إجمالي المصروفات الكلية' : `📤 مصروفات ${displayLabel}`;
+
+    if (incRows) {
+      incRows.innerHTML = `
+        <div class="finance-item">
+          <span class="label">اشتراكات المشتركين</span>
+          <span class="amount">${_toAr(totalInc)} ج.س</span>
+        </div>`;
+    }
+
+    if (expRows) {
+      const cats = Object.entries(expCategories);
+      expRows.innerHTML = cats.length
+        ? cats.map(([desc, amt]) => `
+          <div class="finance-item">
+            <span class="label">${desc}</span>
+            <span class="amount expense">${_toAr(amt)} ج.س</span>
+          </div>`).join('')
+        : `<div class="finance-item"><span class="label" style="color:#999">لا توجد مصروفات مسجلة</span><span class="amount expense">٠ ج.س</span></div>`;
+    }
+
+    document.getElementById('financeTotalIncome')  && (document.getElementById('financeTotalIncome').textContent  = _toAr(totalInc) + ' ج.س');
+    document.getElementById('financeTotalExpense') && (document.getElementById('financeTotalExpense').textContent = _toAr(totalExp) + ' ج.س');
+
+    if (indicator && monthLbl) {
+      indicator.style.display = 'block';
+      monthLbl.textContent = displayLabel;
+    }
+
+    // دوناّت المصروفات
+    const DONUT_COLORS = ['#4aaa72','#c9a84c','#3a9b9b','#8e6bbf','#e74c3c','#3498db'];
+    const donutHole = document.getElementById('donutHole');
+    const donutLegend = document.getElementById('donutLegend');
+    if (donutHole) donutHole.textContent = displayLabel;
+    if (donutLegend && cats.length > 0) {
+      const total = Object.values(expCategories).reduce((s,v)=>s+v,0);
+      let pct = 0;
+      const segments = Object.entries(expCategories).map(([desc,amt],i) => {
+        const p = total ? Math.round((amt/total)*100) : 0;
+        const from = pct; pct += p;
+        return { desc, amt, p, color: DONUT_COLORS[i % DONUT_COLORS.length], from };
+      });
+      const gradient = segments.map(s => `${s.color} ${s.from}% ${s.from+s.p}%`).join(',');
+      const donutChart = document.getElementById('donutChart');
+      if (donutChart) donutChart.style.background = `conic-gradient(${gradient})`;
+      donutLegend.innerHTML = segments.map(s =>
+        `<div class="legend-item"><div class="legend-dot" style="background:${s.color}"></div> ${s.desc} (${s.p}٪)</div>`
+      ).join('');
+    }
+  });
+});
+
+// ── ٦. الشهادات من Firebase ──────────────────────────
+_db.ref('wodnour_testimonials').on('value', snap => {
+  const data = snap.val();
+  if (!data) return; // اترك الافتراضية
+  const list = Object.values(data).filter(t => t.visible !== false);
+  if (!list.length) return;
+  const grid = document.getElementById('quotesGrid');
+  if (!grid) return;
+  grid.innerHTML = list.map(t => `
+    <div class="quote-card">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">${t.text || ''}</p>
+      <div class="quote-author">
+        <div class="author-avatar">${t.gender === 'female' ? '👩' : '👨'}</div>
+        <div>
+          <div class="author-name">${t.name || ''}</div>
+          <div class="author-role">${t.role || ''}</div>
+        </div>
+      </div>
+    </div>`).join('');
+});
+
+// ── ٧. رسالة الانضمام المخصصة ──────────────────────
+_db.ref('wodnour_settings/joinMessage').on('value', snap => {
+  const msg = snap.val();
+  const el  = document.getElementById('joinCustomMsg');
+  const txt = document.getElementById('joinCustomMsgText');
+  if (el && txt && msg && msg.trim()) {
+    txt.textContent = msg;
+    el.style.display = 'block';
+  } else if (el) {
+    el.style.display = 'none';
+  }
+});
+
+// ── ٨. أرقام تتحدث — كل المشتركين الفاعلين ──────────
+// تُحسب من wohda_months (كل الأشهر مجمّعة فريدة)
+_db.ref('wohda_months').on('value', snap => {
+  const months = snap.val() || {};
+  const keys   = Object.keys(months).sort();
+  if (!keys.length) return;
+
+  // جمع أسماء المشتركين الفريدة عبر كل الأشهر
+  const uniqueNames = new Set();
+  keys.forEach(k => {
+    (months[k].data || []).forEach(r => {
+      if (r.name && r.name !== '—') uniqueNames.add(r.name.trim());
+    });
+  });
+  const totalUnique = uniqueNames.size;
+
+  // تحديث بطاقة المشتركين في أثرنا
+  const subsEl = document.getElementById('imp-subs');
+  if (subsEl) {
+    _animNum(subsEl, totalUnique);
+    // تحديث التسمية
+    const lbl = subsEl.closest('.impact-card')?.querySelector('.impact-label');
+    if (lbl) lbl.textContent = 'مشترك فاعل في جميع الأشهر';
+  }
+}, { onlyOnce: false });
 </script>
 
-<!-- TESTIMONIALS -->
-<section class="testimonials">
+<!-- TESTIMONIALS — من Firebase -->
+<section class="testimonials" id="testimonials">
   <div class="container">
     <div class="reveal" style="text-align:center;">
       <span class="section-tag">شهادات</span>
       <h2 class="section-title">ماذا قال <span>أبناء المنطقة</span></h2>
     </div>
-    <div class="quotes-grid reveal">
+    <div class="quotes-grid reveal" id="quotesGrid">
+      <!-- تُملأ من Firebase -->
       <div class="quote-card">
         <div class="quote-mark">"</div>
         <p class="quote-text">ما صدقت لما رأيت مدرسة ابني بعد الصيانة. حسيت أن ناس قرروا يغيروا الواقع بدل الشكوى. جزاهم الله خير وأنا معهم طول ما فيّ نفس.</p>
@@ -2161,23 +2302,29 @@ window._saveJoinRequest = function(name, phone, location, level) {
         </div>
       </div>
 
-      <!-- Steps -->
+      <!-- Steps — ديناميكية من Firebase -->
       <div style="margin-bottom:1.6rem;">
         <div style="color:rgba(255,255,255,.6);font-size:.82rem;margin-bottom:.8rem;">📋 خطوات إتمام التسجيل</div>
-        <div style="display:flex;flex-direction:column;gap:.6rem;">
+        <div id="joinSteps" style="display:flex;flex-direction:column;gap:.6rem;">
           <div style="display:flex;gap:.8rem;align-items:flex-start;padding:.7rem .9rem;background:rgba(255,255,255,.04);border-radius:10px;">
-            <span style="background:var(--gold);color:var(--dark);font-weight:900;font-size:.75rem;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.05rem;">١</span>
+            <span style="background:var(--gold);color:var(--dark);font-weight:900;font-size:.75rem;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">١</span>
             <span style="color:rgba(255,255,255,.75);font-size:.88rem;line-height:1.6;">حوّل المبلغ السنوي كاملاً إلى الحساب أعلاه</span>
           </div>
           <div style="display:flex;gap:.8rem;align-items:flex-start;padding:.7rem .9rem;background:rgba(255,255,255,.04);border-radius:10px;">
-            <span style="background:var(--gold);color:var(--dark);font-weight:900;font-size:.75rem;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.05rem;">٢</span>
+            <span style="background:var(--gold);color:var(--dark);font-weight:900;font-size:.75rem;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">٢</span>
             <span style="color:rgba(255,255,255,.75);font-size:.88rem;line-height:1.6;">أرسل صورة الإيصال عبر واتساب مع ذكر اسمك ومستوى اشتراكك</span>
           </div>
           <div style="display:flex;gap:.8rem;align-items:flex-start;padding:.7rem .9rem;background:rgba(255,255,255,.04);border-radius:10px;">
-            <span style="background:var(--gold);color:var(--dark);font-weight:900;font-size:.75rem;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:.05rem;">٣</span>
+            <span style="background:var(--gold);color:var(--dark);font-weight:900;font-size:.75rem;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">٣</span>
             <span style="color:rgba(255,255,255,.75);font-size:.88rem;line-height:1.6;">سيتم تأكيد انضمامك وإضافة اسمك لقائمة الشرف خلال ٢٤ ساعة</span>
           </div>
         </div>
+      </div>
+
+      <!-- رسالة مخصصة من لوحة التحكم -->
+      <div id="joinCustomMsg" style="display:none;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.2rem;">
+        <div style="color:var(--gold-light);font-size:.82rem;font-weight:700;margin-bottom:.4rem;">💬 رسالة من المبادرة</div>
+        <p id="joinCustomMsgText" style="color:rgba(255,255,255,.8);font-size:.88rem;line-height:1.8;"></p>
       </div>
 
       <!-- WhatsApp button -->
@@ -2535,7 +2682,7 @@ window._saveJoinRequest = function(name, phone, location, level) {
         ...r,
         total: (r.months||12) * (LEVEL_AMT[r.level]||150),
         bg:    AVTR_BG[i % AVTR_BG.length],
-        emj:   AVTR_EMJ[i % AVTR_EMJ.length],
+        emj:   r.gender === 'female' ? '👩' : '👨',  // ← جنس من Firebase
       })).sort((a, b) => b.total - a.total);
 
       // إعادة بناء الواجهة
