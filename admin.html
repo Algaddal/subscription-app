@@ -299,7 +299,9 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
     <div class="stat red"><div class="stat-ico">💸</div><div class="stat-lbl">إجمالي المصروفات</div><div class="stat-val" id="ds-expense">—</div><div class="stat-sub">ج.س</div></div>
     <div class="stat blue"><div class="stat-ico">🏦</div><div class="stat-lbl">الرصيد المتاح</div><div class="stat-val" id="ds-balance">—</div><div class="stat-sub">ج.س</div></div>
   </div>
-  <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;flex-wrap:wrap">
+
+  <!-- الرسم البياني + الملخص -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px">
     <div class="card">
       <div class="card-head"><div class="card-title">📈 مقارنة الاشتراكات الشهرية</div></div>
       <div class="card-body"><div class="chart-wrap" id="dashChart"></div></div>
@@ -307,6 +309,71 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
     <div class="card">
       <div class="card-head"><div class="card-title">📋 ملخص سريع</div></div>
       <div class="card-body" id="dashSummary" style="font-size:.82rem;line-height:2;color:var(--tx2)">جارٍ التحميل...</div>
+    </div>
+  </div>
+
+  <!-- تفاصيل الأشهر -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">📅 تفاصيل الأشهر <span class="badge" id="dashMonthsCount">0</span></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" class="inp" id="dashMonthSearch" placeholder="ابحث عن شهر..." style="width:160px;padding:6px 10px;font-size:.8rem" oninput="filterDashMonths()">
+        <select class="inp" id="dashMonthSort" onchange="filterDashMonths()" style="width:140px;font-size:.8rem;padding:6px 10px">
+          <option value="desc">الأحدث أولاً</option>
+          <option value="asc">الأقدم أولاً</option>
+          <option value="income-desc">الأعلى دخلاً</option>
+          <option value="balance-desc">الأعلى رصيداً</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body" style="padding:12px">
+      <div id="dashMonthsList" style="display:flex;flex-direction:column;gap:10px">
+        <p style="text-align:center;color:var(--tx2);padding:24px">جارٍ التحميل...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال تفاصيل الشهر -->
+  <div class="modal-bg" id="monthDetailModal">
+    <div class="modal" style="width:700px;max-width:98vw">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <h3 id="mdm-title" style="margin:0">—</h3>
+        <button onclick="closeMonthModal()" style="background:rgba(255,255,255,.08);border:none;color:var(--tx);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem">✕</button>
+      </div>
+
+      <!-- إحصائيات الشهر -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="mdm-stats"></div>
+
+      <!-- قسمان: المشتركون + المصروفات -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <!-- المشتركون -->
+        <div>
+          <div style="font-weight:700;font-size:.85rem;color:var(--gold-l);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+            <span>👥 المشتركون</span>
+            <span class="badge" id="mdm-subs-count">0</span>
+          </div>
+          <div style="max-height:260px;overflow-y:auto" id="mdm-subs-list"></div>
+        </div>
+        <!-- المصروفات -->
+        <div>
+          <div style="font-weight:700;font-size:.85rem;color:var(--gold-l);margin-bottom:8px">💸 المصروفات</div>
+          <!-- نموذج إضافة مصروف سريع -->
+          <div style="display:flex;gap:6px;margin-bottom:8px" id="mdm-exp-form">
+            <input class="inp" id="mdm-exp-desc" placeholder="وصف المصروف" style="flex:2;font-size:.8rem;padding:7px 10px">
+            <input class="inp" type="number" id="mdm-exp-amt" placeholder="المبلغ" style="flex:1;font-size:.8rem;padding:7px 10px" min="0">
+            <button class="btn btn-red btn-sm" onclick="addDashExpense()" style="padding:7px 10px">➕</button>
+          </div>
+          <div style="max-height:220px;overflow-y:auto;margin-bottom:10px" id="mdm-exp-list"></div>
+          <!-- ملخص مالي -->
+          <div style="background:var(--s2);border-radius:10px;padding:10px 12px;font-size:.82rem" id="mdm-balance">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-btns" style="margin-top:1rem">
+        <button class="btn-cancel" onclick="closeMonthModal()">إغلاق</button>
+        <button class="btn btn-ghost" onclick="openMonthInSubs()" style="flex:1">📂 فتح في الاشتراكات</button>
+      </div>
     </div>
   </div>
 </div>
@@ -903,24 +970,32 @@ function onMonthsChange(){
   }
 }
 
-/* ══════════ DASHBOARD ══════════ */
+/* ══════════ DASHBOARD + MONTHLY DETAILS ══════════ */
+let _dashActiveMonthKey = null;
+
 function renderDashboard(){
   const keys = Object.keys(C.months).sort();
+  if(document.getElementById('dashMonthsCount'))
+    document.getElementById('dashMonthsCount').textContent = keys.length;
+
   if(!keys.length){
     ['ds-subs','ds-income','ds-expense','ds-balance'].forEach(id=>document.getElementById(id).textContent='—');
     document.getElementById('dashSummary').innerHTML='<p>لا توجد بيانات بعد — ارفع ملف Excel من صفحة الاشتراكات</p>';
     document.getElementById('dashChart').innerHTML='';
+    if(document.getElementById('dashMonthsList'))
+      document.getElementById('dashMonthsList').innerHTML='<p style="text-align:center;color:var(--tx2);padding:24px">لا توجد بيانات بعد</p>';
     return;
   }
+
   let totalInc=0, totalExp=0;
   keys.forEach(k=>{
     const m=C.months[k];
     totalInc += m.data.reduce((s,r)=>s+r.amount,0);
     totalExp += (m.expenses||[]).reduce((s,e)=>s+e.amount,0);
   });
-  const lastM = C.months[keys[keys.length-1]];
+  const lastM    = C.months[keys[keys.length-1]];
   const lastSubs = lastM ? lastM.data.length : 0;
-  const balance = totalInc - totalExp;
+  const balance  = totalInc - totalExp;
 
   document.getElementById('ds-subs').textContent    = toAr(lastSubs);
   document.getElementById('ds-income').textContent  = toAr(totalInc);
@@ -929,17 +1004,19 @@ function renderDashboard(){
   balEl.textContent = toAr(Math.abs(balance));
   balEl.style.color = balance>=0 ? 'var(--green)' : 'var(--red)';
 
-  // chart
+  // الرسم البياني — الأعمدة قابلة للنقر
   const totals = keys.map(k=>C.months[k].data.reduce((s,r)=>s+r.amount,0));
   const maxV = Math.max(...totals,1);
   document.getElementById('dashChart').innerHTML = keys.map((k,i)=>{
     const m=C.months[k]; const h=Math.max(8,Math.round((totals[i]/maxV)*110));
-    return `<div class="bar-g"><div style="font-size:.6rem;color:var(--tx2)">${toAr(totals[i])}</div>
-      <div class="bar-f" style="height:${h}px" title="${mName(m.month)} ${m.year}"></div>
-      <div class="bar-lbl">${mName(m.month)}<br>${m.year}</div></div>`;
+    return `<div class="bar-g">
+      <div style="font-size:.6rem;color:var(--tx2)">${toAr(totals[i])}</div>
+      <div class="bar-f" style="height:${h}px;cursor:pointer" onclick="openMonthModal('${k}')" title="انقر لتفاصيل ${mName(m.month)} ${m.year}"></div>
+      <div class="bar-lbl">${mName(m.month)}<br>${m.year}</div>
+    </div>`;
   }).join('');
 
-  // summary
+  // الملخص السريع
   const honorCount = Object.keys(C.subscribers).length;
   const projDone   = Object.values(C.projects).filter(p=>p.status==='منجز').length;
   const pendReq    = Object.values(C.requests).filter(r=>r.status==='pending').length;
@@ -948,10 +1025,230 @@ function renderDashboard(){
       <div style="display:flex;justify-content:space-between"><span>📅 أشهر محفوظة</span><strong style="color:var(--gold-l)">${keys.length} شهر</strong></div>
       <div style="display:flex;justify-content:space-between"><span>👥 في قائمة الشرف</span><strong style="color:var(--gold-l)">${honorCount} مشترك</strong></div>
       <div style="display:flex;justify-content:space-between"><span>🏗️ مشاريع منجزة</span><strong style="color:var(--green)">${projDone} مشروع</strong></div>
-      <div style="display:flex;justify-content:space-between"><span>📬 طلبات انضمام معلّقة</span><strong style="color:${pendReq?'var(--red)':'var(--tx2)'}">${pendReq} طلب</strong></div>
+      <div style="display:flex;justify-content:space-between"><span>📬 طلبات معلّقة</span><strong style="color:${pendReq?'var(--red)':'var(--tx2)'}">${pendReq} طلب</strong></div>
       <div style="display:flex;justify-content:space-between"><span>💰 الرصيد الكلي</span><strong style="color:${balance>=0?'var(--green)':'var(--red)'}">${toAr(Math.abs(balance))} ج.س</strong></div>
     </div>`;
+
+  // قائمة الأشهر التفصيلية
+  filterDashMonths();
 }
+
+function filterDashMonths() {
+  const q    = (document.getElementById('dashMonthSearch')?.value||'').trim();
+  const sort = document.getElementById('dashMonthSort')?.value || 'desc';
+  const keys = Object.keys(C.months).sort();
+  const canWrite = currentRole && ROLE_CFG[currentRole].canWrite;
+  const canDel   = currentRole && ROLE_CFG[currentRole].canDelete;
+
+  let months = keys.map(k => ({key:k,...C.months[k]}));
+  if (q) months = months.filter(m=>(mName(m.month)+' '+m.year).includes(q)||m.label?.includes(q));
+  if (sort==='asc')         months.sort((a,b)=>a.key.localeCompare(b.key));
+  else if(sort==='desc')    months.sort((a,b)=>b.key.localeCompare(a.key));
+  else if(sort==='income-desc') months.sort((a,b)=>b.data.reduce((s,r)=>s+r.amount,0)-a.data.reduce((s,r)=>s+r.amount,0));
+  else if(sort==='balance-desc') months.sort((a,b)=>{
+    const ba=a.data.reduce((s,r)=>s+r.amount,0)-(a.expenses||[]).reduce((s,e)=>s+e.amount,0);
+    const bb=b.data.reduce((s,r)=>s+r.amount,0)-(b.expenses||[]).reduce((s,e)=>s+e.amount,0);
+    return bb-ba;
+  });
+
+  const el = document.getElementById('dashMonthsList');
+  if (!el) return;
+  if (!months.length) { el.innerHTML='<p style="text-align:center;color:var(--tx2);padding:20px">لا توجد نتائج</p>'; return; }
+
+  el.innerHTML = months.map(m=>{
+    const inc = m.data.reduce((s,r)=>s+r.amount,0);
+    const exp = (m.expenses||[]).reduce((s,e)=>s+e.amount,0);
+    const bal = inc-exp;
+    const bc  = bal>=0?'var(--green)':'var(--red)';
+    return `
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;overflow:hidden"
+         onmouseover="this.style.borderColor='rgba(201,168,76,.3)'" onmouseout="this.style.borderColor=''">
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;flex-wrap:wrap"
+           onclick="toggleMonthRow('${m.key}')">
+        <div style="background:linear-gradient(135deg,#1a4a2e,#2d7a4f);width:42px;height:42px;border-radius:10px;
+                    display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">📅</div>
+        <div style="flex:1;min-width:100px">
+          <div style="font-weight:800;font-size:.95rem;color:var(--tx)">${mName(m.month)} ${m.year}</div>
+          <div style="font-size:.72rem;color:var(--tx2)">${m.data.length} مشترك • ${m.savedAt||'—'}</div>
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <div style="text-align:center"><div style="font-size:.65rem;color:var(--tx2)">الاشتراكات</div>
+            <div style="font-family:'Tajawal',sans-serif;font-weight:800;color:var(--green);font-size:.88rem">${toAr(inc)} ج.س</div></div>
+          <div style="text-align:center"><div style="font-size:.65rem;color:var(--tx2)">المصروفات</div>
+            <div style="font-family:'Tajawal',sans-serif;font-weight:800;color:var(--red);font-size:.88rem">${toAr(exp)} ج.س</div></div>
+          <div style="text-align:center"><div style="font-size:.65rem;color:var(--tx2)">الرصيد</div>
+            <div style="font-family:'Tajawal',sans-serif;font-weight:800;color:${bc};font-size:.88rem">${bal>=0?'✅':'⚠️'} ${toAr(Math.abs(bal))} ج.س</div></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openMonthModal('${m.key}')" title="تفاصيل وتعديل">🔍</button>
+          ${canDel?`<button class="btn btn-red btn-sm" onclick="event.stopPropagation();delMonth('${m.key}')">🗑️</button>`:''}
+        </div>
+        <span style="color:var(--tx2);font-size:.8rem" id="chevron-${m.key}">▼</span>
+      </div>
+      <div id="month-detail-${m.key}" style="display:none;border-top:1px solid var(--border)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+          <div style="padding:12px 16px;border-left:1px solid var(--border)">
+            <div style="font-size:.78rem;font-weight:700;color:var(--gold-l);margin-bottom:8px">👥 المشتركون (${m.data.length})</div>
+            <div style="max-height:180px;overflow-y:auto;font-size:.78rem">
+              ${m.data.slice(0,15).map((r,i)=>`
+                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+                  <span style="color:var(--tx2)">${i+1}. ${esc(r.name)}</span>
+                  <span style="color:var(--green);font-weight:700">${toAr(r.amount)}</span>
+                </div>`).join('')}
+              ${m.data.length>15?`<p style="color:var(--tx2);font-size:.72rem;margin-top:6px;text-align:center">... و ${m.data.length-15} آخرون — <span style="color:var(--gold-l);cursor:pointer" onclick="switchMonth('${m.key}');showPage('subscriptions')">عرض الكل</span></p>`:''}
+            </div>
+          </div>
+          <div style="padding:12px 16px">
+            <div style="font-size:.78rem;font-weight:700;color:var(--gold-l);margin-bottom:8px">💸 المصروفات</div>
+            ${canWrite?`<div style="display:flex;gap:5px;margin-bottom:8px">
+              <input class="inp" id="qe-desc-${m.key}" placeholder="الوصف" style="flex:2;font-size:.75rem;padding:6px 8px">
+              <input class="inp" type="number" id="qe-amt-${m.key}" placeholder="المبلغ" style="flex:1;font-size:.75rem;padding:6px 8px" min="0">
+              <button class="btn btn-red btn-sm" onclick="addQuickExp('${m.key}')" style="padding:6px 8px">➕</button>
+            </div>`:''}
+            <div id="qe-list-${m.key}" style="max-height:140px;overflow-y:auto">
+              ${_expListHtml(m.expenses||[], m.key, canWrite)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _expListHtml(expenses, key, canWrite) {
+  if (!expenses.length) return '<p style="color:var(--tx2);font-size:.75rem;text-align:center;padding:8px">لا توجد مصروفات</p>';
+  return expenses.map(e=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);gap:4px">
+      <span style="color:var(--tx);font-size:.76rem;flex:1">${esc(e.desc)}</span>
+      <span style="color:var(--red);font-weight:700;font-size:.76rem;white-space:nowrap">${toAr(e.amount)} ج.س</span>
+      ${canWrite?`<button onclick="delQuickExp('${key}','${e.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.82rem;padding:0 3px">✕</button>`:''}
+    </div>`).join('');
+}
+
+function toggleMonthRow(key) {
+  const el = document.getElementById(`month-detail-${key}`);
+  const ch = document.getElementById(`chevron-${key}`);
+  const open = el.style.display==='none';
+  el.style.display = open?'block':'none';
+  if(ch) ch.textContent = open?'▲':'▼';
+}
+
+function addQuickExp(key) {
+  if(!currentRole||!ROLE_CFG[currentRole].canWrite){toast('🔒 غير مسموح','err');return;}
+  const desc = document.getElementById(`qe-desc-${key}`)?.value.trim();
+  const amt  = parseFloat(document.getElementById(`qe-amt-${key}`)?.value);
+  if(!desc||!amt||amt<=0){toast('⚠️ أدخل الوصف والمبلغ','err');return;}
+  const m = C.months[key]; if(!m) return;
+  const expenses = [...(m.expenses||[]),{id:uid(),desc,amount:amt}];
+  REF.months.child(key+'/expenses').set(expenses).then(()=>{
+    document.getElementById(`qe-desc-${key}`).value='';
+    document.getElementById(`qe-amt-${key}`).value='';
+    toast('✅ تم إضافة المصروف','ok');
+  });
+}
+
+function delQuickExp(key, expId) {
+  const m = C.months[key]; if(!m) return;
+  REF.months.child(key+'/expenses').set((m.expenses||[]).filter(e=>e.id!==expId))
+    .then(()=>toast('🗑️ تم الحذف','ok'));
+}
+
+/* ══════════ MONTH DETAIL MODAL ══════════ */
+function openMonthModal(key) {
+  _dashActiveMonthKey = key;
+  const m = C.months[key]; if(!m) return;
+  const inc = m.data.reduce((s,r)=>s+r.amount,0);
+  const exp = (m.expenses||[]).reduce((s,e)=>s+e.amount,0);
+  const bal = inc-exp;
+  const canWrite = currentRole&&ROLE_CFG[currentRole].canWrite;
+
+  document.getElementById('mdm-title').textContent = `📅 ${mName(m.month)} ${m.year}`;
+  document.getElementById('mdm-stats').innerHTML = `
+    <div style="background:rgba(63,182,138,.08);border:1px solid rgba(63,182,138,.2);border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:.7rem;color:var(--tx2)">الاشتراكات</div>
+      <div style="font-family:'Tajawal',sans-serif;font-weight:900;color:var(--green);font-size:1.2rem">${toAr(inc)} ج.س</div>
+      <div style="font-size:.7rem;color:var(--tx2)">${m.data.length} مشترك</div>
+    </div>
+    <div style="background:rgba(224,92,92,.08);border:1px solid rgba(224,92,92,.2);border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:.7rem;color:var(--tx2)">المصروفات</div>
+      <div style="font-family:'Tajawal',sans-serif;font-weight:900;color:var(--red);font-size:1.2rem">${toAr(exp)} ج.س</div>
+      <div style="font-size:.7rem;color:var(--tx2)">${(m.expenses||[]).length} بند</div>
+    </div>
+    <div style="background:${bal>=0?'rgba(63,182,138,.08)':'rgba(224,92,92,.08)'};border:1px solid ${bal>=0?'rgba(63,182,138,.2)':'rgba(224,92,92,.2)'};border-radius:10px;padding:12px;text-align:center">
+      <div style="font-size:.7rem;color:var(--tx2)">${bal>=0?'✅ الرصيد':'⚠️ العجز'}</div>
+      <div style="font-family:'Tajawal',sans-serif;font-weight:900;color:${bal>=0?'var(--green)':'var(--red)'};font-size:1.2rem">${toAr(Math.abs(bal))} ج.س</div>
+      <div style="font-size:.7rem;color:var(--tx2)">${m.savedAt||'—'}</div>
+    </div>`;
+
+  document.getElementById('mdm-subs-count').textContent = m.data.length;
+  document.getElementById('mdm-subs-list').innerHTML = m.data.map((r,i)=>`
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.8rem">
+      <span style="color:var(--tx2)">${i+1}. ${esc(r.name)}</span>
+      <span style="color:var(--green);font-weight:700">${toAr(r.amount)} ج.س</span>
+    </div>`).join('');
+
+  document.getElementById('mdm-exp-form').style.display = canWrite?'flex':'none';
+  _refreshModalExp(m);
+  document.getElementById('monthDetailModal').classList.add('open');
+}
+
+function _refreshModalExp(m) {
+  const expenses = m.expenses||[];
+  const inc = m.data.reduce((s,r)=>s+r.amount,0);
+  const exp = expenses.reduce((s,e)=>s+e.amount,0);
+  const bal = inc-exp;
+  const canWrite = currentRole&&ROLE_CFG[currentRole].canWrite;
+
+  document.getElementById('mdm-exp-list').innerHTML = expenses.length
+    ? expenses.map(e=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+          <span style="flex:1;font-size:.8rem;color:var(--tx)">${esc(e.desc)}</span>
+          <span style="color:var(--red);font-weight:700;font-size:.82rem;white-space:nowrap">${toAr(e.amount)} ج.س</span>
+          ${canWrite?`<button onclick="delModalExp('${e.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:.9rem;padding:0 3px">✕</button>`:''}
+        </div>`).join('')
+    : '<p style="text-align:center;color:var(--tx2);font-size:.8rem;padding:12px">لا توجد مصروفات</p>';
+
+  document.getElementById('mdm-balance').innerHTML = `
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:.82rem">
+      <span style="color:var(--tx2)">الاشتراكات</span><span style="color:var(--green);font-weight:700">${toAr(inc)} ج.س</span></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.82rem">
+      <span style="color:var(--tx2)">المصروفات</span><span style="color:var(--red);font-weight:700">${toAr(exp)} ج.س</span></div>
+    <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);font-size:.88rem">
+      <span style="font-weight:700">${bal>=0?'✅ الرصيد':'⚠️ العجز'}</span>
+      <span style="font-weight:800;color:${bal>=0?'var(--green)':'var(--red)'}">${toAr(Math.abs(bal))} ج.س</span></div>`;
+}
+
+function addDashExpense() {
+  const key = _dashActiveMonthKey; if(!key) return;
+  if(!currentRole||!ROLE_CFG[currentRole].canWrite){toast('🔒 غير مسموح','err');return;}
+  const desc = document.getElementById('mdm-exp-desc').value.trim();
+  const amt  = parseFloat(document.getElementById('mdm-exp-amt').value);
+  if(!desc||!amt||amt<=0){toast('⚠️ أدخل الوصف والمبلغ','err');return;}
+  const m = C.months[key]; if(!m) return;
+  REF.months.child(key+'/expenses').set([...(m.expenses||[]),{id:uid(),desc,amount:amt}])
+    .then(()=>{ document.getElementById('mdm-exp-desc').value=''; document.getElementById('mdm-exp-amt').value='';
+      toast('✅ تم','ok'); _refreshModalExp(C.months[key]); });
+}
+
+function delModalExp(expId) {
+  const key=_dashActiveMonthKey; if(!key) return;
+  const m=C.months[key]; if(!m) return;
+  REF.months.child(key+'/expenses').set((m.expenses||[]).filter(e=>e.id!==expId))
+    .then(()=>{ toast('🗑️ تم','ok'); _refreshModalExp(C.months[key]); });
+}
+
+function closeMonthModal() {
+  document.getElementById('monthDetailModal').classList.remove('open');
+  _dashActiveMonthKey = null;
+}
+
+function openMonthInSubs() {
+  if(_dashActiveMonthKey){ switchMonth(_dashActiveMonthKey); showPage('subscriptions'); closeMonthModal(); }
+}
+
+document.getElementById('monthDetailModal')?.addEventListener('click', function(e){
+  if(e.target===this) closeMonthModal();
+});
 
 /* ══════════ EXCEL UPLOAD ══════════ */
 const xlsInput = document.getElementById('xlsInput');
