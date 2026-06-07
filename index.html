@@ -1791,9 +1791,7 @@
 
     <!-- dynamic cards from Firebase -->
     <div class="impact-grid reveal" id="impactGrid">
-      <!-- سيتم ملؤها من Firebase -->
-      <div class="impact-card">
-        <span class="impact-num" id="imp-subs" style="font-size:2rem;">—</span>
+      <div class="impact-card"><span class="impact-num" id="imp-subs" style="font-size:2rem;">—</span>
         <div class="impact-label">مشترك فاعل هذا الشهر</div>
       </div>
       <div class="impact-card">
@@ -1811,6 +1809,22 @@
       <div class="impact-card">
         <span class="impact-num" id="imp-months" style="font-size:2rem;">—</span>
         <div class="impact-label">أشهر من السجلات المحفوظة</div>
+      </div>
+      <div class="impact-card">
+        <span class="impact-num" id="stat-schools">١٢</span>
+        <div class="impact-label">مدرسة استفادت من برنامج الصيانة</div>
+      </div>
+      <div class="impact-card">
+        <span class="impact-num" id="stat-students">٤٢٠٠</span>
+        <div class="impact-label">طالب وطالبة في بيئة أفضل</div>
+      </div>
+      <div class="impact-card">
+        <span class="impact-num" id="stat-teachers">٣١٠</span>
+        <div class="impact-label">معلم ومعلمة في مكاتب محسّنة</div>
+      </div>
+      <div class="impact-card">
+        <span class="impact-num" id="stat-done">٨</span>
+        <div class="impact-label">مشاريع مكتملة منذ التأسيس</div>
       </div>
     </div>
 
@@ -2098,14 +2112,14 @@
           <div style="display:flex;justify-content:space-between;align-items:center;padding:.7rem .9rem;background:rgba(0,0,0,.2);border-radius:10px;">
             <div>
               <div style="color:rgba(255,255,255,.45);font-size:.72rem;margin-bottom:.2rem;">اسم البنك</div>
-              <div style="color:#fff;font-weight:700;font-size:.95rem;">بنك الخرطوم</div>
+              <div style="color:#fff;font-weight:700;font-size:.95rem;" data-live="bank-name">بنك الخرطوم</div>
             </div>
             <span style="font-size:1.4rem;">🏛️</span>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:.7rem .9rem;background:rgba(0,0,0,.2);border-radius:10px;">
             <div>
               <div style="color:rgba(255,255,255,.45);font-size:.72rem;margin-bottom:.2rem;">اسم صاحب الحساب</div>
-              <div style="color:#fff;font-weight:700;font-size:.95rem;">مبادرة ودنور الدائم</div>
+              <div style="color:#fff;font-weight:700;font-size:.95rem;" data-live="bank-owner">مبادرة ودنور الدائم</div>
             </div>
             <span style="font-size:1.4rem;">👤</span>
           </div>
@@ -2287,7 +2301,7 @@
     </div>
   </div>
   <div class="footer-bottom">
-    <p>جميع الحقوق محفوظه لمبادرة وحدةوتعمير ودنورالدائم 2026©</p>
+    <p>© ٢٠٢٥ مبادرة ودنور الدائم — وحدة وتعمير · جميع الحقوق محفوظة</p>
   </div>
 </footer>
 
@@ -2360,11 +2374,106 @@
   });
 
   // ════════════════════════════════════════
-  // JOIN MODAL
+  // SETTINGS FROM FIREBASE — تحميل الإعدادات
   // ════════════════════════════════════════
   const LEVEL_ANNUAL = { 'داعم': 600, 'شريك': 1800, 'راعي': 6000 };
-  const WHATSAPP_NUM = '249912345678'; // ← ضع رقم واتساب المبادرة هنا
-  const BANK_ACC    = '١٢٣٤٥٦٧٨٩٠١٢٣'; // ← ضع رقم الحساب الحقيقي هنا
+
+  // قيم افتراضية — تُستبدل من Firebase
+  let WHATSAPP_NUM = '249912345678';
+  let BANK_NAME    = 'بنك الخرطوم';
+  let BANK_OWNER   = 'مبادرة ودنور الدائم';
+  let BANK_ACC     = '١٢٣٤٥٦٧٨٩٠١٢٣';
+
+  // Firebase settings ref (نفس المشروع)
+  (function loadSiteSettings() {
+    try {
+      let settApp;
+      try { settApp = firebase.app('siteSettings'); }
+      catch(e) { settApp = firebase.initializeApp({ databaseURL:"https://subscription-app-865cd-default-rtdb.firebaseio.com" }, 'siteSettings'); }
+
+      const settDb = firebase.database(settApp);
+
+      settDb.ref('wodnour_settings').on('value', snap => {
+        const s = snap.val() || {};
+
+        // ── البنك ──
+        if (s.bank) {
+          BANK_NAME  = s.bank.name  || BANK_NAME;
+          BANK_OWNER = s.bank.owner || BANK_OWNER;
+          BANK_ACC   = s.bank.acc   || BANK_ACC;
+          // تحديث العناصر في الصفحة إن كانت مرئية
+          const bankNameEls  = document.querySelectorAll('[data-live="bank-name"]');
+          const bankOwnerEls = document.querySelectorAll('[data-live="bank-owner"]');
+          const bankAccEls   = document.querySelectorAll('[data-live="bank-acc"]');
+          bankNameEls.forEach(el  => el.textContent = BANK_NAME);
+          bankOwnerEls.forEach(el => el.textContent = BANK_OWNER);
+          bankAccEls.forEach(el   => el.textContent = BANK_ACC);
+          // تحديث عنصر رقم الحساب في نموذج الانضمام
+          const accEl = document.getElementById('accNumEl');
+          if (accEl) accEl.textContent = BANK_ACC;
+        }
+
+        // ── واتساب ──
+        if (s.contact && s.contact.wa) {
+          WHATSAPP_NUM = s.contact.wa.replace(/^\+/,'');
+          // تحديث أزرار واتساب الثابتة في الصفحة
+          document.querySelectorAll('[data-live="wa-btn"]').forEach(el => {
+            const msg = el.dataset.wamsg || '';
+            el.href = `https://wa.me/${WHATSAPP_NUM}${msg ? '?text='+encodeURIComponent(msg) : ''}`;
+          });
+          // تحديث زر واتساب في الفوتر
+          const waFooter = document.getElementById('footerWaBtn');
+          if (waFooter) waFooter.href = `https://wa.me/${WHATSAPP_NUM}`;
+        }
+
+        // ── فيسبوك ──
+        if (s.contact && s.contact.fb) {
+          const fbBtn = document.getElementById('footerFbBtn');
+          if (fbBtn) fbBtn.href = s.contact.fb;
+        }
+
+        // ── إحصائيات الهيرو ──
+        if (s.stats) {
+          const map = {
+            'stat-schools':  s.stats.schools,
+            'stat-students': s.stats.students,
+            'stat-teachers': s.stats.teachers,
+            'stat-done':     s.stats.doneProj,
+          };
+          Object.entries(map).forEach(([id, val]) => {
+            const el = document.getElementById(id);
+            if (el && val) el.textContent = Number(val).toLocaleString('ar-EG');
+          });
+          // تحديث الهيرو stats
+          const heroStat = document.getElementById('hero-schools');
+          if (heroStat && s.stats.schools) heroStat.textContent = Number(s.stats.schools).toLocaleString('ar-EG') + '+';
+        }
+      });
+    } catch(e) { console.warn('Settings load error:', e); }
+  })();
+
+  // ════════════════════════════════════════
+  // JOIN REQUESTS — حفظ طلبات الانضمام في Firebase
+  // ════════════════════════════════════════
+  (function initJoinRequests() {
+    try {
+      let reqApp;
+      try { reqApp = firebase.app('joinReqs'); }
+      catch(e) { reqApp = firebase.initializeApp({ databaseURL:"https://subscription-app-865cd-default-rtdb.firebaseio.com" }, 'joinReqs'); }
+      window._reqDb = firebase.database(reqApp).ref('wodnour_requests');
+    } catch(e) { console.warn('Requests init error:', e); }
+  })();
+
+  function saveJoinRequest(name, phone, location, level) {
+    if (!window._reqDb) return;
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+    window._reqDb.child(id).set({
+      id, name, phone, location, level,
+      status: 'pending',
+      date: new Date().toLocaleDateString('ar-SA'),
+      ts: Date.now()
+    });
+  }
 
   let selectedLevel = 'شريك';
 
@@ -2419,9 +2528,13 @@
   function submitForm() {
     if (!validateForm()) return;
 
-    const name  = document.getElementById('fName').value.trim();
-    const phone = document.getElementById('fPhone').value.trim();
-    const annual = LEVEL_ANNUAL[selectedLevel];
+    const name     = document.getElementById('fName').value.trim();
+    const phone    = document.getElementById('fPhone').value.trim();
+    const location = document.getElementById('fLoc').value.trim();
+    const annual   = LEVEL_ANNUAL[selectedLevel];
+
+    // ── حفظ الطلب في Firebase ──
+    saveJoinRequest(name, phone, location, selectedLevel);
 
     // Populate step 2
     document.getElementById('s2Name').textContent = name.split(' ')[0];
@@ -2481,38 +2594,11 @@
     ];
     const AVTR_EMJ = ['👨','👩','👨','👩','👨','👩','👨','👩','👨','👩','👨','👩'];
 
-    // ── DATA: كل المشتركين مدفوعين كاملاً ──
-    // months: عدد الأشهر المسدَّدة (كلها 12 لأن الإدراج يكون بعد السداد)
-    const RAW = [
-      { name:'الشيخ عبد الرحمن موسى', location:'حي الزهور',   level:'راعي',  months:12 },
-      { name:'المهندس كمال إبراهيم',   location:'حي النيل',    level:'راعي',  months:12 },
-      { name:'أستاذ يحيى أحمد سالم',   location:'وسط المدينة', level:'راعي',  months:12 },
-      { name:'محمد عثمان الأمين',       location:'حي الرياض',   level:'شريك',  months:12 },
-      { name:'فاطمة الزهراء علي',       location:'حي السلام',   level:'شريك',  months:12 },
-      { name:'أحمد حسن عبد الله',       location:'حي الخضراء',  level:'شريك',  months:12 },
-      { name:'نور الهدى محمد',          location:'حي الأمل',    level:'شريك',  months:12 },
-      { name:'عمر سعيد الحسين',         location:'حي النهضة',   level:'شريك',  months:12 },
-      { name:'خالد محمود طاهر',         location:'حي الفردوس',  level:'شريك',  months:12 },
-      { name:'آمنة يوسف كمال',          location:'حي المدينة',  level:'شريك',  months:12 },
-      { name:'إبراهيم داود الصادق',     location:'حي الزهور',   level:'داعم',  months:12 },
-      { name:'زينب حامد علي',           location:'حي النيل',    level:'داعم',  months:12 },
-      { name:'سعاد محمد أحمد',          location:'حي الرياض',   level:'داعم',  months:12 },
-      { name:'طاهر سليمان النور',        location:'حي السلام',   level:'داعم',  months:12 },
-      { name:'مريم عبد الله حسن',       location:'وسط المدينة', level:'داعم',  months:12 },
-      { name:'يوسف صالح إبراهيم',       location:'حي الخضراء',  level:'داعم',  months:12 },
-    ];
-
-    const subs = RAW.map((r, i) => ({
-      ...r,
-      total: r.months * LEVEL_AMT[r.level],
-      bg:    AVTR_BG[i % AVTR_BG.length],
-      emj:   AVTR_EMJ[i % AVTR_EMJ.length],
-    })).sort((a, b) => b.total - a.total);
+    // ── تحميل المشتركين من Firebase مباشرة ──
+    let subs = [];
 
     function toA(n) { return n.toLocaleString('ar-EG'); }
 
-    // Stats
-    const totalAmt = subs.reduce((s,x)=>s+x.total, 0);
     function animN(el, to) {
       const dur=1400, t0=performance.now();
       const isInt = Number.isInteger(to);
@@ -2524,16 +2610,55 @@
       })(t0);
     }
 
-    const statsObs = new IntersectionObserver(entries => {
-      if(entries[0].isIntersecting){
-        animN(document.getElementById('sTotalSubs'),  subs.length);
-        animN(document.getElementById('sTotalAmt'),   totalAmt);
-        animN(document.getElementById('sRawiCount'),  subs.filter(x=>x.level==='راعي').length);
-        animN(document.getElementById('sSharikCount'),subs.filter(x=>x.level==='شريك').length);
-        statsObs.disconnect();
-      }
-    },{threshold:0.3});
-    statsObs.observe(document.getElementById('sTotalSubs').closest('.s-stats-bar'));
+    function processAndRender(rawSubs) {
+      const LEVEL_AMT = { 'راعي':500, 'شريك':150, 'داعم':50 };
+      subs = rawSubs.map((r, i) => ({
+        ...r,
+        total: (r.months||12) * (LEVEL_AMT[r.level]||150),
+        bg:    AVTR_BG[i % AVTR_BG.length],
+        emj:   AVTR_EMJ[i % AVTR_EMJ.length],
+      })).sort((a, b) => b.total - a.total);
+
+      // إعادة بناء الواجهة
+      document.getElementById('sPodium').innerHTML = '';
+      document.getElementById('sGrid').innerHTML   = '';
+      buildPodium();
+      buildCards();
+
+      // إحصائيات
+      const totalAmt = subs.reduce((s,x)=>s+x.total, 0);
+      animN(document.getElementById('sTotalSubs'),   subs.length);
+      animN(document.getElementById('sTotalAmt'),    totalAmt);
+      animN(document.getElementById('sRawiCount'),   subs.filter(x=>x.level==='راعي').length);
+      animN(document.getElementById('sSharikCount'), subs.filter(x=>x.level==='شريك').length);
+    }
+
+    // قراءة من Firebase
+    try {
+      let subsApp;
+      try { subsApp = firebase.app('subsModule'); }
+      catch(e2) { subsApp = firebase.initializeApp({databaseURL:"https://subscription-app-865cd-default-rtdb.firebaseio.com"}, 'subsModule'); }
+
+      firebase.database(subsApp).ref('wodnour_subscribers').on('value', snap => {
+        const data = snap.val() || {};
+        const arr  = Object.values(data);
+        if (arr.length > 0) {
+          processAndRender(arr);
+        } else {
+          // لا يوجد مشتركون في Firebase — اعرض رسالة
+          document.getElementById('sGrid').innerHTML =
+            `<div style="text-align:center;color:rgba(255,255,255,.4);padding:3rem;grid-column:1/-1">
+               <div style="font-size:2.5rem;margin-bottom:.8rem">👥</div>
+               <p>لم يُضف أي مشترك بعد — أضفهم من لوحة التحكم</p>
+             </div>`;
+          document.getElementById('sPodium').innerHTML = '';
+          ['sTotalSubs','sTotalAmt','sRawiCount','sSharikCount'].forEach(id=>
+            document.getElementById(id).textContent='٠');
+        }
+      });
+    } catch(err) {
+      console.warn('Subscribers Firebase error:', err);
+    }
 
     // Podium
     function buildPodium(){
