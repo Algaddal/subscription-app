@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>مبادرة ودنور الدائم - وحدة وتعمير</title>
+<title>مبادرة وحدة وتعمير ودنور الدائم</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -131,31 +131,64 @@
 
   .hero-stats {
     display: flex;
-    gap: 3rem;
+    gap: 0;
     justify-content: center;
+    align-items: center;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
     flex-wrap: wrap;
   }
 
-  .hero-stat {
-    text-align: center;
-    animation: fadeInUp 1s ease forwards;
+  .hero-stat { flex: 1; min-width: 120px; }
+
+  .hero-stat-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.4rem 2rem;
+    transition: background 0.3s;
   }
-  .hero-stat:nth-child(2) { animation-delay: 0.2s; }
-  .hero-stat:nth-child(3) { animation-delay: 0.4s; }
+  .hero-stat-inner:hover { background: rgba(255,255,255,0.05); }
+
+  .hero-stat-featured {
+    background: rgba(201,168,76,0.12);
+    border-radius: 0;
+  }
+
+  .hero-stat-divider {
+    width: 1px;
+    height: 50px;
+    background: rgba(201,168,76,0.2);
+    flex-shrink: 0;
+  }
 
   .hero-stat .num {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 900;
     color: var(--gold);
     display: block;
     line-height: 1;
+    font-family: 'Tajawal', sans-serif;
+    text-shadow: 0 0 20px rgba(201,168,76,0.4);
+  }
+
+  .hero-stat-featured .num {
+    font-size: clamp(2.2rem, 5.5vw, 3.4rem);
+    color: var(--gold-light);
   }
 
   .hero-stat .lbl {
-    color: rgba(255,255,255,0.6);
-    font-size: 0.9rem;
-    margin-top: 0.3rem;
+    color: rgba(255,255,255,0.65);
+    font-size: 0.82rem;
+    margin-top: 0.4rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
   }
+
+  .hero-stat-featured .lbl { color: rgba(255,255,255,0.85); }
 
   .scroll-hint {
     position: absolute;
@@ -197,10 +230,13 @@
   .nav-logo {
     font-family: 'Amiri', serif;
     color: var(--gold);
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-shadow: 0 0 12px rgba(201,168,76,0.3);
   }
 
   .nav-links {
@@ -1328,7 +1364,6 @@
 
 <!-- NAV -->
 <nav>
-  <div class="nav-logo">🌿 ودنور الدائم</div>
   <div class="nav-links">
     <a href="#about">عن المبادرة</a>
     <a href="#projects">المشاريع</a>
@@ -1338,6 +1373,7 @@
     <a href="#subscribers">شركاؤنا</a>
     <a href="#join">انضم إلينا</a>
   </div>
+  <div class="nav-logo">🌿 مبادرة وحدة وتعمير ودنور الدائم</div>
 </nav>
 
 <!-- HERO -->
@@ -1355,16 +1391,24 @@
 
     <div class="hero-stats">
       <div class="hero-stat">
-        <span class="num" id="hero-schools">١٢+</span>
-        <span class="lbl">مدرسة مستفيدة</span>
+        <div class="hero-stat-inner">
+          <span class="num" id="hero-schools">١٢+</span>
+          <span class="lbl">مدرسة مستفيدة</span>
+        </div>
       </div>
+      <div class="hero-stat-divider"></div>
       <div class="hero-stat">
-        <span class="num" id="hero-subs">٣٠٠+</span>
-        <span class="lbl">مشترك فاعل</span>
+        <div class="hero-stat-inner hero-stat-featured">
+          <span class="num" id="hero-subs">٣٠٠+</span>
+          <span class="lbl">مشترك فاعل</span>
+        </div>
       </div>
+      <div class="hero-stat-divider"></div>
       <div class="hero-stat">
-        <span class="num" id="hero-projects">٨</span>
-        <span class="lbl">مشاريع منجزة</span>
+        <div class="hero-stat-inner">
+          <span class="num" id="hero-projects">٨</span>
+          <span class="lbl">مشاريع منجزة</span>
+        </div>
       </div>
     </div>
   </div>
