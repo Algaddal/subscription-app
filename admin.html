@@ -279,6 +279,7 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
     <button class="ntab" onclick="showPage('subscriptions')" id="tab-subscriptions">💰 <span>الاشتراكات</span></button>
     <button class="ntab" onclick="showPage('subscribers')" id="tab-subscribers">👥 <span>المشتركون</span></button>
     <button class="ntab" onclick="showPage('projects')" id="tab-projects">🏗️ <span>المشاريع</span></button>
+    <button class="ntab" onclick="showPage('plans')" id="tab-plans">💳 <span>مستويات الاشتراك</span></button>
     <button class="ntab" onclick="showPage('requests')" id="tab-requests">📬 <span>طلبات الانضمام</span> <span class="badge" id="reqCount" style="display:none">0</span></button>
     <button class="ntab" onclick="showPage('settings')" id="tab-settings">⚙️ <span>الإعدادات</span></button>
   </div>
@@ -509,6 +510,67 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
         <div style="font-size:2rem;opacity:.3">🏗️</div><p style="margin-top:8px">لا توجد مشاريع بعد</p>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ══════ PAGE: SUBSCRIPTION PLANS ══════ -->
+<div class="page" id="page-plans">
+  <div class="pg-title">💳 إدارة مستويات الاشتراك</div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">➕ إضافة / تعديل مستوى</div>
+      <button class="btn btn-ghost btn-sm" onclick="toggleAddPlan()">+ مستوى جديد</button>
+    </div>
+    <div class="card-body" id="addPlanForm" style="display:none">
+      <input type="hidden" id="editPlanId">
+      <div class="form-row">
+        <div class="form-group"><label>اسم المستوى *</label><input class="inp" id="pl-name" placeholder="مثال: الشريك"></div>
+        <div class="form-group"><label>الأيقونة (إيموجي)</label><input class="inp" id="pl-icon" placeholder="🌿" maxlength="4"></div>
+        <div class="form-group"><label>الترتيب</label><input class="inp" type="number" id="pl-order" placeholder="1" min="1"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>السعر الشهري (ج.س) — اتركه فارغاً لـ"تبرع حر"</label><input class="inp" type="number" id="pl-price" placeholder="150" min="0"></div>
+        <div class="form-group"><label>نص الفترة</label><input class="inp" id="pl-period" placeholder="ج.س / شهرياً" value="ج.س / شهرياً"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex-direction:row;align-items:center;gap:10px;flex:0">
+          <label style="white-space:nowrap">مميّز (الأكثر اختياراً)</label>
+          <input type="checkbox" id="pl-featured" style="width:18px;height:18px;accent-color:var(--gold)">
+        </div>
+        <div class="form-group"><label>نص شارة التمييز</label><input class="inp" id="pl-featured-label" placeholder="الأكثر اختياراً"></div>
+        <div class="form-group" style="flex-direction:row;align-items:center;gap:10px;flex:0">
+          <label>ظاهر للزوار</label>
+          <input type="checkbox" id="pl-visible" checked style="width:18px;height:18px;accent-color:var(--gold)">
+        </div>
+      </div>
+
+      <!-- المزايا -->
+      <div style="margin-bottom:14px">
+        <label style="font-size:.78rem;color:var(--gold-l);font-weight:600;display:block;margin-bottom:8px">المزايا (كل سطر ميزة)</label>
+        <div id="featuresInputs" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px"></div>
+        <button class="btn btn-ghost btn-sm" onclick="addFeatureInput()">➕ إضافة ميزة</button>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-gold" onclick="savePlan()">💾 حفظ المستوى</button>
+        <button class="btn btn-ghost" onclick="cancelEditPlan()">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- قائمة المستويات الحالية -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">مستويات الاشتراك الحالية <span class="badge" id="plansCount">0</span></div></div>
+    <div class="card-body" id="plansList">
+      <p style="color:var(--tx2);font-size:.85rem">جارٍ التحميل...</p>
+    </div>
+  </div>
+
+  <!-- معاينة مباشرة -->
+  <div class="card">
+    <div class="card-head"><div class="card-title">👁️ معاينة كما يراها الزائر</div></div>
+    <div class="card-body" id="plansPreview" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;direction:rtl"></div>
   </div>
 </div>
 
@@ -779,6 +841,7 @@ function showPage(name){
   if(name==='subscriptions') renderReports();
   if(name==='subscribers') renderHonorList();
   if(name==='projects') renderProjects();
+  if(name==='plans') { renderPlansList(); renderPlansPreview(); }
   if(name==='requests') renderRequests();
   if(name==='settings') loadSettings();
 }
@@ -1278,6 +1341,182 @@ function acceptReq(id){
 
 function delReq(id){
   openConfirm('حذف هذا الطلب؟',()=>REF.requests.child(id).remove().then(()=>toast('🗑️ تم الحذف','ok')));
+}
+
+/* ══════════ SUBSCRIPTION PLANS ══════════ */
+const DEFAULT_PLANS_ADMIN = [
+  { id:'daem',   name:'الداعم',  icon:'🌱', price:50,  period:'ج.س / شهرياً', featured:false, featuredLabel:'', visible:true, order:1,
+    features:['شهادة مشاركة رقمية','تقرير شهري بالإنجازات','اسمك في قائمة الداعمين','اجتماع سنوي مفتوح'] },
+  { id:'sharik', name:'الشريك', icon:'🌿', price:150, period:'ج.س / شهرياً', featured:true,  featuredLabel:'الأكثر اختياراً', visible:true, order:2,
+    features:['كل مزايا مستوى الداعم','بطاقة شكر باسمك','دعوة لزيارات المشاريع','التصويت على أولويات المشاريع'] },
+  { id:'rawi',   name:'الراعي', icon:'🌳', price:500, period:'ج.س / شهرياً', featured:false, featuredLabel:'', visible:true, order:3,
+    features:['كل مزايا مستوى الشريك','لوحة تكريم في مشروع بالاسم','عضوية لجنة المتابعة','تقارير مالية تفصيلية'] },
+  { id:'free',   name:'تبرع حر', icon:'💎', price:null, period:'تحدد المبلغ', featured:false, featuredLabel:'', visible:true, order:4,
+    features:['مساهمة مرة واحدة','تخصيص مشروع بعينه','الإسهام في الطوارئ','تكريم في التقرير السنوي'] },
+];
+
+let _plans = {};
+
+REF.months.root.child('wodnour_sub_plans').on('value', snap => {
+  _plans = snap.val() || {};
+  // إذا لم تُضبط بعد — احفظ الافتراضية
+  if (!Object.keys(_plans).length) {
+    const defaults = {};
+    DEFAULT_PLANS_ADMIN.forEach(p => defaults[p.id] = p);
+    REF.months.root.child('wodnour_sub_plans').set(defaults);
+    _plans = defaults;
+  }
+  renderPlansList();
+  renderPlansPreview();
+});
+
+function toggleAddPlan() {
+  const f = document.getElementById('addPlanForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  if (f.style.display === 'block') initFeaturesInputs([]);
+}
+
+function cancelEditPlan() {
+  document.getElementById('addPlanForm').style.display = 'none';
+  document.getElementById('editPlanId').value = '';
+  ['pl-name','pl-icon','pl-price','pl-period','pl-order','pl-featured-label'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('pl-featured').checked = false;
+  document.getElementById('pl-visible').checked  = true;
+  initFeaturesInputs([]);
+}
+
+function initFeaturesInputs(features) {
+  const el = document.getElementById('featuresInputs');
+  el.innerHTML = '';
+  (features.length ? features : ['','','']).forEach(f => addFeatureInput(f));
+}
+
+function addFeatureInput(val = '') {
+  const el = document.getElementById('featuresInputs');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:6px;align-items:center';
+  div.innerHTML = `
+    <input class="inp" type="text" placeholder="اكتب الميزة..." value="${val}" style="flex:1">
+    <button class="btn btn-red btn-sm" onclick="this.parentElement.remove()" style="padding:6px 10px">✕</button>`;
+  el.appendChild(div);
+}
+
+function savePlan() {
+  if (!currentRole || !ROLE_CFG[currentRole].canWrite) { toast('🔒 غير مسموح','err'); return; }
+  const name = document.getElementById('pl-name').value.trim();
+  if (!name) { toast('⚠️ أدخل اسم المستوى','err'); return; }
+
+  const existingId = document.getElementById('editPlanId').value;
+  const planId = existingId || name.replace(/\s+/g, '-').toLowerCase() + '-' + Date.now().toString(36);
+
+  // جمع المزايا
+  const featureInputs = document.querySelectorAll('#featuresInputs input');
+  const features = Array.from(featureInputs).map(i => i.value.trim()).filter(Boolean);
+
+  const priceVal = document.getElementById('pl-price').value;
+  const plan = {
+    id:           planId,
+    name,
+    icon:         document.getElementById('pl-icon').value.trim() || '⭐',
+    price:        priceVal ? parseFloat(priceVal) : null,
+    priceText:    priceVal ? '' : 'أنت',
+    period:       document.getElementById('pl-period').value.trim() || 'ج.س / شهرياً',
+    featured:     document.getElementById('pl-featured').checked,
+    featuredLabel:document.getElementById('pl-featured-label').value.trim() || 'الأكثر اختياراً',
+    visible:      document.getElementById('pl-visible').checked,
+    order:        parseInt(document.getElementById('pl-order').value) || 99,
+    features,
+    updatedAt: new Date().toLocaleDateString('ar-SA')
+  };
+
+  REF.months.root.child('wodnour_sub_plans/' + planId).set(plan).then(() => {
+    toast(`✅ تم حفظ المستوى "${name}" — يظهر على الموقع فوراً`, 'ok');
+    cancelEditPlan();
+  });
+}
+
+function editPlan(id) {
+  const p = _plans[id]; if (!p) return;
+  document.getElementById('editPlanId').value         = id;
+  document.getElementById('pl-name').value            = p.name || '';
+  document.getElementById('pl-icon').value            = p.icon || '';
+  document.getElementById('pl-price').value           = p.price || '';
+  document.getElementById('pl-period').value          = p.period || 'ج.س / شهرياً';
+  document.getElementById('pl-order').value           = p.order || '';
+  document.getElementById('pl-featured').checked      = !!p.featured;
+  document.getElementById('pl-featured-label').value  = p.featuredLabel || '';
+  document.getElementById('pl-visible').checked       = p.visible !== false;
+  initFeaturesInputs(Array.isArray(p.features) ? p.features : Object.values(p.features || {}));
+  document.getElementById('addPlanForm').style.display = 'block';
+  document.getElementById('addPlanForm').scrollIntoView({behavior:'smooth'});
+}
+
+function togglePlanVisibility(id, visible) {
+  REF.months.root.child('wodnour_sub_plans/' + id + '/visible').set(visible)
+    .then(() => toast(visible ? '✅ تم الإظهار' : '🙈 تم الإخفاء', 'ok'));
+}
+
+function deletePlan(id) {
+  const p = _plans[id];
+  openConfirm(`حذف مستوى "${p?.name}"؟`, () => {
+    REF.months.root.child('wodnour_sub_plans/' + id).remove()
+      .then(() => toast('🗑️ تم الحذف', 'ok'));
+  });
+}
+
+function renderPlansList() {
+  const el = document.getElementById('plansList');
+  const badge = document.getElementById('plansCount');
+  const plans = Object.values(_plans).sort((a,b) => (a.order||0)-(b.order||0));
+  if (badge) badge.textContent = plans.length;
+  if (!el) return;
+  if (!plans.length) { el.innerHTML = '<p style="color:var(--tx2);font-size:.85rem">لا توجد مستويات</p>'; return; }
+
+  const canWrite = currentRole && ROLE_CFG[currentRole].canWrite;
+  el.innerHTML = plans.map(p => `
+    <div style="display:flex;align-items:center;gap:12px;background:var(--s2);border:1px solid ${p.featured?'rgba(201,168,76,.4)':p.visible===false?'rgba(224,92,92,.2)':'var(--border)'};border-radius:12px;padding:12px 16px;margin-bottom:8px;flex-wrap:wrap;">
+      <span style="font-size:1.8rem">${p.icon||'⭐'}</span>
+      <div style="flex:1;min-width:140px">
+        <div style="font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:6px">
+          ${p.name}
+          ${p.featured ? `<span class="badge" style="font-size:.65rem">⭐ مميّز</span>` : ''}
+          ${p.visible===false ? `<span class="badge badge-red" style="font-size:.65rem">مخفي</span>` : ''}
+        </div>
+        <div style="font-size:.75rem;color:var(--tx2);margin-top:2px">
+          💰 ${p.price ? p.price.toLocaleString('ar-EG')+' ج.س/شهر' : 'تبرع حر'} &nbsp;|&nbsp;
+          📋 ${Array.isArray(p.features) ? p.features.length : Object.keys(p.features||{}).length} مزايا &nbsp;|&nbsp;
+          🔢 ترتيب ${p.order||'—'}
+        </div>
+      </div>
+      ${canWrite ? `
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="editPlan('${p.id}')">✏️ تعديل</button>
+        <button class="btn btn-ghost btn-sm" onclick="togglePlanVisibility('${p.id}',${p.visible===false})">${p.visible===false?'👁️ إظهار':'🙈 إخفاء'}</button>
+        <button class="btn btn-red btn-sm" onclick="deletePlan('${p.id}')">🗑️</button>
+      </div>` : ''}
+    </div>`).join('');
+}
+
+function renderPlansPreview() {
+  const el = document.getElementById('plansPreview');
+  if (!el) return;
+  const plans = Object.values(_plans).filter(p => p.visible !== false).sort((a,b) => (a.order||0)-(b.order||0));
+  el.innerHTML = plans.map(p => {
+    const priceDisplay = p.price ? p.price.toLocaleString('ar-EG') : (p.priceText||'أنت');
+    const features = Array.isArray(p.features) ? p.features : Object.values(p.features||{});
+    return `
+      <div style="background:${p.featured?'linear-gradient(160deg,var(--g-dark,#1a4a2e),#0d2318)':'var(--s2)'};border:${p.featured?'2px solid rgba(201,168,76,.4)':'1px solid var(--border)'};border-radius:16px;padding:1.2rem;text-align:center;">
+        <div style="font-size:1.8rem;margin-bottom:.4rem">${p.icon||'⭐'}</div>
+        <div style="font-weight:700;color:${p.featured?'#fff':'var(--tx)'};margin-bottom:.3rem">${p.name}</div>
+        <div style="font-family:'Tajawal',sans-serif;font-size:1.4rem;font-weight:900;color:var(--gold)">${priceDisplay}</div>
+        <div style="font-size:.72rem;color:var(--tx2);margin-bottom:.8rem">${p.period||''}</div>
+        <ul style="list-style:none;text-align:right;font-size:.75rem;color:${p.featured?'rgba(255,255,255,.8)':'var(--tx2)'};line-height:2">
+          ${features.map(f=>`<li>✓ ${f}</li>`).join('')}
+        </ul>
+      </div>`;
+  }).join('');
 }
 
 /* ══════════ FINANCE DISPLAY ══════════ */
