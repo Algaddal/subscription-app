@@ -294,7 +294,7 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
 <div class="page" id="page-dashboard">
   <div class="pg-title">📊 لوحة المتابعة الشاملة</div>
   <div class="stats-row" id="dashStats">
-    <div class="stat gold"><div class="stat-ico">👥</div><div class="stat-lbl">مشتركو آخر شهر</div><div class="stat-val" id="ds-subs">—</div><div class="stat-sub">مشترك</div></div>
+    <div class="stat gold"><div class="stat-ico">👥</div><div class="stat-lbl">إجمالي المشتركين (كل الأشهر)</div><div class="stat-val" id="ds-subs">—</div><div class="stat-sub">مشترك</div></div>
     <div class="stat green"><div class="stat-ico">💰</div><div class="stat-lbl">إجمالي الاشتراكات</div><div class="stat-val" id="ds-income">—</div><div class="stat-sub">ج.س</div></div>
     <div class="stat red"><div class="stat-ico">💸</div><div class="stat-lbl">إجمالي المصروفات</div><div class="stat-val" id="ds-expense">—</div><div class="stat-sub">ج.س</div></div>
     <div class="stat blue"><div class="stat-ico">🏦</div><div class="stat-lbl">الرصيد المتاح</div><div class="stat-val" id="ds-balance">—</div><div class="stat-sub">ج.س</div></div>
@@ -987,17 +987,16 @@ function renderDashboard(){
     return;
   }
 
-  let totalInc=0, totalExp=0;
+  let totalInc=0, totalExp=0, totalSubsAll=0;
   keys.forEach(k=>{
     const m=C.months[k];
-    totalInc += m.data.reduce((s,r)=>s+r.amount,0);
-    totalExp += (m.expenses||[]).reduce((s,e)=>s+e.amount,0);
+    totalInc      += m.data.reduce((s,r)=>s+r.amount,0);
+    totalExp      += (m.expenses||[]).reduce((s,e)=>s+e.amount,0);
+    totalSubsAll  += m.data.length;  // ← إجمالي كل الأشهر
   });
-  const lastM    = C.months[keys[keys.length-1]];
-  const lastSubs = lastM ? lastM.data.length : 0;
   const balance  = totalInc - totalExp;
 
-  document.getElementById('ds-subs').textContent    = toAr(lastSubs);
+  document.getElementById('ds-subs').textContent    = toAr(totalSubsAll);  // ← الكل
   document.getElementById('ds-income').textContent  = toAr(totalInc);
   document.getElementById('ds-expense').textContent = toAr(totalExp);
   const balEl = document.getElementById('ds-balance');
@@ -1055,64 +1054,79 @@ function filterDashMonths() {
   if (!el) return;
   if (!months.length) { el.innerHTML='<p style="text-align:center;color:var(--tx2);padding:20px">لا توجد نتائج</p>'; return; }
 
-  el.innerHTML = months.map(m=>{
+  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px">` +
+  months.map(m=>{
     const inc = m.data.reduce((s,r)=>s+r.amount,0);
     const exp = (m.expenses||[]).reduce((s,e)=>s+e.amount,0);
     const bal = inc-exp;
+    const avg = m.data.length ? Math.round(inc/m.data.length) : 0;
     const bc  = bal>=0?'var(--green)':'var(--red)';
+    const expCount = (m.expenses||[]).length;
     return `
-    <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;overflow:hidden"
-         onmouseover="this.style.borderColor='rgba(201,168,76,.3)'" onmouseout="this.style.borderColor=''">
-      <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;flex-wrap:wrap"
-           onclick="toggleMonthRow('${m.key}')">
-        <div style="background:linear-gradient(135deg,#1a4a2e,#2d7a4f);width:42px;height:42px;border-radius:10px;
-                    display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">📅</div>
-        <div style="flex:1;min-width:100px">
-          <div style="font-weight:800;font-size:.95rem;color:var(--tx)">${mName(m.month)} ${m.year}</div>
-          <div style="font-size:.72rem;color:var(--tx2)">${m.data.length} مشترك • ${m.savedAt||'—'}</div>
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:16px;overflow:hidden;
+                transition:all .2s;cursor:pointer"
+         onmouseover="this.style.borderColor='rgba(201,168,76,.35)';this.style.transform='translateY(-2px)'"
+         onmouseout="this.style.borderColor='';this.style.transform=''"
+         onclick="openMonthModal('${m.key}')">
+
+      <!-- رأس البطاقة -->
+      <div style="background:linear-gradient(135deg,#1a4a2e,#2d7a4f);padding:14px 16px;
+                  display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:'Tajawal',sans-serif;font-weight:900;font-size:1.1rem;color:#fff">
+            ${mName(m.month)} ${m.year}
+          </div>
+          <div style="font-size:.7rem;color:rgba(255,255,255,.6);margin-top:2px">${m.savedAt||'—'}</div>
         </div>
-        <div style="display:flex;gap:14px;flex-wrap:wrap">
-          <div style="text-align:center"><div style="font-size:.65rem;color:var(--tx2)">الاشتراكات</div>
-            <div style="font-family:'Tajawal',sans-serif;font-weight:800;color:var(--green);font-size:.88rem">${toAr(inc)} ج.س</div></div>
-          <div style="text-align:center"><div style="font-size:.65rem;color:var(--tx2)">المصروفات</div>
-            <div style="font-family:'Tajawal',sans-serif;font-weight:800;color:var(--red);font-size:.88rem">${toAr(exp)} ج.س</div></div>
-          <div style="text-align:center"><div style="font-size:.65rem;color:var(--tx2)">الرصيد</div>
-            <div style="font-family:'Tajawal',sans-serif;font-weight:800;color:${bc};font-size:.88rem">${bal>=0?'✅':'⚠️'} ${toAr(Math.abs(bal))} ج.س</div></div>
+        <div style="background:rgba(255,255,255,.15);border-radius:10px;padding:7px 12px;text-align:center">
+          <div style="font-family:'Tajawal',sans-serif;font-weight:900;font-size:1.4rem;color:#fff;line-height:1">
+            ${toAr(m.data.length)}
+          </div>
+          <div style="font-size:.65rem;color:rgba(255,255,255,.75)">مشترك</div>
         </div>
-        <div style="display:flex;gap:6px;flex-shrink:0">
-          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openMonthModal('${m.key}')" title="تفاصيل وتعديل">🔍</button>
-          ${canDel?`<button class="btn btn-red btn-sm" onclick="event.stopPropagation();delMonth('${m.key}')">🗑️</button>`:''}
-        </div>
-        <span style="color:var(--tx2);font-size:.8rem" id="chevron-${m.key}">▼</span>
       </div>
-      <div id="month-detail-${m.key}" style="display:none;border-top:1px solid var(--border)">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
-          <div style="padding:12px 16px;border-left:1px solid var(--border)">
-            <div style="font-size:.78rem;font-weight:700;color:var(--gold-l);margin-bottom:8px">👥 المشتركون (${m.data.length})</div>
-            <div style="max-height:180px;overflow-y:auto;font-size:.78rem">
-              ${m.data.slice(0,15).map((r,i)=>`
-                <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">
-                  <span style="color:var(--tx2)">${i+1}. ${esc(r.name)}</span>
-                  <span style="color:var(--green);font-weight:700">${toAr(r.amount)}</span>
-                </div>`).join('')}
-              ${m.data.length>15?`<p style="color:var(--tx2);font-size:.72rem;margin-top:6px;text-align:center">... و ${m.data.length-15} آخرون — <span style="color:var(--gold-l);cursor:pointer" onclick="switchMonth('${m.key}');showPage('subscriptions')">عرض الكل</span></p>`:''}
+
+      <!-- جسم البطاقة -->
+      <div style="padding:14px 16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div style="background:rgba(63,182,138,.08);border:1px solid rgba(63,182,138,.15);border-radius:10px;padding:9px;text-align:center">
+            <div style="font-size:.65rem;color:var(--tx2);margin-bottom:2px">الاشتراكات</div>
+            <div style="font-family:'Tajawal',sans-serif;font-weight:800;color:var(--green);font-size:.85rem">${toAr(inc)}</div>
+            <div style="font-size:.62rem;color:var(--tx2)">ج.س</div>
+          </div>
+          <div style="background:rgba(224,92,92,.08);border:1px solid rgba(224,92,92,.15);border-radius:10px;padding:9px;text-align:center">
+            <div style="font-size:.65rem;color:var(--tx2);margin-bottom:2px">المصروفات${expCount?` (${expCount})`:''}  </div>
+            <div style="font-family:'Tajawal',sans-serif;font-weight:800;color:var(--red);font-size:.85rem">${toAr(exp)}</div>
+            <div style="font-size:.62rem;color:var(--tx2)">ج.س</div>
+          </div>
+        </div>
+
+        <!-- الرصيد + المتوسط -->
+        <div style="display:flex;justify-content:space-between;align-items:center;
+                    padding:8px 10px;background:var(--s3);border-radius:10px;margin-bottom:10px">
+          <div>
+            <div style="font-size:.65rem;color:var(--tx2)">${bal>=0?'✅ الرصيد':'⚠️ العجز'}</div>
+            <div style="font-family:'Tajawal',sans-serif;font-weight:900;color:${bc};font-size:.92rem">
+              ${toAr(Math.abs(bal))} ج.س
             </div>
           </div>
-          <div style="padding:12px 16px">
-            <div style="font-size:.78rem;font-weight:700;color:var(--gold-l);margin-bottom:8px">💸 المصروفات</div>
-            ${canWrite?`<div style="display:flex;gap:5px;margin-bottom:8px">
-              <input class="inp" id="qe-desc-${m.key}" placeholder="الوصف" style="flex:2;font-size:.75rem;padding:6px 8px">
-              <input class="inp" type="number" id="qe-amt-${m.key}" placeholder="المبلغ" style="flex:1;font-size:.75rem;padding:6px 8px" min="0">
-              <button class="btn btn-red btn-sm" onclick="addQuickExp('${m.key}')" style="padding:6px 8px">➕</button>
-            </div>`:''}
-            <div id="qe-list-${m.key}" style="max-height:140px;overflow-y:auto">
-              ${_expListHtml(m.expenses||[], m.key, canWrite)}
+          <div style="text-align:center;border-right:1px solid var(--border);padding-right:10px">
+            <div style="font-size:.65rem;color:var(--tx2)">متوسط الاشتراك</div>
+            <div style="font-family:'Tajawal',sans-serif;font-weight:700;color:var(--gold-l);font-size:.85rem">
+              ${toAr(avg)} ج.س
             </div>
           </div>
+        </div>
+
+        <!-- أزرار -->
+        <div style="display:flex;gap:6px" onclick="event.stopPropagation()">
+          <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center"
+                  onclick="openMonthModal('${m.key}')">🔍 تفاصيل وتعديل</button>
+          ${canDel?`<button class="btn btn-red btn-sm" onclick="delMonth('${m.key}')">🗑️</button>`:''}
         </div>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + `</div>`;
 }
 
 function _expListHtml(expenses, key, canWrite) {
