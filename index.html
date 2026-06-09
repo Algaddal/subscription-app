@@ -1694,6 +1694,8 @@ window._checkSiteVersion = function() {
   const db = firebase.database(app);
   // فحص إصدار الموقع بعد تحميل Firebase
   if (typeof window._checkSiteVersion === 'function') window._checkSiteVersion();
+  // تعريف db عالمياً لاستخدامه خارج هذه الدالة
+  window._firebaseDb = db;
   const AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو',
                      'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
@@ -2420,9 +2422,14 @@ window._checkSiteVersion = function() {
   // Nav smooth scroll
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', e => {
+      const href = a.getAttribute('href');
+      // فقط الروابط الداخلية التي تبدأ بـ # وليست روابط خارجية
+      if (!href || href === '#' || !href.startsWith('#')) return;
       e.preventDefault();
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      try {
+        const target = document.querySelector(href);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch(err) { /* تجاهل أخطاء querySelector */ }
     });
   });
 
@@ -2440,8 +2447,7 @@ window._checkSiteVersion = function() {
   // Firebase settings ref (نفس المشروع)
   (function loadSiteSettings() {
     try {
-      // استخدام نفس app instance لتجنب تحميل Firebase مرتين
-      const settDb = db;
+      const settDb = window._firebaseDb; if(!settDb) throw new Error('db not ready');
 
       settDb.ref('wodnour_settings').on('value', snap => {
         const s = snap.val() || {};
@@ -2507,7 +2513,7 @@ window._checkSiteVersion = function() {
   // ════════════════════════════════════════
   (function initJoinRequests() {
     try {
-      window._reqDb = db.ref('wodnour_requests');
+      const reqDb = window._firebaseDb; if(!reqDb) throw new Error('db not ready'); window._reqDb = reqDb.ref('wodnour_requests');
     } catch(e) { console.warn('Requests init error:', e); }
   })();
 
@@ -2693,7 +2699,7 @@ window._checkSiteVersion = function() {
 
     // قراءة من Firebase
     try {
-      db.ref('wodnour_subscribers').on('value', snap => {
+      const subsDb = window._firebaseDb; if(!subsDb) throw new Error('db not ready'); subsDb.ref('wodnour_subscribers').on('value', snap => {
         const data = snap.val() || {};
         const arr  = Object.values(data);
         if (arr.length > 0) {
