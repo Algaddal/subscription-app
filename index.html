@@ -2514,8 +2514,19 @@ window._checkSiteVersion = function() {
   function saveJoinRequest(name, phone, location, level) {
     if (!window._reqDb) return;
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+    const annual = LEVEL_ANNUAL[level] || 0;
+    const monthly = annual ? Math.round(annual / 12) : 0;
+    // استخراج بيانات الخطة من window._subPlans
+    const plan = window._subPlans ? window._subPlans.find(p => p.name === level) : null;
     window._reqDb.child(id).set({
-      id, name, phone, location, level,
+      id,
+      name,
+      phone,
+      location,
+      level,
+      amount: monthly,
+      annualAmount: annual,
+      period: plan ? (plan.period || 'ج.س / شهرياً') : 'ج.س / شهرياً',
       status: 'pending',
       date: new Date().toLocaleDateString('ar-SA'),
       ts: Date.now()
