@@ -1676,7 +1676,7 @@ function renderRequests(){
       <div class="req-meta">
         <span>📞 ${r.phone||'—'}</span>
         <span>💎 ${r.level||'—'}</span>
-        <span style="color:var(--gold-l);font-weight:700;background:rgba(201,168,76,.1);padding:1px 7px;border-radius:6px">💰 ${(AMTS_R[r.level]||0).toLocaleString('ar-EG')} ج.س/سنة</span>
+        <span style="color:var(--gold-l);font-weight:700;background:rgba(201,168,76,.1);padding:1px 7px;border-radius:6px">💰 ${r.annualAmount ? r.annualAmount.toLocaleString('ar-EG')+' ج.س/سنة' : r.amount ? r.amount.toLocaleString('ar-EG')+' ج.س/شهر' : (AMTS_R[r.level]||0).toLocaleString('ar-EG')+' ج.س/سنة'}</span>
         <span>📍 ${r.location||'—'}</span>
         <span>📅 ${r.date||'—'}</span>
       </div>
@@ -1692,11 +1692,11 @@ function renderRequests(){
 
 function acceptReq(id){
   const r = C.requests[id]; if(!r) return;
-  const AMTS_A={'راعي':500,'شريك':150,'داعم':50};
   // قبول الطلب
   REF.requests.child(id+'/status').set('accepted');
-  // إضافة تلقائية لقائمة الشرف
+  // إضافة تلقائية لقائمة الشرف بالمبلغ الحقيقي
   const subId = uid();
+  const monthlyAmt = r.amount || Math.round((r.annualAmount||0)/12) || 150;
   REF.subscribers.child(subId).set({
     id: subId,
     name: r.name,
@@ -1705,7 +1705,7 @@ function acceptReq(id){
     level: r.level||'شريك',
     gender: 'male',
     months: 12,
-    total: 12 * (AMTS_A[r.level]||150),
+    total: 12 * monthlyAmt,
     addedAt: new Date().toLocaleDateString('ar-SA'),
     fromRequest: true
   }).then(()=>toast(`✅ تم قبول ${r.name} وإضافته لقائمة الشرف`,'ok'));
