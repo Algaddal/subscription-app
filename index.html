@@ -3,7 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>مبادرة ودنور الدائم - وحدة وتعمير</title>
+<script>
+// ⚡ رقم الإصدار يُقرأ من Firebase — غيّره من لوحة التحكم ويتحدث فوراً
+(function(){
+  var fbCfg = { databaseURL: "https://subscription-app-865cd-default-rtdb.firebaseio.com" };
+  var scripts = [
+    "https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js",
+    "https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"
+  ];
+  function loadFirebaseAndCheck() {
+    var app2;
+    try { app2 = firebase.app('verChecker'); }
+    catch(e) { app2 = firebase.initializeApp(fbCfg, 'verChecker'); }
+    firebase.database(app2).ref('wodnour_settings/siteVersion').once('value', function(snap) {
+      var remoteVer = snap.val();
+      if (!remoteVer) return;
+      var k = 'wohda_site_ver';
+      var stored = localStorage.getItem(k);
+      if (stored !== null && stored !== remoteVer) {
+        localStorage.setItem(k, remoteVer);
+        if ('caches' in window) {
+          caches.keys().then(function(keys) { keys.forEach(function(k){ caches.delete(k); }); });
+        }
+        window.location.reload(true);
+      } else {
+        localStorage.setItem(k, remoteVer);
+      }
+    });
+  }
+  // تحميل Firebase إذا لم يكن محملاً بعد
+  if (typeof firebase === 'undefined') {
+    var s1 = document.createElement('script');
+    s1.src = scripts[0];
+    s1.onload = function() {
+      var s2 = document.createElement('script');
+      s2.src = scripts[1];
+      s2.onload = loadFirebaseAndCheck;
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s1);
+  } else {
+    loadFirebaseAndCheck();
+  }
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1956,6 +2003,7 @@
 
     // رسم الرسم البياني
     renderImpactChart(months, keys);
+
 
   }, err => {
     console.warn('Impact Firebase error:', err);
