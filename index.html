@@ -428,7 +428,7 @@ tbody td{padding:12px 20px;font-size:.88rem;vertical-align:middle}
     <button class="tab-btn" onclick="showPage('upload')" id="tab-upload">
       📊 <span>الاشتراكات</span>
     </button>
-    <button class="tab-btn active" onclick="showPage('reports')" id="tab-reports">
+    <button class="tab-btn" onclick="showPage('reports')" id="tab-reports">
       📅 <span>التقارير الشهرية</span>
       <span class="badge" id="months-count">0</span>
     </button>
@@ -518,7 +518,7 @@ tbody td{padding:12px 20px;font-size:.88rem;vertical-align:middle}
 </div>
 
 <!-- ═══════════ PAGE 2: REPORTS ═══════════ -->
-<div class="page active" id="page-reports" style="display:none">
+<div class="page" id="page-reports" style="display:none">
   <div class="rpt-header">
     <h2>📅 التقارير الشهرية</h2>
     <div class="rpt-actions">
@@ -715,8 +715,6 @@ function doLogin(){
   currentRole = selectedRole;
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('mainNav').style.display='flex';
-  // Show pages
-  document.querySelectorAll('.page').forEach(p=>p.style.display='');
   showPage('reports');
   applyRolePermissions();
   startRealtimeSync();
@@ -841,14 +839,22 @@ function startRealtimeSync(){
 
 /* ══════════ PAGES ══════════ */
 function showPage(name){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  // hide all pages
+  document.querySelectorAll('.page').forEach(p=>{
+    p.classList.remove('active');
+    p.style.display='none';
+  });
+  // show selected page
+  const pg = document.getElementById('page-'+name);
+  if(pg){ pg.classList.add('active'); pg.style.display='block'; }
+  // update top tabs
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const tb = document.getElementById('tab-'+name);
+  if(tb) tb.classList.add('active');
+  // update bottom nav
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  document.getElementById('tab-'+name).classList.add('active');
   const bn = document.getElementById('bnav-'+name);
   if(bn) bn.classList.add('active');
-  // scroll to top on mobile
   window.scrollTo({top:0,behavior:'smooth'});
   if(name==='reports') renderReports();
   if(name==='admin' && currentRole==='admin') renderAdminPanel();
@@ -1228,7 +1234,13 @@ function toast(msg,type='ok'){
 
 /* ══════════ INIT ══════════ */
 (function init(){
-  document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+  // Hide all pages and nav on load
+  document.querySelectorAll('.page').forEach(p=>{
+    p.style.display='none';
+    p.classList.remove('active');
+  });
+  document.getElementById('mainNav').style.display='none';
+  document.getElementById('bottomNav').style.display='none';
   ['waModal','confirmModal','chpwModal'].forEach(id=>{
     document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
   });
