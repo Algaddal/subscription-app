@@ -1483,7 +1483,7 @@
     </div>
 
     <!-- مشاريع ديناميكية من Firebase -->
-    <div class="projects-grid" id="projectsGrid">
+    <div class="projects-grid visible" id="projectsGrid">
       <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);opacity:.6">
         <div style="font-size:2rem;margin-bottom:10px">⏳</div>جاري تحميل المشاريع...
       </div>
@@ -1594,7 +1594,7 @@
     </div>
 
     <!-- بطاقتا الإيرادات والمصروفات -->
-    <div class="finance-grid reveal" id="financeGrid">
+    <div class="finance-grid visible" id="financeGrid">
       <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);opacity:.6">
         <div style="font-size:2rem;margin-bottom:10px">⏳</div>جاري تحميل البيانات المالية...
       </div>
@@ -1612,7 +1612,7 @@
     </div>
 
     <!-- مستويات ديناميكية من Firebase -->
-    <div class="subs-grid reveal" id="subsGrid">
+    <div class="subs-grid visible" id="subsGrid">
       <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);opacity:.6">
         <div style="font-size:2rem;margin-bottom:10px">⏳</div>جاري تحميل المستويات...
       </div>
@@ -1804,7 +1804,7 @@
         </div>
       </div>`;
     }).join('');
-    document.querySelectorAll('#projectsGrid .reveal').forEach(el => el.classList.add('revealed'));
+    document.querySelectorAll('#projectsGrid .reveal').forEach(el => el.classList.add('visible'));
   });
 
   // ══ تحميل الشفافية المالية من Firebase ══
@@ -2022,7 +2022,7 @@
       <h2 class="section-title">ماذا قال <span>أبناء المنطقة</span></h2>
     </div>
     <!-- شهادات ديناميكية من Firebase -->
-    <div class="quotes-grid reveal" id="testimonialsGrid">
+    <div class="quotes-grid visible" id="testimonialsGrid">
       <!-- loading -->
       <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);font-size:.95rem;opacity:.6">
         <div style="font-size:2rem;margin-bottom:10px">⏳</div>
