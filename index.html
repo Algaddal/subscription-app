@@ -1435,96 +1435,10 @@
       <p class="section-desc">شفافية كاملة في عرض المشاريع المنجزة وتكاليفها والمشاريع المستهدفة المقبلة.</p>
     </div>
 
-    <div class="projects-grid">
-      <!-- Done -->
-      <div class="project-card reveal">
-        <div class="project-img after">
-          🏫
-          <span class="before-after-badge badge-after">✅ منجز</span>
-        </div>
-        <div class="project-body">
-          <h3>صيانة مدرسة البنات الأولى</h3>
-          <p>إصلاح شامل للفصول الدراسية، طلاء الجدران، إصلاح المرافق الصحية وتركيب شبابيك جديدة.</p>
-          <div class="project-meta">
-            <span class="project-cost">٤٢,٠٠٠ ج.س</span>
-            <span class="project-status status-done">منجز ✓</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="project-card reveal">
-        <div class="project-img after">
-          🚻
-          <span class="before-after-badge badge-after">✅ منجز</span>
-        </div>
-        <div class="project-body">
-          <h3>تأهيل المرافق الصحية — مدرسة الشهيد</h3>
-          <p>إعادة بناء وتأهيل دورات المياه بالكامل وتوصيل المياه وتركيب خزانات احتياطية.</p>
-          <div class="project-meta">
-            <span class="project-cost">٢٨,٥٠٠ ج.س</span>
-            <span class="project-status status-done">منجز ✓</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="project-card reveal">
-        <div class="project-img planned" style="background: linear-gradient(135deg,#e65100,#ff8f00)">
-          ⚡
-          <span class="before-after-badge badge-planned">🔄 جارٍ</span>
-        </div>
-        <div class="project-body">
-          <h3>توصيل الكهرباء الشمسية — ثلاث مدارس</h3>
-          <p>تركيب ألواح طاقة شمسية لضمان انقطاع التيار لا يؤثر على سير العملية التعليمية.</p>
-          <div class="project-meta">
-            <span class="project-cost">٩٥,٠٠٠ ج.س</span>
-            <span class="project-status status-progress">جارٍ التنفيذ</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="project-card reveal">
-        <div class="project-img planned">
-          🖥️
-          <span class="before-after-badge badge-planned">📋 مستهدف</span>
-        </div>
-        <div class="project-body">
-          <h3>مختبر الحاسوب — مدرسة النيل</h3>
-          <p>إنشاء مختبر حاسوب متكامل بـ٢٥ جهاز وتدريب المعلمين على استخدامه في التعليم.</p>
-          <div class="project-meta">
-            <span class="project-cost">١٢٠,٠٠٠ ج.س</span>
-            <span class="project-status status-planned">مستهدف</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="project-card reveal">
-        <div class="project-img after" style="background: linear-gradient(135deg,#1a237e,#3949ab)">
-          📖
-          <span class="before-after-badge badge-after">✅ منجز</span>
-        </div>
-        <div class="project-body">
-          <h3>مكتبة مدرسة العلوم</h3>
-          <p>تجديد قاعة المكتبة وتجهيزها بالرفوف وتبرّع بـ٨٠٠ كتاب من أبناء المنطقة.</p>
-          <div class="project-meta">
-            <span class="project-cost">١٨,٢٠٠ ج.س</span>
-            <span class="project-status status-done">منجز ✓</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="project-card reveal">
-        <div class="project-img planned" style="background: linear-gradient(135deg,#006064,#00897b)">
-          🏃
-          <span class="before-after-badge badge-planned">📋 مستهدف</span>
-        </div>
-        <div class="project-body">
-          <h3>ملعب مدرسة البنين المركزية</h3>
-          <p>تأهيل الملعب الرياضي وتسويته وتجهيزه بالمعدات الأساسية لممارسة الأنشطة البدنية.</p>
-          <div class="project-meta">
-            <span class="project-cost">٦٥,٠٠٠ ج.س</span>
-            <span class="project-status status-planned">مستهدف</span>
-          </div>
-        </div>
+    <!-- مشاريع ديناميكية من Firebase -->
+    <div class="projects-grid" id="projectsGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);opacity:.6">
+        <div style="font-size:2rem;margin-bottom:10px">⏳</div>جاري تحميل المشاريع...
       </div>
     </div>
 
@@ -1618,92 +1532,24 @@
       <h2 class="section-title">مالنا وما علينا — <span>بكل وضوح</span></h2>
     </div>
 
-    <div class="trans-header reveal">
+    <!-- شفافية ديناميكية من Firebase -->
+    <div class="trans-header reveal" id="transHeader">
       <div class="trans-header-text">
-        <p class="section-desc">نؤمن أن الثقة تُبنى بالشفافية. كل ريال يُجمع ويُصرف بعلم المشتركين وأمام أعينهم. ننشر تقارير مالية دورية، ونُتيح لكل مشترك الاطلاع على حسابات المبادرة في أي وقت.</p>
-
-        <div class="progress-section" style="margin-top:1.5rem;">
-          <div class="progress-item">
-            <div class="progress-header"><span class="progress-label">نسبة الصرف على المشاريع مباشرة</span><span class="progress-pct">٨٧٪</span></div>
-            <div class="progress-bar"><div class="progress-fill" data-width="87"></div></div>
-          </div>
-          <div class="progress-item">
-            <div class="progress-header"><span class="progress-label">المصاريف الإدارية</span><span class="progress-pct">٨٪</span></div>
-            <div class="progress-bar"><div class="progress-fill" data-width="8" style="background:var(--gold)"></div></div>
-          </div>
-          <div class="progress-item">
-            <div class="progress-header"><span class="progress-label">الاحتياطي للطوارئ</span><span class="progress-pct">٥٪</span></div>
-            <div class="progress-bar"><div class="progress-fill" data-width="5" style="background:#3a9b9b"></div></div>
-          </div>
+        <p class="section-desc" id="transDesc">نؤمن أن الثقة تُبنى بالشفافية. كل ريال يُجمع ويُصرف بعلم المشتركين وأمام أعينهم.</p>
+        <div class="progress-section" style="margin-top:1.5rem;" id="transBars">
+          <!-- تُملأ من Firebase -->
         </div>
       </div>
-
       <div class="pledge-box">
-        <h3>ميثاق الشفافية</h3>
-        <p>نتعهد بنشر كشف حساب تفصيلي كل شهر، وعقد اجتماع ربع سنوي مفتوح لجميع المشتركين للمراجعة والمحاسبة. لا مصروف يُصرف إلا بموافقة لجنة المتابعة وتوثيق فواتيره.</p>
+        <h3 id="pledgeTitle">ميثاق الشفافية</h3>
+        <p id="pledgeText">نتعهد بنشر كشف حساب تفصيلي كل شهر، وعقد اجتماع ربع سنوي مفتوح لجميع المشتركين.</p>
       </div>
     </div>
 
-    <div class="finance-grid reveal">
-      <div class="finance-card">
-        <h3>💰 إيرادات هذا الشهر</h3>
-        <div class="finance-item">
-          <span class="label">اشتراكات شهرية</span>
-          <span class="amount">٣٢,٤٠٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">تبرعات إضافية</span>
-          <span class="amount">٨,٧٥٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">دعم مؤسسي</span>
-          <span class="amount">١٥,٠٠٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">عائد الفعاليات</span>
-          <span class="amount">٣,٢٠٠ ج.س</span>
-        </div>
-        <div class="finance-total">
-          <span>إجمالي الإيرادات</span>
-          <span>٥٩,٣٥٠ ج.س</span>
-        </div>
-      </div>
-
-      <div class="finance-card">
-        <h3>📤 مصروفات هذا الشهر</h3>
-        <div class="finance-item">
-          <span class="label">مواد البناء والصيانة</span>
-          <span class="amount expense">٢٨,٦٠٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">أجور العمالة</span>
-          <span class="amount expense">١٢,٤٠٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">تجهيزات ومعدات</span>
-          <span class="amount expense">٧,٢٠٠ ج.س</span>
-        </div>
-        <div class="finance-item">
-          <span class="label">مصاريف إدارية</span>
-          <span class="amount expense">٢,١٠٠ ج.س</span>
-        </div>
-        <div class="finance-total" style="background:#c0392b;">
-          <span>إجمالي المصروفات</span>
-          <span>٥٠,٣٠٠ ج.س</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="donut-wrap reveal" style="margin-top:2rem;">
-      <h3 style="font-size:1.1rem; font-weight:700; color:var(--green-deep); margin-bottom:1.5rem;">توزيع المصروفات — نظرة بيانية</h3>
-      <div class="donut-chart">
-        <div class="donut-hole">٢٠٢٥<br>يونيو</div>
-      </div>
-      <div class="donut-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--green-light)"></div> مواد البناء (٤٥٪)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div> أجور العمالة (٢٥٪)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#3a9b9b"></div> تجهيزات (١٥٪)</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#8e6bbf"></div> إدارة (١٥٪)</div>
+    <!-- بطاقتا الإيرادات والمصروفات -->
+    <div class="finance-grid reveal" id="financeGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);opacity:.6">
+        <div style="font-size:2rem;margin-bottom:10px">⏳</div>جاري تحميل البيانات المالية...
       </div>
     </div>
   </div>
@@ -1718,58 +1564,10 @@
       <p class="section-desc" style="margin:0 auto;">كل مساهمة، مهما صغرت، تُغيّر واقع طفل وتُكرم معلماً. اختر مستوى مشاركتك وكن جزءاً من هذا التغيير الحقيقي.</p>
     </div>
 
-    <div class="subs-grid reveal">
-      <div class="sub-card">
-        <span class="sub-icon">🌱</span>
-        <div class="sub-name">الداعم</div>
-        <div class="sub-price">٥٠</div>
-        <div class="sub-period">ج.س / شهرياً</div>
-        <ul class="sub-features">
-          <li>شهادة مشاركة رقمية</li>
-          <li>تقرير شهري بالإنجازات</li>
-          <li>اسمك في قائمة الداعمين</li>
-          <li>اجتماع سنوي مفتوح</li>
-        </ul>
-      </div>
-
-      <div class="sub-card featured">
-        <span class="featured-badge">الأكثر اختياراً</span>
-        <span class="sub-icon">🌿</span>
-        <div class="sub-name">الشريك</div>
-        <div class="sub-price">١٥٠</div>
-        <div class="sub-period">ج.س / شهرياً</div>
-        <ul class="sub-features">
-          <li>كل مزايا مستوى الداعم</li>
-          <li>بطاقة شكر باسمك</li>
-          <li>دعوة لزيارات المشاريع</li>
-          <li>التصويت على أولويات المشاريع</li>
-        </ul>
-      </div>
-
-      <div class="sub-card">
-        <span class="sub-icon">🌳</span>
-        <div class="sub-name">الراعي</div>
-        <div class="sub-price">٥٠٠</div>
-        <div class="sub-period">ج.س / شهرياً</div>
-        <ul class="sub-features">
-          <li>كل مزايا مستوى الشريك</li>
-          <li>لوحة تكريم في مشروع بالاسم</li>
-          <li>عضوية لجنة المتابعة</li>
-          <li>تقارير مالية تفصيلية</li>
-        </ul>
-      </div>
-
-      <div class="sub-card">
-        <span class="sub-icon">💎</span>
-        <div class="sub-name">تبرع حر</div>
-        <div class="sub-price">أنت</div>
-        <div class="sub-period">تحدد المبلغ</div>
-        <ul class="sub-features">
-          <li>مساهمة مرة واحدة</li>
-          <li>تخصيص مشروع بعينه</li>
-          <li>الإسهام في الطوارئ</li>
-          <li>تكريم في التقرير السنوي</li>
-        </ul>
+    <!-- مستويات ديناميكية من Firebase -->
+    <div class="subs-grid reveal" id="subsGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);opacity:.6">
+        <div style="font-size:2rem;margin-bottom:10px">⏳</div>جاري تحميل المستويات...
       </div>
     </div>
   </div>
@@ -1918,6 +1716,180 @@
     }
   }
 
+  // ══ تحميل المشاريع من Firebase ══
+  db.ref('wodnour_projects').on('value', snap => {
+    const data = snap.val() || {};
+    const grid = document.getElementById('projectsGrid');
+    if (!grid) return;
+    const list = Object.values(data).sort((a,b) => (a.order||99)-(b.order||99));
+    if (!list.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);opacity:.5">لا توجد مشاريع بعد</div>';
+      return;
+    }
+    const statusMap = {
+      'done':     { cls:'status-done',     badge:'badge-after',   label:'✅ منجز',        imgCls:'after'   },
+      'progress': { cls:'status-progress', badge:'badge-planned', label:'🔄 جارٍ',        imgCls:'planned' },
+      'planned':  { cls:'status-planned',  badge:'badge-planned', label:'📋 مستهدف',     imgCls:'planned' },
+    };
+    const colors = ['linear-gradient(135deg,#2d7a4f,#4aaa72)','linear-gradient(135deg,#1a237e,#3949ab)','linear-gradient(135deg,#e65100,#ff8f00)','linear-gradient(135deg,#006064,#00897b)','linear-gradient(135deg,#4a148c,#7b1fa2)','linear-gradient(135deg,#880e4f,#c2185b)'];
+    grid.innerHTML = list.map((p, i) => {
+      const st = statusMap[p.status] || statusMap['planned'];
+      const bg = p.color || colors[i % colors.length];
+      const cost = p.cost ? Number(p.cost).toLocaleString('ar-SA') + ' ج.س' : '';
+      return `
+      <div class="project-card reveal">
+        <div class="project-img ${st.imgCls}" style="background:${bg}">
+          ${p.icon || '🏗️'}
+          <span class="before-after-badge ${st.badge}">${st.label}</span>
+        </div>
+        <div class="project-body">
+          <h3>${esc(p.name||'')}</h3>
+          <p>${esc(p.desc||'')}</p>
+          <div class="project-meta">
+            ${cost ? `<span class="project-cost">${cost}</span>` : ''}
+            <span class="project-status ${st.cls}">${st.label.replace(/[✅🔄📋]\s*/,'')}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    // re-run reveal animation
+    document.querySelectorAll('#projectsGrid .reveal').forEach(el => el.classList.add('revealed'));
+  });
+
+  // ══ تحميل الشفافية المالية من Firebase ══
+  db.ref('wodnour_settings').on('value', snap => {
+    const s = snap.val() || {};
+
+    // --- نصوص الشفافية ---
+    const tr = s.transparency || {};
+    if (tr.desc)        { const el=document.getElementById('transDesc');  if(el) el.textContent=tr.desc; }
+    if (tr.pledgeTitle) { const el=document.getElementById('pledgeTitle'); if(el) el.textContent=tr.pledgeTitle; }
+    if (tr.pledgeText)  { const el=document.getElementById('pledgeText');  if(el) el.textContent=tr.pledgeText; }
+    if (tr.bars && tr.bars.length) {
+      const barsEl = document.getElementById('transBars');
+      if (barsEl) {
+        const barColors = ['var(--green-mid)','var(--gold)','#3a9b9b','#8e6bbf'];
+        barsEl.innerHTML = tr.bars.map((b,i) => `
+          <div class="progress-item">
+            <div class="progress-header">
+              <span class="progress-label">${esc(b.label)}</span>
+              <span class="progress-pct">${b.pct}٪</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" data-width="${b.pct}" style="background:${barColors[i%barColors.length]}"></div></div>
+          </div>`).join('');
+        // animate bars
+        barsEl.querySelectorAll('.progress-fill').forEach(el => {
+          el.style.width = (el.dataset.width || 0) + '%';
+        });
+      }
+    }
+
+    // --- بيانات الاشتراكات المالية ---
+    const fd = s.financeDisplay || {};
+    const mode = fd.mode || 'last';
+    let monthKey = fd.monthKey || null;
+
+    db.ref('wohda_months').once('value', mSnap => {
+      const months = mSnap.val() || {};
+      const keys = Object.keys(months).sort();
+      if (!keys.length) return;
+      if (mode === 'last') monthKey = keys[keys.length - 1];
+      const m = months[monthKey] || months[keys[keys.length-1]];
+      if (!m) return;
+
+      const income = (m.data||[]).reduce((s,r) => s + (r.amount||0), 0);
+      const expenses = (m.expenses||[]);
+      const totalExp = expenses.reduce((s,e) => s + (e.amount||0), 0);
+      const AR = [,'يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+      const monthName = AR[parseInt(m.month)] || m.month;
+
+      const grid = document.getElementById('financeGrid');
+      if (!grid) return;
+      grid.innerHTML = `
+        <div class="finance-card">
+          <h3>💰 إيرادات ${monthName} ${m.year}</h3>
+          <div class="finance-item">
+            <span class="label">اشتراكات شهرية</span>
+            <span class="amount">${income.toLocaleString('ar-SA')} ج.س</span>
+          </div>
+          <div class="finance-total">
+            <span>إجمالي الإيرادات</span>
+            <span>${income.toLocaleString('ar-SA')} ج.س</span>
+          </div>
+        </div>
+        <div class="finance-card">
+          <h3>📤 مصروفات ${monthName} ${m.year}</h3>
+          ${expenses.length ? expenses.map(e => `
+          <div class="finance-item">
+            <span class="label">${esc(e.desc||'')}</span>
+            <span class="amount expense">${(e.amount||0).toLocaleString('ar-SA')} ج.س</span>
+          </div>`).join('') : '<div class="finance-item"><span class="label" style="color:#999">لا توجد مصروفات مسجلة</span></div>'}
+          <div class="finance-total" style="background:#c0392b;">
+            <span>إجمالي المصروفات</span>
+            <span>${totalExp.toLocaleString('ar-SA')} ج.س</span>
+          </div>
+        </div>`;
+    });
+  });
+
+  // ══ تحميل مستويات الاشتراك من Firebase ══
+  db.ref('wodnour_sub_plans').on('value', snap => {
+    const data = snap.val() || {};
+    const grid = document.getElementById('subsGrid');
+    if (!grid) return;
+    const plans = Object.values(data)
+      .filter(p => p.visible !== false)
+      .sort((a,b) => (a.order||99)-(b.order||99));
+    if (!plans.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;opacity:.5">لا توجد مستويات بعد</div>';
+      return;
+    }
+    grid.innerHTML = plans.map(p => {
+      const isFeatured = p.featured || p.recommended;
+      const features = (p.features || []);
+      return `
+      <div class="sub-card ${isFeatured ? 'featured' : ''}">
+        ${isFeatured ? '<span class="featured-badge">الأكثر اختياراً</span>' : ''}
+        <span class="sub-icon">${p.icon || '🌿'}</span>
+        <div class="sub-name">${esc(p.name||'')}</div>
+        <div class="sub-price">${p.price ? Number(p.price).toLocaleString('ar-SA') : 'أنت'}</div>
+        <div class="sub-period">${esc(p.period || 'ج.س / شهرياً')}</div>
+        <ul class="sub-features">
+          ${features.map(f => `<li>${esc(f)}</li>`).join('')}
+        </ul>
+      </div>`;
+    }).join('');
+  });
+
+  // ══ تحميل الشهادات من Firebase ══
+  db.ref('wodnour_testimonials').on('value', snap => {
+    const data = snap.val() || {};
+    const grid = document.getElementById('testimonialsGrid');
+    if(!grid) return;
+    const list = Object.values(data)
+      .filter(t => t.visible !== false)
+      .sort((a,b) => (a.order||99) - (b.order||99));
+    if(!list.length){
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);opacity:.5">لا توجد شهادات بعد</div>';
+      return;
+    }
+    const avatars = ['👨','👩','👨‍💼','👩‍💼','👴','👵','🧑','👱','🧔'];
+    grid.innerHTML = list.map((t,i) => `
+      <div class="quote-card">
+        <div class="quote-mark">"</div>
+        <p class="quote-text">${esc(t.text||'')}</p>
+        <div class="quote-author">
+          <div class="author-avatar">${avatars[i % avatars.length]}</div>
+          <div>
+            <div class="author-name">${esc(t.name||'')}</div>
+            <div class="author-role">${esc(t.role||'')}</div>
+          </div>
+        </div>
+      </div>`).join('');
+  });
+
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
   // الاستماع للتغييرات من Firebase في الوقت الحقيقي
   db.ref('wohda_months').on('value', snapshot => {
     const months = snapshot.val() || {};
@@ -1997,30 +1969,12 @@
       <span class="section-tag">شهادات</span>
       <h2 class="section-title">ماذا قال <span>أبناء المنطقة</span></h2>
     </div>
-    <div class="quotes-grid reveal">
-      <div class="quote-card">
-        <div class="quote-mark">"</div>
-        <p class="quote-text">ما صدقت لما رأيت مدرسة ابني بعد الصيانة. حسيت أن ناس قرروا يغيروا الواقع بدل الشكوى. جزاهم الله خير وأنا معهم طول ما فيّ نفس.</p>
-        <div class="quote-author">
-          <div class="author-avatar">👨</div>
-          <div><div class="author-name">ولي أمر — حي الزهور</div><div class="author-role">مشترك منذ التأسيس</div></div>
-        </div>
-      </div>
-      <div class="quote-card">
-        <div class="quote-mark">"</div>
-        <p class="quote-text">أنا كمعلمة كنت أحسب أني لن أرى تغييراً في حياتي المهنية. لكن بعد ما جددوا غرفة المعلمات وجهزوها، رجعت لي الروح وزاد عطائي للطلاب.</p>
-        <div class="quote-author">
-          <div class="author-avatar">👩</div>
-          <div><div class="author-name">معلمة رياضيات — مدرسة النيل</div><div class="author-role">خمس سنوات في الخدمة</div></div>
-        </div>
-      </div>
-      <div class="quote-card">
-        <div class="quote-mark">"</div>
-        <p class="quote-text">مبادرة ودنور الدائم علمتنا أن التغيير يبدأ من الداخل. نحن لا ننتظر أحداً بل نصنع الأمل بأيدينا ونثبت أن أبناء المنطقة يحبون بلدهم.</p>
-        <div class="quote-author">
-          <div class="author-avatar">👨‍💼</div>
-          <div><div class="author-name">أحمد — مدير مدرسة</div><div class="author-role">من شركاء المبادرة</div></div>
-        </div>
+    <!-- شهادات ديناميكية من Firebase -->
+    <div class="quotes-grid reveal" id="testimonialsGrid">
+      <!-- loading -->
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);font-size:.95rem;opacity:.6">
+        <div style="font-size:2rem;margin-bottom:10px">⏳</div>
+        جاري تحميل الشهادات...
       </div>
     </div>
   </div>
