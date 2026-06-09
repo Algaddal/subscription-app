@@ -2693,7 +2693,7 @@ window._checkSiteVersion = function() {
 
     // قراءة من Firebase
     try {
-      db.ref('wodnour_subscribers').on('value', snap => {
+      let _sdb;try{_sdb=firebase.database(firebase.app('impactModule'));}catch(e){_sdb=firebase.database(firebase.initializeApp({databaseURL:'https://subscription-app-865cd-default-rtdb.firebaseio.com'},'impactModule'));}_sdb.ref('wodnour_subscribers').on('value', snap => {
         const data = snap.val() || {};
         const arr  = Object.values(data);
         if (arr.length > 0) {
