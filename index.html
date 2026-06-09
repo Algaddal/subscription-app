@@ -2441,7 +2441,7 @@ window._checkSiteVersion = function() {
   (function loadSiteSettings() {
     try {
       // استخدام نفس app instance لتجنب تحميل Firebase مرتين
-      const settDb = db;
+      let settDb; try{settDb=firebase.database(firebase.app('impactModule'));}catch(e){settDb=firebase.database(firebase.initializeApp({databaseURL:'https://subscription-app-865cd-default-rtdb.firebaseio.com'},'impactModule'));}
 
       settDb.ref('wodnour_settings').on('value', snap => {
         const s = snap.val() || {};
@@ -2507,7 +2507,7 @@ window._checkSiteVersion = function() {
   // ════════════════════════════════════════
   (function initJoinRequests() {
     try {
-      window._reqDb = db.ref('wodnour_requests');
+      let _rdb; try{_rdb=firebase.database(firebase.app('impactModule'));}catch(e){_rdb=firebase.database(firebase.initializeApp({databaseURL:'https://subscription-app-865cd-default-rtdb.firebaseio.com'},'impactModule'));} window._reqDb = _rdb.ref('wodnour_requests');
     } catch(e) { console.warn('Requests init error:', e); }
   })();
 
