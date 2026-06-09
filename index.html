@@ -1637,7 +1637,7 @@
     <!-- dynamic cards from Firebase -->
     <div class="impact-grid reveal" id="impactGrid">
       <div class="impact-card"><span class="impact-num" id="imp-subs" style="font-size:2rem;">—</span>
-        <div class="impact-label">مشترك فاعل هذا الشهر</div>
+        <div class="impact-label">إجمالي المشتركين الكلي</div>
       </div>
       <div class="impact-card">
         <span class="impact-num" id="imp-income" style="font-size:1.6rem;">—</span>
@@ -1656,19 +1656,19 @@
         <div class="impact-label">أشهر من السجلات المحفوظة</div>
       </div>
       <div class="impact-card">
-        <span class="impact-num" id="stat-schools">١٢</span>
+        <span class="impact-num" id="stat-schools">—</span>
         <div class="impact-label">مدرسة استفادت من برنامج الصيانة</div>
       </div>
       <div class="impact-card">
-        <span class="impact-num" id="stat-students">٤٢٠٠</span>
+        <span class="impact-num" id="stat-students">—</span>
         <div class="impact-label">طالب وطالبة في بيئة أفضل</div>
       </div>
       <div class="impact-card">
-        <span class="impact-num" id="stat-teachers">٣١٠</span>
+        <span class="impact-num" id="stat-teachers">—</span>
         <div class="impact-label">معلم ومعلمة في مكاتب محسّنة</div>
       </div>
       <div class="impact-card">
-        <span class="impact-num" id="stat-done">٨</span>
+        <span class="impact-num" id="stat-done">—</span>
         <div class="impact-label">مشاريع مكتملة منذ التأسيس</div>
       </div>
     </div>
@@ -1810,6 +1810,13 @@
   // ══ تحميل الشفافية المالية من Firebase ══
   db.ref('wodnour_settings').on('value', snap => {
     const s = snap.val() || {};
+
+    // --- إحصائيات الموقع الرئيسية ---
+    const st = s.stats || {};
+    if (st.schools)  { const el=document.getElementById('stat-schools');  if(el) animateImpact(el, st.schools); }
+    if (st.students) { const el=document.getElementById('stat-students'); if(el) animateImpact(el, st.students); }
+    if (st.teachers) { const el=document.getElementById('stat-teachers'); if(el) animateImpact(el, st.teachers); }
+    if (st.doneProj) { const el=document.getElementById('stat-done');     if(el) animateImpact(el, st.doneProj); }
 
     // --- نصوص الشفافية ---
     const tr = s.transparency || {};
@@ -1978,7 +1985,7 @@
     // تحريك الأرقام عند الدخول للقسم
     const impObs = new IntersectionObserver(entries => {
       if (!entries[0].isIntersecting) return;
-      animateImpact(document.getElementById('imp-subs'),    lastSubs);
+      animateImpact(document.getElementById('imp-subs'),    totalSubs);
       animateImpact(document.getElementById('imp-income'),  totalIncome);
       animateImpact(document.getElementById('imp-expense'), totalExpense);
       animateImpact(document.getElementById('imp-balance'), Math.abs(balance));
