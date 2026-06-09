@@ -818,6 +818,19 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
         <button class="btn btn-gold" onclick="window.open(document.getElementById('set-site-url').value,'_blank')">🌐 فتح الموقع</button>
         <button class="btn btn-ghost" onclick="saveSettings('url')">💾 حفظ</button>
       </div>
+      <div style="background:rgba(201,168,76,.07);border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:16px;margin-top:12px">
+        <div style="font-weight:700;color:var(--gold-l);margin-bottom:10px;font-size:.9rem">⚡ تحديث الموقع فوراً على جميع الأجهزة</div>
+        <p style="font-size:.75rem;color:var(--tx2);margin-bottom:12px">عند تغيير رقم الإصدار وحفظه، سيتحدث الموقع تلقائياً على جميع المتصفحات والأجهزة دون الحاجة لمسح الكاش يدوياً.</p>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+          <div class="form-group" style="flex:1;min-width:160px;margin-bottom:0">
+            <label>رقم الإصدار الحالي</label>
+            <input class="inp" id="set-site-version" placeholder="مثال: 1.0 أو 2.5">
+          </div>
+          <button class="btn btn-gold" onclick="bumpVersion()">🚀 تحديث الآن</button>
+          <button class="btn btn-ghost" onclick="saveSettings('version')">💾 حفظ يدوي</button>
+        </div>
+        <div id="currentVersionDisplay" style="font-size:.75rem;color:var(--tx2);margin-top:8px"></div>
+      </div>
       <p style="font-size:.75rem;color:var(--tx2);margin-top:8px">الموقع يقرأ بيانات Firebase تلقائياً — أي تعديل تحفظه هنا يظهر على الموقع فوراً</p>
     </div>
   </div>
@@ -2166,6 +2179,16 @@ function saveImpactCards() {
 }
 
 /* ══════════ SETTINGS ADDITIONS ══════════ */
+function bumpVersion(){
+  // زيادة رقم الإصدار تلقائياً
+  const cur = document.getElementById('set-site-version').value.trim() || '1.0';
+  const parts = cur.split('.');
+  const minor = (parseInt(parts[1]||0) + 1);
+  const newVer = (parts[0]||'1') + '.' + minor;
+  document.getElementById('set-site-version').value = newVer;
+  saveSettings('version');
+}
+
 function loadSettings(){
   const s=C.settings||{};
   if(s.bank){
@@ -2185,6 +2208,10 @@ function loadSettings(){
     document.getElementById('set-done-proj').value=s.stats.doneProj||'';
   }
   if(s.url) document.getElementById('set-site-url').value=s.url||'';
+  if(s.siteVersion){
+    document.getElementById('set-site-version').value = s.siteVersion||'';
+    document.getElementById('currentVersionDisplay').textContent = '✅ الإصدار الحالي: ' + s.siteVersion;
+  }
   loadTransparencySettings(s.transparency);
   if(s.financeDisplay){
     const fm = document.getElementById('set-fin-mode');
@@ -2256,6 +2283,13 @@ function saveSettings(type){
   }
   else if(type==='url'){
     REF.settings.child('url').set(document.getElementById('set-site-url').value.trim()).then(()=>toast('✅ تم حفظ الرابط','ok'));
+  } else if(type==='version'){
+    const v = document.getElementById('set-site-version').value.trim();
+    if(!v){ toast('⚠️ أدخل رقم الإصدار','err'); return; }
+    REF.settings.child('siteVersion').set(v).then(()=>{
+      document.getElementById('currentVersionDisplay').textContent = '✅ الإصدار الحالي: ' + v;
+      toast('🚀 تم التحديث — سيتحدث الموقع على جميع الأجهزة فوراً','ok');
+    });
   }
 }
 
