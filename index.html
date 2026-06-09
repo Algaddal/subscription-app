@@ -1726,16 +1726,20 @@
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);opacity:.5">لا توجد مشاريع بعد</div>';
       return;
     }
-    const statusMap = {
-      'done':     { cls:'status-done',     badge:'badge-after',   label:'✅ منجز',        imgCls:'after'   },
-      'progress': { cls:'status-progress', badge:'badge-planned', label:'🔄 جارٍ',        imgCls:'planned' },
-      'planned':  { cls:'status-planned',  badge:'badge-planned', label:'📋 مستهدف',     imgCls:'planned' },
-    };
+    // يدعم الحالة بالعربي والإنجليزي
+    function getStatus(s) {
+      const v = (s||'').toString().toLowerCase().trim();
+      if (v==='done'     || v==='منجز'   || v==='مكتمل') return { cls:'status-done',     badge:'badge-after',   label:'✅ منجز',     imgCls:'after'   };
+      if (v==='progress' || v==='جارٍ'   || v==='جاري'  || v==='جار') return { cls:'status-progress', badge:'badge-planned', label:'🔄 جارٍ',     imgCls:'planned' };
+      return { cls:'status-planned', badge:'badge-planned', label:'📋 مستهدف', imgCls:'planned' };
+    }
     const colors = ['linear-gradient(135deg,#2d7a4f,#4aaa72)','linear-gradient(135deg,#1a237e,#3949ab)','linear-gradient(135deg,#e65100,#ff8f00)','linear-gradient(135deg,#006064,#00897b)','linear-gradient(135deg,#4a148c,#7b1fa2)','linear-gradient(135deg,#880e4f,#c2185b)'];
     grid.innerHTML = list.map((p, i) => {
-      const st = statusMap[p.status] || statusMap['planned'];
-      const bg = p.color || colors[i % colors.length];
+      const st  = getStatus(p.status);
+      const bg  = p.color || colors[i % colors.length];
       const cost = p.cost ? Number(p.cost).toLocaleString('ar-SA') + ' ج.س' : '';
+      const spent = p.spent ? Number(p.spent).toLocaleString('ar-SA') + ' ج.س' : '';
+      const school = p.school ? `<div style="font-size:.75rem;color:#888;margin-top:4px">🏫 ${esc(p.school)}</div>` : '';
       return `
       <div class="project-card reveal">
         <div class="project-img ${st.imgCls}" style="background:${bg}">
@@ -1745,14 +1749,14 @@
         <div class="project-body">
           <h3>${esc(p.name||'')}</h3>
           <p>${esc(p.desc||'')}</p>
+          ${school}
           <div class="project-meta">
-            ${cost ? `<span class="project-cost">${cost}</span>` : ''}
-            <span class="project-status ${st.cls}">${st.label.replace(/[✅🔄📋]\s*/,'')}</span>
+            ${spent ? `<span class="project-cost">${spent}</span>` : cost ? `<span class="project-cost">${cost}</span>` : ''}
+            <span class="project-status ${st.cls}">${st.label}</span>
           </div>
         </div>
       </div>`;
     }).join('');
-    // re-run reveal animation
     document.querySelectorAll('#projectsGrid .reveal').forEach(el => el.classList.add('revealed'));
   });
 
