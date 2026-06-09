@@ -2137,19 +2137,9 @@ window._checkSiteVersion = function() {
         <input id="fLoc" type="text" placeholder="مثال: حي الزهور" style="width:100%;padding:.85rem 1.1rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:12px;color:#fff;font-family:'Tajawal',sans-serif;font-size:.95rem;outline:none;transition:border-color .25s;text-align:right;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
       </div>
 
-      <!-- حقل التبرع الحر -->
-      <div id="freeAmtBox" style="display:none;margin-bottom:1rem;">
-        <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.5rem;">المبلغ الذي تريد التبرع به (ج.س) <span style="color:#e74c3c">*</span></label>
-        <input type="number" id="freeAmtInput" min="1" placeholder="مثال: 500"
-          style="width:100%;padding:.85rem 1.1rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:12px;color:#fff;font-family:'Tajawal',sans-serif;font-size:1rem;outline:none;transition:border-color .25s;text-align:right;"
-          oninput="onFreeAmtChange(this.value)"
-          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
-        <div id="freeAmtErr" style="color:#e74c3c;font-size:.78rem;margin-top:.3rem;display:none;">يرجى إدخال مبلغ صحيح</div>
-      </div>
-
       <!-- Summary -->
       <div id="fSummary" style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.4rem;display:flex;justify-content:space-between;align-items:center;">
-        <span style="color:rgba(255,255,255,.6);font-size:.88rem;">المبلغ</span>
+        <span style="color:rgba(255,255,255,.6);font-size:.88rem;">المبلغ السنوي</span>
         <span id="fTotalAmt" style="color:var(--gold);font-weight:900;font-size:1.2rem;">١٨٠٠ ج.س</span>
       </div>
 
@@ -2451,7 +2441,7 @@ window._checkSiteVersion = function() {
   (function loadSiteSettings() {
     try {
       // استخدام نفس app instance لتجنب تحميل Firebase مرتين
-      const settDb = db;
+      let settDb; try{settDb=firebase.database(firebase.app('impactModule'));}catch(e){settDb=firebase.database(firebase.initializeApp({databaseURL:'https://subscription-app-865cd-default-rtdb.firebaseio.com'},'impactModule'));}
 
       settDb.ref('wodnour_settings').on('value', snap => {
         const s = snap.val() || {};
@@ -2517,18 +2507,15 @@ window._checkSiteVersion = function() {
   // ════════════════════════════════════════
   (function initJoinRequests() {
     try {
-      window._reqDb = db.ref('wodnour_requests');
+      let _rdb; try{_rdb=firebase.database(firebase.app('impactModule'));}catch(e){_rdb=firebase.database(firebase.initializeApp({databaseURL:'https://subscription-app-865cd-default-rtdb.firebaseio.com'},'impactModule'));} window._reqDb = _rdb.ref('wodnour_requests');
     } catch(e) { console.warn('Requests init error:', e); }
   })();
 
   function saveJoinRequest(name, phone, location, level) {
     if (!window._reqDb) return;
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
-    // للتبرع الحر نأخذ المبلغ من الحقل مباشرة
-    const freeInput = document.getElementById('freeAmtInput');
-    const freeVal = isFree() && freeInput ? (parseFloat(freeInput.value) || 0) : 0;
-    const annual = freeVal || LEVEL_ANNUAL[level] || 0;
-    const monthly = freeVal || (annual ? Math.round(annual / 12) : 0);
+    const annual = LEVEL_ANNUAL[level] || 0;
+    const monthly = annual ? Math.round(annual / 12) : 0;
     // استخراج بيانات الخطة من window._subPlans
     const plan = window._subPlans ? window._subPlans.find(p => p.name === level) : null;
     window._reqDb.child(id).set({
@@ -2573,29 +2560,9 @@ window._checkSiteVersion = function() {
     updateSummary();
   }
 
-  function onFreeAmtChange(val) {
-    const amt = parseFloat(val) || 0;
-    document.getElementById('fTotalAmt').textContent = amt > 0 ? amt.toLocaleString('ar-EG') + ' ج.س' : '٠ ج.س';
-  }
-
-  function isFree() {
-    // التبرع الحر هو المستوى الذي سعره 0 أو اسمه يحتوي "حر" أو "free"
-    const plan = window._subPlans ? window._subPlans.find(p => p.name === selectedLevel) : null;
-    return plan && (!plan.price || plan.price == 0 || /حر|free/i.test(plan.name));
-  }
-
   function updateSummary() {
-    const freeBox = document.getElementById('freeAmtBox');
-    if (isFree()) {
-      if (freeBox) freeBox.style.display = 'block';
-      const inp = document.getElementById('freeAmtInput');
-      const amt = inp ? (parseFloat(inp.value) || 0) : 0;
-      document.getElementById('fTotalAmt').textContent = amt > 0 ? amt.toLocaleString('ar-EG') + ' ج.س' : 'أدخل المبلغ';
-    } else {
-      if (freeBox) freeBox.style.display = 'none';
-      const annual = LEVEL_ANNUAL[selectedLevel] || 0;
-      document.getElementById('fTotalAmt').textContent = annual.toLocaleString('ar-EG') + ' ج.س';
-    }
+    const annual = LEVEL_ANNUAL[selectedLevel] || 0;
+    document.getElementById('fTotalAmt').textContent = annual.toLocaleString('ar-EG') + ' ج.س';
   }
 
   function validateForm() {
@@ -2622,18 +2589,7 @@ window._checkSiteVersion = function() {
     const name     = document.getElementById('fName').value.trim();
     const phone    = document.getElementById('fPhone').value.trim();
     const location = document.getElementById('fLoc').value.trim();
-    let annual = LEVEL_ANNUAL[selectedLevel] || 0;
-    // إذا كان تبرعاً حراً نأخذ المبلغ من الحقل
-    if (isFree()) {
-      const freeVal = parseFloat(document.getElementById('freeAmtInput').value) || 0;
-      if (!freeVal) {
-        document.getElementById('freeAmtErr').style.display = 'block';
-        document.getElementById('freeAmtInput').style.borderColor = '#e74c3c';
-        return;
-      }
-      document.getElementById('freeAmtErr').style.display = 'none';
-      annual = freeVal; // للتبرع الحر المبلغ هو ما أدخله المستخدم
-    }
+    const annual   = LEVEL_ANNUAL[selectedLevel];
 
     // ── حفظ الطلب في Firebase ──
     saveJoinRequest(name, phone, location, selectedLevel);
@@ -2737,7 +2693,7 @@ window._checkSiteVersion = function() {
 
     // قراءة من Firebase
     try {
-      let _sdb; try{_sdb=firebase.database(firebase.app('impactModule'));}catch(e){_sdb=firebase.database(firebase.initializeApp({databaseURL:'https://subscription-app-865cd-default-rtdb.firebaseio.com'},'impactModule'));} _sdb.ref('wodnour_subscribers').on('value', snap => {
+      db.ref('wodnour_subscribers').on('value', snap => {
         const data = snap.val() || {};
         const arr  = Object.values(data);
         if (arr.length > 0) {
