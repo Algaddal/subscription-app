@@ -1902,22 +1902,95 @@
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;opacity:.5">لا توجد مستويات بعد</div>';
       return;
     }
-    grid.innerHTML = plans.map(p => {
+    // حفظ الخطط لاستخدامها في المودال
+    window._subPlans = plans;
+
+    grid.innerHTML = plans.map((p,i) => {
       const isFeatured = p.featured || p.recommended;
       const features = (p.features || []);
+      const price = p.price ? Number(p.price).toLocaleString('ar-SA') : 'أنت';
       return `
-      <div class="sub-card ${isFeatured ? 'featured' : ''}">
+      <div class="sub-card ${isFeatured ? 'featured' : ''}"
+           onclick="selectSubCard(this, '${esc(p.name||'')}', '${p.price||0}', '${esc(p.icon||'🌿')}')"
+           style="cursor:pointer;transition:all .25s;">
         ${isFeatured ? '<span class="featured-badge">الأكثر اختياراً</span>' : ''}
         <span class="sub-icon">${p.icon || '🌿'}</span>
         <div class="sub-name">${esc(p.name||'')}</div>
-        <div class="sub-price">${p.price ? Number(p.price).toLocaleString('ar-SA') : 'أنت'}</div>
+        <div class="sub-price">${price}</div>
         <div class="sub-period">${esc(p.period || 'ج.س / شهرياً')}</div>
         <ul class="sub-features">
           ${features.map(f => `<li>${esc(f)}</li>`).join('')}
         </ul>
+        <div style="margin-top:1rem;">
+          <button onclick="event.stopPropagation();selectSubCard(this.closest('.sub-card'),'${esc(p.name||'')}','${p.price||0}','${esc(p.icon||'🌿')}');openModal()"
+            style="width:100%;padding:.7rem;background:var(--green-mid);color:#fff;border:none;border-radius:10px;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s;">
+            انضم الآن ←
+          </button>
+        </div>
       </div>`;
     }).join('');
+
+    // تحديث levelPicker في المودال من Firebase
+    updateModalLevelPicker(plans);
   });
+
+  // تحديد بطاقة الاشتراك وتظليلها
+  window.selectSubCard = function(card, name, price, icon) {
+    document.querySelectorAll('.sub-card').forEach(c => {
+      c.style.outline = 'none';
+      c.style.boxShadow = '';
+    });
+    card.style.outline = '3px solid var(--gold)';
+    card.style.boxShadow = '0 0 20px rgba(201,168,76,0.3)';
+    // تحديث المودال
+    const picker = document.getElementById('levelPicker');
+    if (picker) {
+      picker.querySelectorAll('.lvl-opt').forEach(o => {
+        o.classList.remove('selected');
+        if (o.dataset.lvl === name) {
+          o.classList.add('selected');
+        }
+      });
+    }
+    updateAnnualAmount(price);
+  };
+
+  // تحديث levelPicker في المودال من بيانات Firebase
+  function updateModalLevelPicker(plans) {
+    const picker = document.getElementById('levelPicker');
+    if (!picker) return;
+    picker.style.gridTemplateColumns = `repeat(${Math.min(plans.length,4)},1fr)`;
+    picker.innerHTML = plans.map((p,i) => {
+      const isSel = p.featured || p.recommended;
+      return `<div class="lvl-opt ${isSel?'selected':''}"
+        data-lvl="${esc(p.name||'')}" data-amt="${p.price||0}"
+        onclick="pickLevel(this)"
+        style="border:${isSel?'2px solid var(--gold)':'1px solid rgba(255,255,255,.15)'};
+               border-radius:14px;padding:.9rem .5rem;text-align:center;cursor:pointer;
+               background:${isSel?'rgba(201,168,76,.12)':'transparent'};transition:all .25s;">
+        <div style="font-size:1.4rem;margin-bottom:.3rem;">${p.icon||'🌿'}</div>
+        <div style="color:#fff;font-weight:700;font-size:.9rem;">${esc(p.name||'')}</div>
+        <div style="color:var(--gold);font-weight:900;font-size:1.1rem;">${p.price ? Number(p.price).toLocaleString('ar-SA') : 'حر'}</div>
+        <div style="color:rgba(255,255,255,.4);font-size:.72rem;">${esc(p.period||'ج.س/شهر')}</div>
+      </div>`;
+    }).join('');
+    // تحديث LEVEL_ANNUAL من Firebase
+    LEVEL_ANNUAL = {};
+    plans.forEach(p => {
+      if (p.name && p.price) LEVEL_ANNUAL[p.name] = Number(p.price) * 12;
+    });
+    // تحديث المستوى المحدد
+    const sel = plans.find(p => p.featured || p.recommended) || plans[0];
+    if (sel) {
+      selectedLevel = sel.name;
+      updateSummary();
+    }
+  }
+
+  function updateAnnualAmount(price) {
+    const el = document.getElementById('fTotalAmt');
+    if (el) el.textContent = price ? (Number(price)*12).toLocaleString('ar-SA') + ' ج.س' : 'حسب المبلغ';
+  }
 
   // ══ تحميل الشهادات من Firebase ══
   db.ref('wodnour_testimonials').on('value', snap => {
@@ -2052,28 +2125,11 @@
         <p style="color:rgba(255,255,255,.55);font-size:.9rem;">أكمل بياناتك وستصلك تعليمات الدفع فوراً</p>
       </div>
 
-      <!-- Level selector -->
+      <!-- Level selector — ديناميكي من Firebase -->
       <div style="margin-bottom:1.4rem;">
         <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.7rem;">اختر مستوى اشتراكك</label>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;" id="levelPicker">
-          <div class="lvl-opt" data-lvl="داعم" data-amt="50" onclick="pickLevel(this)" style="border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:.9rem .5rem;text-align:center;cursor:pointer;transition:all .25s;">
-            <div style="font-size:1.4rem;margin-bottom:.3rem;">🌱</div>
-            <div style="color:#fff;font-weight:700;font-size:.9rem;">داعم</div>
-            <div style="color:var(--gold);font-weight:900;font-size:1.1rem;">٥٠</div>
-            <div style="color:rgba(255,255,255,.4);font-size:.72rem;">ج.س/شهر</div>
-          </div>
-          <div class="lvl-opt selected" data-lvl="شريك" data-amt="150" onclick="pickLevel(this)" style="border:2px solid var(--gold);border-radius:14px;padding:.9rem .5rem;text-align:center;cursor:pointer;background:rgba(201,168,76,.12);transition:all .25s;">
-            <div style="font-size:1.4rem;margin-bottom:.3rem;">🌿</div>
-            <div style="color:#fff;font-weight:700;font-size:.9rem;">شريك</div>
-            <div style="color:var(--gold);font-weight:900;font-size:1.1rem;">١٥٠</div>
-            <div style="color:rgba(255,255,255,.4);font-size:.72rem;">ج.س/شهر</div>
-          </div>
-          <div class="lvl-opt" data-lvl="راعي" data-amt="500" onclick="pickLevel(this)" style="border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:.9rem .5rem;text-align:center;cursor:pointer;transition:all .25s;">
-            <div style="font-size:1.4rem;margin-bottom:.3rem;">💎</div>
-            <div style="color:#fff;font-weight:700;font-size:.9rem;">راعي</div>
-            <div style="color:var(--gold);font-weight:900;font-size:1.1rem;">٥٠٠</div>
-            <div style="color:rgba(255,255,255,.4);font-size:.72rem;">ج.س/شهر</div>
-          </div>
+          <div style="text-align:center;color:rgba(255,255,255,.4);font-size:.8rem;grid-column:1/-1;padding:10px">⏳ جاري التحميل...</div>
         </div>
       </div>
 
@@ -2389,7 +2445,7 @@
   // ════════════════════════════════════════
   // SETTINGS FROM FIREBASE — تحميل الإعدادات
   // ════════════════════════════════════════
-  const LEVEL_ANNUAL = { 'داعم': 600, 'شريك': 1800, 'راعي': 6000 };
+  let LEVEL_ANNUAL = { 'داعم': 600, 'شريك': 1800, 'راعي': 6000 }; // يُحدَّث من Firebase
 
   // قيم افتراضية — تُستبدل من Firebase
   let WHATSAPP_NUM = '249912345678';
