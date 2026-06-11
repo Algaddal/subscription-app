@@ -2201,7 +2201,7 @@ function bumpVersion(){
 
 // ══ نسب الإنجاز ══
 function loadProgress(){
-  REF.db.ref('wodnour_progress').once('value', snap => {
+  db.ref('wodnour_progress').once('value', snap => {
     const data = snap.val() || {};
     window._progressItems = data;
     renderProgressList(Object.values(data).sort((a,b)=>(a.order||99)-(b.order||99)));
@@ -2246,7 +2246,7 @@ function saveProgress(){
     const id = 'prog_'+(p.id||i);
     obj[id] = {id, name:p.name||'', pct:parseInt(p.pct)||0, order:i};
   });
-  REF.db.ref('wodnour_progress').set(obj).then(()=>toast('✅ تم حفظ نسب الإنجاز','ok'));
+  db.ref('wodnour_progress').set(obj).then(()=>toast('✅ تم حفظ نسب الإنجاز','ok'));
 }
 
 function loadSettings(){
