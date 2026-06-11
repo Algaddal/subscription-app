@@ -1823,51 +1823,70 @@ window._checkSiteVersion = function() {
       }
     }
 
-    // --- بيانات الاشتراكات المالية ---
+    // --- بيانات الشفافية المالية ---
     const fd = s.financeDisplay || {};
     const mode = fd.mode || 'last';
-    let monthKey = fd.monthKey || null;
+    const AR = [,'يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
     db.ref('wohda_months').once('value', mSnap => {
       const months = mSnap.val() || {};
-      const keys = Object.keys(months).sort();
-      if (!keys.length) return;
-      if (mode === 'last') monthKey = keys[keys.length - 1];
-      const m = months[monthKey] || months[keys[keys.length-1]];
-      if (!m) return;
-
-      const income = (m.data||[]).reduce((s,r) => s + (r.amount||0), 0);
-      const expenses = (m.expenses||[]);
-      const totalExp = expenses.reduce((s,e) => s + (e.amount||0), 0);
-      const AR = [,'يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-      const monthName = AR[parseInt(m.month)] || m.month;
-
+      const allKeys = Object.keys(months).sort();
+      if (!allKeys.length) return;
       const grid = document.getElementById('financeGrid');
       if (!grid) return;
-      grid.innerHTML = `
-        <div class="finance-card">
-          <h3>💰 إيرادات ${monthName} ${m.year}</h3>
-          <div class="finance-item">
-            <span class="label">اشتراكات شهرية</span>
-            <span class="amount">${income.toLocaleString('ar-SA')} ج.س</span>
+
+      if (mode === 'all') {
+        // ══ جميع الأشهر مجمّعة ══
+        let totalInc = 0, totalExp = 0;
+        const allExpItems = [];
+        allKeys.forEach(k => {
+          const m = months[k];
+          totalInc += (m.data||[]).reduce((s,r)=>s+(r.amount||0),0);
+          (m.expenses||[]).forEach(e => {
+            const found = allExpItems.find(x=>x.desc===e.desc);
+            if(found) found.amount += (e.amount||0);
+            else allExpItems.push({desc:e.desc, amount:e.amount||0});
+          });
+          totalExp += (m.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+        });
+        grid.innerHTML = `
+          <div class="finance-card">
+            <h3>💰 إجمالي الإيرادات — كل الأشهر</h3>
+            <div class="finance-item"><span class="label">اشتراكات شهرية (${allKeys.length} شهر)</span><span class="amount">${totalInc.toLocaleString('ar-SA')} ج.س</span></div>
+            <div class="finance-total"><span>إجمالي الإيرادات</span><span>${totalInc.toLocaleString('ar-SA')} ج.س</span></div>
           </div>
-          <div class="finance-total">
-            <span>إجمالي الإيرادات</span>
-            <span>${income.toLocaleString('ar-SA')} ج.س</span>
+          <div class="finance-card">
+            <h3>📤 إجمالي المصروفات — كل الأشهر</h3>
+            ${allExpItems.length ? allExpItems.map(e=>`
+            <div class="finance-item"><span class="label">${esc(e.desc||'')}</span><span class="amount expense">${e.amount.toLocaleString('ar-SA')} ج.س</span></div>`).join('')
+            : '<div class="finance-item"><span class="label" style="color:#999">لا توجد مصروفات مسجلة</span></div>'}
+            <div class="finance-total" style="background:#c0392b;"><span>إجمالي المصروفات</span><span>${totalExp.toLocaleString('ar-SA')} ج.س</span></div>
+          </div>`;
+
+      } else {
+        // ══ شهر محدد أو آخر شهر ══
+        let monthKey = fd.monthKey || null;
+        if (mode === 'last' || !monthKey) monthKey = allKeys[allKeys.length - 1];
+        const m = months[monthKey] || months[allKeys[allKeys.length-1]];
+        if (!m) return;
+        const income = (m.data||[]).reduce((s,r)=>s+(r.amount||0),0);
+        const expenses = (m.expenses||[]);
+        const totalExpM = expenses.reduce((s,e)=>s+(e.amount||0),0);
+        const monthName = AR[parseInt(m.month)] || m.month;
+        grid.innerHTML = `
+          <div class="finance-card">
+            <h3>💰 إيرادات ${monthName} ${m.year}</h3>
+            <div class="finance-item"><span class="label">اشتراكات شهرية</span><span class="amount">${income.toLocaleString('ar-SA')} ج.س</span></div>
+            <div class="finance-total"><span>إجمالي الإيرادات</span><span>${income.toLocaleString('ar-SA')} ج.س</span></div>
           </div>
-        </div>
-        <div class="finance-card">
-          <h3>📤 مصروفات ${monthName} ${m.year}</h3>
-          ${expenses.length ? expenses.map(e => `
-          <div class="finance-item">
-            <span class="label">${esc(e.desc||'')}</span>
-            <span class="amount expense">${(e.amount||0).toLocaleString('ar-SA')} ج.س</span>
-          </div>`).join('') : '<div class="finance-item"><span class="label" style="color:#999">لا توجد مصروفات مسجلة</span></div>'}
-          <div class="finance-total" style="background:#c0392b;">
-            <span>إجمالي المصروفات</span>
-            <span>${totalExp.toLocaleString('ar-SA')} ج.س</span>
-          </div>
-        </div>`;
+          <div class="finance-card">
+            <h3>📤 مصروفات ${monthName} ${m.year}</h3>
+            ${expenses.length ? expenses.map(e=>`
+            <div class="finance-item"><span class="label">${esc(e.desc||'')}</span><span class="amount expense">${(e.amount||0).toLocaleString('ar-SA')} ج.س</span></div>`).join('')
+            : '<div class="finance-item"><span class="label" style="color:#999">لا توجد مصروفات مسجلة</span></div>'}
+            <div class="finance-total" style="background:#c0392b;"><span>إجمالي المصروفات</span><span>${totalExpM.toLocaleString('ar-SA')} ج.س</span></div>
+          </div>`;
+      }
     });
   });
 
