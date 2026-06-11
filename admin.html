@@ -1522,19 +1522,29 @@ function addSubscriber(){
   const name=document.getElementById('ns-name').value.trim();
   const level=document.getElementById('ns-level').value;
   if(!name){ toast('⚠️ أدخل الاسم','err'); return; }
-  // المبالغ من خطط Firebase
-  const planArr = Object.values(_plans).filter(p=>p.visible!==false);
-  const AMTS = {};
-  planArr.forEach(p=>{ if(p.name && p.price) AMTS[p.name] = Number(p.price); });
-  if(!Object.keys(AMTS).length){ AMTS['راعي']=500; AMTS['شريك']=150; AMTS['داعم']=50; }
+  // قراءة المبلغ مباشرة من الخيار المحدد في القائمة
+  const selEl = document.getElementById('ns-level');
+  const selOpt = selEl ? selEl.options[selEl.selectedIndex] : null;
+  // استخراج الرقم من نص الخيار مثلاً "🌿 شريك — 50,000 ج.س/شهر"
+  let unitPrice = 0;
+  if (selOpt) {
+    const match = selOpt.text.replace(/[,،]/g,'').match(/[\d]+/);
+    if (match) unitPrice = parseInt(match[0]) || 0;
+  }
+  // fallback من _plans
+  if (!unitPrice) {
+    const plan = Object.values(_plans).find(p=>p.name===level);
+    if (plan) unitPrice = Number(plan.price||0);
+  }
   const months=parseInt(document.getElementById('ns-months').value)||12;
   const entry = {
     id: uid(), name,
     phone: document.getElementById('ns-phone').value.trim(),
     location: document.getElementById('ns-loc').value.trim(),
     level, months,
+    amount: unitPrice,
     gender: document.getElementById('ns-gender').value,
-    total: months * (AMTS[level]||150),
+    total: months * unitPrice,
     addedAt: new Date().toLocaleDateString('ar-SA')
   };
   REF.subscribers.child(entry.id).set(entry).then(()=>{
