@@ -2800,7 +2800,7 @@ window._checkSiteVersion = function() {
     }
 
     // إجمالي الاشتراكات من كل الأشهر — للإحصائيات الحقيقية
-    db.ref('wohda_months').once('value', mSnap => {
+    firebase.database(firebase.app('impactModule')).ref('wohda_months').once('value', mSnap => {
       const months = mSnap.val() || {};
       const allKeys = Object.keys(months);
       let grandTotal = 0;
