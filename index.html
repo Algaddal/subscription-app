@@ -2059,15 +2059,15 @@ window._checkSiteVersion = function() {
     const balance   = totalIncome - totalExpense;
 
     // ── تحديث الواجهة ──
+    // تحديث hero-subs فوراً بإجمالي المشتركين
+    const heroSubsEl = document.getElementById('hero-subs');
+    if (heroSubsEl) heroSubsEl.textContent = totalSubs.toLocaleString('ar-EG') + '+';
     const impGrid = document.getElementById('impactGrid');
 
     // تحريك الأرقام عند الدخول للقسم
     const impObs = new IntersectionObserver(entries => {
       if (!entries[0].isIntersecting) return;
       animateImpact(document.getElementById('imp-subs'),    totalSubs);
-    // تحديث hero-subs بإجمالي المشتركين
-    const heroSubsEl = document.getElementById('hero-subs');
-    if (heroSubsEl) heroSubsEl.textContent = totalSubs.toLocaleString('ar-EG') + '+';
       animateImpact(document.getElementById('imp-income'),  totalIncome);
       animateImpact(document.getElementById('imp-expense'), totalExpense);
       animateImpact(document.getElementById('imp-balance'), Math.abs(balance));
