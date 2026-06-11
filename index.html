@@ -1788,6 +1788,8 @@ window._checkSiteVersion = function() {
 
     // --- إحصائيات الموقع الرئيسية ---
     const st = s.stats || {};
+    // عدد أعلى المساهمين المعروضين
+    if (s.podiumCount) { window._podiumCount = parseInt(s.podiumCount) || 3; }
     if (st.schools)  { const el=document.getElementById('stat-schools');  if(el) animateImpact(el, st.schools); }
     // تحديث hero stats
     const heroSchools = document.getElementById('hero-schools');
@@ -2745,7 +2747,7 @@ window._checkSiteVersion = function() {
       'linear-gradient(135deg,#f39c12,#e67e22)',
       'linear-gradient(135deg,#1abc9c,#16a085)',
     ];
-    const AVTR_EMJ = ['👨','👩','👨','👩','👨','👩','👨','👩','👨','👩','👨','👩'];
+    function getEmj(r){ return r.gender==='female' ? '👩' : '👨'; }
 
     // ── تحميل المشتركين من Firebase مباشرة ──
     let subs = [];
@@ -2780,7 +2782,7 @@ window._checkSiteVersion = function() {
         ...r,
         total: getSubAmt(r),
         bg:    AVTR_BG[i % AVTR_BG.length],
-        emj:   AVTR_EMJ[i % AVTR_EMJ.length],
+        emj:   getEmj(r),
       })).sort((a, b) => b.total - a.total);
 
       // إعادة بناء الواجهة
@@ -2837,23 +2839,45 @@ window._checkSiteVersion = function() {
     // Podium
     function buildPodium(){
       const el = document.getElementById('sPodium');
-      const [s1,s2,s3] = subs;
-      const order   = [s2,s1,s3];
-      const classes = ['s-second','s-first','s-third'];
-      const pos     = ['٢','١','٣'];
-      order.forEach((s,i)=>{
-        if(!s) return;
-        const d = document.createElement('div');
-        d.className = `s-podium-card ${classes[i]}`;
-        const crown = classes[i]==='s-first' ? '<span class="s-crown">👑</span>' : '';
-        d.innerHTML = `
-          <div class="s-p-avatar" style="background:${s.bg}">${crown}${s.emj}</div>
-          <div class="s-p-name">${s.name.split(' ').slice(0,2).join(' ')}</div>
-          <div class="s-p-amount">${toA(s.total)} ج.س</div>
-          <div class="s-plinth"><span class="s-p-pos">${pos[i]}</span></div>
-        `;
-        el.appendChild(d);
-      });
+      // عدد أعلى المساهمين من إعدادات Firebase (افتراضي 3)
+      const topN = window._podiumCount || 3;
+      const topSubs = subs.slice(0, topN);
+
+      if (topN === 3) {
+        // عرض منصة الثلاثة الأوائل
+        const [s1,s2,s3] = topSubs;
+        const order   = [s2,s1,s3];
+        const classes = ['s-second','s-first','s-third'];
+        const pos     = ['٢','١','٣'];
+        order.forEach((s,i)=>{
+          if(!s) return;
+          const d = document.createElement('div');
+          d.className = `s-podium-card ${classes[i]}`;
+          const crown = classes[i]==='s-first' ? '<span class="s-crown">👑</span>' : '';
+          d.innerHTML = `
+            <div class="s-p-avatar" style="background:${s.bg}">${crown}${s.emj}</div>
+            <div class="s-p-name">${s.name.split(' ').slice(0,2).join(' ')}</div>
+            <div class="s-p-amount">${toA(s.total)} ج.س</div>
+            <div class="s-plinth"><span class="s-p-pos">${pos[i]}</span></div>
+          `;
+          el.appendChild(d);
+        });
+      } else {
+        // عرض N أعلى مساهم بشكل شبكة
+        topSubs.forEach((s,i)=>{
+          const d = document.createElement('div');
+          d.className = `s-podium-card ${i===0?'s-first':i===1?'s-second':'s-third'}`;
+          const crown = i===0 ? '<span class="s-crown">👑</span>' : '';
+          const pos = (i+1).toLocaleString('ar-EG');
+          d.innerHTML = `
+            <div class="s-p-avatar" style="background:${s.bg}">${crown}${s.emj}</div>
+            <div class="s-p-name">${s.name.split(' ').slice(0,2).join(' ')}</div>
+            <div class="s-p-amount">${toA(s.total)} ج.س</div>
+            <div class="s-plinth"><span class="s-p-pos">${pos}</span></div>
+          `;
+          el.appendChild(d);
+        });
+      }
     }
 
     // Cards
