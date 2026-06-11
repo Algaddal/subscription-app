@@ -2789,10 +2789,7 @@ window._checkSiteVersion = function() {
       buildPodium();
       buildCards();
 
-      // إحصائيات من wohnda_months — الإجمالي الحقيقي لكل الأشهر
-      const totalAmt = subs.reduce((s,x)=>s+(x.total||0), 0);
-      animN(document.getElementById('sTotalSubs'),   subs.length);
-      animN(document.getElementById('sTotalAmt'),    totalAmt);
+      // sTotalSubs و sTotalAmt تأتي من wohda_months — لا نعدّلهما هنا
       animN(document.getElementById('sRawiCount'),   subs.filter(x=>x.level==='راعي').length);
       animN(document.getElementById('sSharikCount'), subs.filter(x=>x.level==='شريك').length);
       animN(document.getElementById('sDaemCount'),   subs.filter(x=>x.level==='داعم').length);
