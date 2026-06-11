@@ -2327,6 +2327,8 @@ window._checkSiteVersion = function() {
       <div class="s-stat-item"><span class="s-stat-num" id="sTotalAmt">٠</span><span class="s-stat-lbl">إجمالي المساهمات (ج.س)</span></div>
       <div class="s-stat-item"><span class="s-stat-num" id="sRawiCount">٠</span><span class="s-stat-lbl">رعاة 💎</span></div>
       <div class="s-stat-item"><span class="s-stat-num" id="sSharikCount">٠</span><span class="s-stat-lbl">شركاء 🌿</span></div>
+      <div class="s-stat-item"><span class="s-stat-num" id="sDaemCount">٠</span><span class="s-stat-lbl">داعمون 🌱</span></div>
+      <div class="s-stat-item"><span class="s-stat-num" id="sFreeCount">٠</span><span class="s-stat-lbl">تبرع حر 💙</span></div>
     </div>
 
     <!-- QUOTE -->
@@ -2787,13 +2789,30 @@ window._checkSiteVersion = function() {
       buildPodium();
       buildCards();
 
-      // إحصائيات
-      const totalAmt = subs.reduce((s,x)=>s+x.total, 0);
+      // إحصائيات من wohnda_months — الإجمالي الحقيقي لكل الأشهر
+      const totalAmt = subs.reduce((s,x)=>s+(x.total||0), 0);
       animN(document.getElementById('sTotalSubs'),   subs.length);
       animN(document.getElementById('sTotalAmt'),    totalAmt);
       animN(document.getElementById('sRawiCount'),   subs.filter(x=>x.level==='راعي').length);
       animN(document.getElementById('sSharikCount'), subs.filter(x=>x.level==='شريك').length);
+      animN(document.getElementById('sDaemCount'),   subs.filter(x=>x.level==='داعم').length);
+      animN(document.getElementById('sFreeCount'),   subs.filter(x=>!x.level||/حر|free/i.test(x.level||'')).length);
     }
+
+    // إجمالي الاشتراكات من كل الأشهر — للإحصائيات الحقيقية
+    db.ref('wohda_months').once('value', mSnap => {
+      const months = mSnap.val() || {};
+      const allKeys = Object.keys(months);
+      let grandTotal = 0;
+      let grandSubs = 0;
+      allKeys.forEach(k => {
+        const m = months[k];
+        grandTotal += (m.data||[]).reduce((s,r)=>s+(r.amount||0),0);
+        grandSubs  += (m.data||[]).length;
+      });
+      animN(document.getElementById('sTotalSubs'), grandSubs);
+      animN(document.getElementById('sTotalAmt'),  grandTotal);
+    });
 
     // قراءة من Firebase
     try {
@@ -2810,8 +2829,8 @@ window._checkSiteVersion = function() {
                <p>لم يُضف أي مشترك بعد — أضفهم من لوحة التحكم</p>
              </div>`;
           document.getElementById('sPodium').innerHTML = '';
-          ['sTotalSubs','sTotalAmt','sRawiCount','sSharikCount'].forEach(id=>
-            document.getElementById(id).textContent='٠');
+          ['sTotalSubs','sTotalAmt','sRawiCount','sSharikCount','sDaemCount','sFreeCount'].forEach(id=>{
+            const el=document.getElementById(id); if(el) el.textContent='٠';});
         }
       });
     } catch(err) {
