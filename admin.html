@@ -706,6 +706,15 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
       <button class="btn btn-gold" onclick="saveSettings('stats')">💾 حفظ الإحصائيات</button>
     </div>
 
+    <!-- ══ نسب إنجاز المشاريع الجارية ══ -->
+    <div class="setting-card">
+      <h3>📊 نسب إنجاز المشاريع الجارية</h3>
+      <p style="font-size:.8rem;color:var(--tx2);margin-bottom:16px">تظهر هذه الأشرطة في قسم المشاريع على الموقع الرئيسي</p>
+      <div id="progressList" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px"></div>
+      <button class="btn btn-ghost" onclick="addProgressBar()">➕ إضافة مشروع</button>
+      <button class="btn btn-gold" style="margin-right:8px" onclick="saveProgress()">💾 حفظ</button>
+    </div>
+
     <div class="setting-card">
       <h3>🔑 كلمات المرور</h3>
       <div class="form-group" style="margin-bottom:10px"><label>👑 كلمة مرور المشرف</label><input class="inp" type="password" id="set-pw-admin" placeholder="كلمة المرور الحالية: ****"></div>
@@ -969,6 +978,7 @@ function startSync(){
   REF.projects.on('value', s=>{ C.projects=s.val()||{}; renderProjects(); });
   REF.requests.on('value', s=>{ C.requests=s.val()||{}; updateReqCount(); renderRequests(); });
   REF.settings.on('value', s=>{ C.settings=s.val()||{}; loadSettings(); });
+  loadProgress();
 }
 
 function onMonthsChange(){
@@ -2187,6 +2197,56 @@ function bumpVersion(){
   const newVer = (parts[0]||'1') + '.' + minor;
   document.getElementById('set-site-version').value = newVer;
   saveSettings('version');
+}
+
+// ══ نسب الإنجاز ══
+function loadProgress(){
+  REF.db.ref('wodnour_progress').once('value', snap => {
+    const data = snap.val() || {};
+    window._progressItems = data;
+    renderProgressList(Object.values(data).sort((a,b)=>(a.order||99)-(b.order||99)));
+  });
+}
+
+function renderProgressList(list){
+  const el = document.getElementById('progressList');
+  if(!el) return;
+  if(!list.length){ el.innerHTML='<div style="color:var(--tx2);font-size:.82rem">لا توجد مشاريع بعد — اضغط إضافة مشروع</div>'; return; }
+  el.innerHTML = list.map((p,i) => `
+    <div style="display:flex;gap:8px;align-items:center;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 12px">
+      <input class="inp" style="flex:3;margin-bottom:0" value="${esc(p.name||'')}" placeholder="اسم المشروع" oninput="updateProgress(${i},'name',this.value)">
+      <input class="inp" style="flex:1;margin-bottom:0;max-width:80px" type="number" min="0" max="100" value="${p.pct||0}" placeholder="%" oninput="updateProgress(${i},'pct',this.value)">
+      <span style="color:var(--tx2);font-size:.8rem">%</span>
+      <button onclick="removeProgress(${i})" style="background:rgba(224,92,92,.12);border:1px solid rgba(224,92,92,.3);color:var(--red);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.8rem">✕</button>
+    </div>`).join('');
+  window._progressList = list;
+}
+
+function updateProgress(i, field, val){
+  if(!window._progressList) return;
+  window._progressList[i][field] = field==='pct' ? parseInt(val)||0 : val;
+}
+
+function addProgressBar(){
+  if(!window._progressList) window._progressList = [];
+  window._progressList.push({name:'', pct:0, order: window._progressList.length});
+  renderProgressList(window._progressList);
+}
+
+function removeProgress(i){
+  if(!window._progressList) return;
+  window._progressList.splice(i,1);
+  renderProgressList(window._progressList);
+}
+
+function saveProgress(){
+  const list = window._progressList || [];
+  const obj = {};
+  list.forEach((p,i) => {
+    const id = 'prog_'+(p.id||i);
+    obj[id] = {id, name:p.name||'', pct:parseInt(p.pct)||0, order:i};
+  });
+  REF.db.ref('wodnour_progress').set(obj).then(()=>toast('✅ تم حفظ نسب الإنجاز','ok'));
 }
 
 function loadSettings(){
