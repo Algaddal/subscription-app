@@ -483,10 +483,8 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
       </div>
       <div class="form-row">
         <div class="form-group"><label>مستوى الاشتراك *</label>
-          <select class="inp" id="ns-level">
-            <option value="راعي">💎 راعي — 500 ج.س/شهر</option>
-            <option value="شريك" selected>🌿 شريك — 150 ج.س/شهر</option>
-            <option value="داعم">🌱 داعم — 50 ج.س/شهر</option>
+          <select class="inp" id="ns-level" onchange="updateNsTotal()">
+            <option value="شريك">🌿 شريك — 150 ج.س/شهر</option>
           </select>
         </div>
         <div class="form-group"><label>الجنس</label>
@@ -495,7 +493,10 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
             <option value="female">👩 أنثى</option>
           </select>
         </div>
-        <div class="form-group"><label>عدد الأشهر المسدَّدة</label><input class="inp" type="number" id="ns-months" placeholder="12" min="1" max="12" value="12"></div>
+        <div class="form-group"><label>عدد الأشهر المسدَّدة</label>
+          <input class="inp" type="number" id="ns-months" placeholder="12" min="1" max="12" value="12" oninput="updateNsTotal()">
+          <div id="ns-total-display" style="font-size:.78rem;color:var(--gold-l);margin-top:4px"></div>
+        </div>
         <div class="form-group" style="justify-content:flex-end"><label>&nbsp;</label><button class="btn btn-gold" onclick="addSubscriber()">💾 حفظ المشترك</button></div>
       </div>
     </div>
@@ -1521,7 +1522,11 @@ function addSubscriber(){
   const name=document.getElementById('ns-name').value.trim();
   const level=document.getElementById('ns-level').value;
   if(!name){ toast('⚠️ أدخل الاسم','err'); return; }
-  const AMTS={'راعي':500,'شريك':150,'داعم':50};
+  // المبالغ من خطط Firebase
+  const planArr = Object.values(_plans).filter(p=>p.visible!==false);
+  const AMTS = {};
+  planArr.forEach(p=>{ if(p.name && p.price) AMTS[p.name] = Number(p.price); });
+  if(!Object.keys(AMTS).length){ AMTS['راعي']=500; AMTS['شريك']=150; AMTS['داعم']=50; }
   const months=parseInt(document.getElementById('ns-months').value)||12;
   const entry = {
     id: uid(), name,
@@ -1758,7 +1763,32 @@ REF.months.root.child('wodnour_sub_plans').on('value', snap => {
   }
   renderPlansList();
   renderPlansPreview();
+  // تحديث قائمة مستوى الاشتراك في نموذج الإضافة
+  populateNsLevel();
 });
+
+function populateNsLevel(){
+  const sel = document.getElementById('ns-level');
+  if(!sel) return;
+  const plans = Object.values(_plans)
+    .filter(p=>p.visible!==false)
+    .sort((a,b)=>(a.order||99)-(b.order||99));
+  if(!plans.length) return;
+  const prev = sel.value;
+  sel.innerHTML = plans.map(p=>`<option value="${p.name||''}">${p.icon||'🌿'} ${p.name||''} — ${p.price?Number(p.price).toLocaleString('ar-EG')+' ج.س/شهر':'حر'}</option>`).join('');
+  // إعادة تحديد القيمة السابقة إن وجدت
+  if(prev && [...sel.options].some(o=>o.value===prev)) sel.value = prev;
+}
+
+function updateNsTotal(){
+  const level = document.getElementById('ns-level')?.value;
+  const months = parseInt(document.getElementById('ns-months')?.value)||12;
+  const plan = Object.values(_plans).find(p=>p.name===level);
+  const price = plan ? Number(plan.price||0) : 0;
+  const total = price * months;
+  const el = document.getElementById('ns-total-display');
+  if(el) el.textContent = total ? 'الإجمالي: '+total.toLocaleString('ar-EG')+' ج.س' : '';
+}
 
 function toggleAddPlan() {
   const f = document.getElementById('addPlanForm');
