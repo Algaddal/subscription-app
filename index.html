@@ -2762,10 +2762,20 @@ window._checkSiteVersion = function() {
     }
 
     function processAndRender(rawSubs) {
-      const LEVEL_AMT = { 'راعي':500, 'شريك':150, 'داعم':50 };
+      // المبلغ الحقيقي من بيانات المشترك أو من خطط الاشتراك من Firebase
+      function getSubAmt(r) {
+        if (r.total) return r.total; // محفوظ مسبقاً
+        if (r.amount) return (r.months||12) * r.amount;
+        // من خطط Firebase
+        const plan = window._subPlans ? window._subPlans.find(p=>p.name===r.level) : null;
+        if (plan && plan.price) return (r.months||12) * Number(plan.price);
+        // قيم افتراضية
+        const DEF = {'راعي':500,'شريك':150,'داعم':50};
+        return (r.months||12) * (DEF[r.level]||150);
+      }
       subs = rawSubs.map((r, i) => ({
         ...r,
-        total: (r.months||12) * (LEVEL_AMT[r.level]||150),
+        total: getSubAmt(r),
         bg:    AVTR_BG[i % AVTR_BG.length],
         emj:   AVTR_EMJ[i % AVTR_EMJ.length],
       })).sort((a, b) => b.total - a.total);
