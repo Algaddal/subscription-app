@@ -497,6 +497,9 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
           <input class="inp" type="number" id="ns-months" placeholder="12" min="1" max="12" value="12" oninput="updateNsTotal()">
           <div id="ns-total-display" style="font-size:.78rem;color:var(--gold-l);margin-top:4px"></div>
         </div>
+        <div class="form-group" id="ns-free-group" style="display:none"><label>المبلغ (ج.س) *</label>
+          <input class="inp" type="number" id="ns-free-amt" placeholder="أدخل المبلغ" min="1" oninput="updateNsTotal()">
+        </div>
         <div class="form-group" style="justify-content:flex-end"><label>&nbsp;</label><button class="btn btn-gold" onclick="addSubscriber()">💾 حفظ المشترك</button></div>
       </div>
     </div>
@@ -1522,19 +1525,20 @@ function addSubscriber(){
   const name=document.getElementById('ns-name').value.trim();
   const level=document.getElementById('ns-level').value;
   if(!name){ toast('⚠️ أدخل الاسم','err'); return; }
-  // قراءة المبلغ مباشرة من الخيار المحدد في القائمة
-  const selEl = document.getElementById('ns-level');
-  const selOpt = selEl ? selEl.options[selEl.selectedIndex] : null;
-  // استخراج الرقم من نص الخيار مثلاً "🌿 شريك — 50,000 ج.س/شهر"
+  // قراءة المبلغ
   let unitPrice = 0;
-  if (selOpt) {
-    const match = selOpt.text.replace(/[,،]/g,'').match(/[\d]+/);
-    if (match) unitPrice = parseInt(match[0]) || 0;
-  }
-  // fallback من _plans
-  if (!unitPrice) {
+  if(isFreeLevel(level)){
+    unitPrice = parseFloat(document.getElementById('ns-free-amt')?.value)||0;
+    if(!unitPrice){ toast('⚠️ أدخل مبلغ التبرع الحر','err'); return; }
+  } else {
     const plan = Object.values(_plans).find(p=>p.name===level);
-    if (plan) unitPrice = Number(plan.price||0);
+    unitPrice = plan ? Number(plan.price||0) : 0;
+    if(!unitPrice){
+      // fallback من نص الخيار
+      const selEl = document.getElementById('ns-level');
+      const selOpt = selEl ? selEl.options[selEl.selectedIndex] : null;
+      if(selOpt){ const m=selOpt.text.replace(/[,،]/g,'').match(/\d+/); if(m) unitPrice=parseInt(m[0])||0; }
+    }
   }
   const months=parseInt(document.getElementById('ns-months').value)||12;
   const entry = {
@@ -1550,6 +1554,7 @@ function addSubscriber(){
   REF.subscribers.child(entry.id).set(entry).then(()=>{
     toast('✅ تم إضافة المشترك لقائمة الشرف','ok');
     document.getElementById('ns-name').value='';
+    const fa=document.getElementById('ns-free-amt'); if(fa) fa.value='';
     document.getElementById('ns-phone').value='';
     document.getElementById('ns-loc').value='';
     document.getElementById('ns-months').value='12';
@@ -1790,14 +1795,29 @@ function populateNsLevel(){
   if(prev && [...sel.options].some(o=>o.value===prev)) sel.value = prev;
 }
 
+function isFreeLevel(level){
+  const plan = Object.values(_plans).find(p=>p.name===level);
+  return !plan || !plan.price || plan.price==0 || /حر|free/i.test(plan.name||'');
+}
+
 function updateNsTotal(){
   const level = document.getElementById('ns-level')?.value;
   const months = parseInt(document.getElementById('ns-months')?.value)||12;
-  const plan = Object.values(_plans).find(p=>p.name===level);
-  const price = plan ? Number(plan.price||0) : 0;
-  const total = price * months;
-  const el = document.getElementById('ns-total-display');
-  if(el) el.textContent = total ? 'الإجمالي: '+total.toLocaleString('ar-EG')+' ج.س' : '';
+  const freeGroup = document.getElementById('ns-free-group');
+  const freeAmt = parseFloat(document.getElementById('ns-free-amt')?.value)||0;
+
+  if(isFreeLevel(level)){
+    if(freeGroup) freeGroup.style.display='';
+    const el = document.getElementById('ns-total-display');
+    if(el) el.textContent = freeAmt ? 'الإجمالي: '+freeAmt.toLocaleString('ar-EG')+' ج.س' : 'أدخل المبلغ';
+  } else {
+    if(freeGroup) freeGroup.style.display='none';
+    const plan = Object.values(_plans).find(p=>p.name===level);
+    const price = plan ? Number(plan.price||0) : 0;
+    const total = price * months;
+    const el = document.getElementById('ns-total-display');
+    if(el) el.textContent = total ? 'الإجمالي: '+total.toLocaleString('ar-EG')+' ج.س' : '';
+  }
 }
 
 function toggleAddPlan() {
