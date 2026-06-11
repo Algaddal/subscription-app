@@ -2748,9 +2748,10 @@ window._checkSiteVersion = function() {
     // ── تحميل المشتركين من Firebase مباشرة ──
     let subs = [];
 
-    function toA(n) { return n.toLocaleString('ar-EG'); }
+    function toA(n) { return (n||0).toLocaleString('ar-EG'); }
 
     function animN(el, to) {
+      if (!el) return; to = to || 0;
       const dur=1400, t0=performance.now();
       const isInt = Number.isInteger(to);
       (function tick(now){
