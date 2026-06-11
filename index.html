@@ -1384,15 +1384,15 @@ window._checkSiteVersion = function() {
 
     <div class="hero-stats">
       <div class="hero-stat">
-        <span class="num">١٢+</span>
+        <span class="num" id="hero-schools">١٢+</span>
         <span class="lbl">مدرسة مستفيدة</span>
       </div>
       <div class="hero-stat">
-        <span class="num">٣٠٠+</span>
+        <span class="num" id="hero-subs">٣٠٠+</span>
         <span class="lbl">مشترك فاعل</span>
       </div>
       <div class="hero-stat">
-        <span class="num">٨</span>
+        <span class="num" id="hero-done">٨</span>
         <span class="lbl">مشاريع منجزة</span>
       </div>
     </div>
@@ -1789,6 +1789,12 @@ window._checkSiteVersion = function() {
     // --- إحصائيات الموقع الرئيسية ---
     const st = s.stats || {};
     if (st.schools)  { const el=document.getElementById('stat-schools');  if(el) animateImpact(el, st.schools); }
+    // تحديث hero stats
+    const heroSchools = document.getElementById('hero-schools');
+    const heroSubs    = document.getElementById('hero-subs');
+    const heroDone    = document.getElementById('hero-done');
+    if (heroSchools && st.schools)  heroSchools.textContent = st.schools.toLocaleString('ar-EG') + '+';
+    if (heroDone    && st.doneProj) heroDone.textContent    = st.doneProj.toLocaleString('ar-EG');
     if (st.students) { const el=document.getElementById('stat-students'); if(el) animateImpact(el, st.students); }
     if (st.teachers) { const el=document.getElementById('stat-teachers'); if(el) animateImpact(el, st.teachers); }
     if (st.doneProj) { const el=document.getElementById('stat-done');     if(el) animateImpact(el, st.doneProj); }
@@ -2059,6 +2065,9 @@ window._checkSiteVersion = function() {
     const impObs = new IntersectionObserver(entries => {
       if (!entries[0].isIntersecting) return;
       animateImpact(document.getElementById('imp-subs'),    totalSubs);
+    // تحديث hero-subs بإجمالي المشتركين
+    const heroSubsEl = document.getElementById('hero-subs');
+    if (heroSubsEl) heroSubsEl.textContent = totalSubs.toLocaleString('ar-EG') + '+';
       animateImpact(document.getElementById('imp-income'),  totalIncome);
       animateImpact(document.getElementById('imp-expense'), totalExpense);
       animateImpact(document.getElementById('imp-balance'), Math.abs(balance));
