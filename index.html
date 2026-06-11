@@ -1471,20 +1471,11 @@ window._checkSiteVersion = function() {
       </div>
     </div>
 
-    <!-- Progress bars -->
-    <div class="progress-section reveal" style="margin-top: 3rem; background:#fff; padding:2rem; border-radius:20px;">
-      <h3 style="font-size:1.3rem; font-weight:700; color:var(--green-deep); margin-bottom:1.5rem;">📊 نسب إنجاز المشاريع الجارية</h3>
-      <div class="progress-item">
-        <div class="progress-header"><span class="progress-label">مشروع الطاقة الشمسية</span><span class="progress-pct">٦٥٪</span></div>
-        <div class="progress-bar"><div class="progress-fill" data-width="65"></div></div>
-      </div>
-      <div class="progress-item">
-        <div class="progress-header"><span class="progress-label">جمع تبرعات مختبر الحاسوب</span><span class="progress-pct">٤٠٪</span></div>
-        <div class="progress-bar"><div class="progress-fill" data-width="40"></div></div>
-      </div>
-      <div class="progress-item">
-        <div class="progress-header"><span class="progress-label">تجهيزات غرف المعلمين</span><span class="progress-pct">٨٠٪</span></div>
-        <div class="progress-bar"><div class="progress-fill" data-width="80"></div></div>
+    <!-- Progress bars — ديناميكية من Firebase -->
+    <div class="progress-section reveal" id="projectProgressSection" style="margin-top:3rem;background:#fff;padding:2rem;border-radius:20px;">
+      <h3 style="font-size:1.3rem;font-weight:700;color:var(--green-deep);margin-bottom:1.5rem;">📊 نسب إنجاز المشاريع الجارية</h3>
+      <div id="projectProgressBars">
+        <div style="text-align:center;color:#aaa;padding:20px;font-size:.9rem">⏳ جاري التحميل...</div>
       </div>
     </div>
   </div>
@@ -1977,6 +1968,31 @@ window._checkSiteVersion = function() {
   }
 
   // ══ تحميل الشهادات من Firebase ══
+  // ══ نسب إنجاز المشاريع الجارية ══
+  db.ref('wodnour_progress').on('value', snap => {
+    const data = snap.val() || {};
+    const el = document.getElementById('projectProgressBars');
+    if (!el) return;
+    const list = Object.values(data).sort((a,b)=>(a.order||99)-(b.order||99));
+    if (!list.length) {
+      el.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px;font-size:.9rem">لا توجد مشاريع جارية</div>';
+      return;
+    }
+    el.innerHTML = list.map(p => {
+      const pct = Math.min(100, Math.max(0, parseInt(p.pct)||0));
+      const pctAr = pct.toLocaleString('ar-EG') + '٪';
+      return `<div class="progress-item">
+        <div class="progress-header">
+          <span class="progress-label">${p.name||''}</span>
+          <span class="progress-pct">${pctAr}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+    }).join('');
+  });
+
   db.ref('wodnour_testimonials').on('value', snap => {
     const data = snap.val() || {};
     const grid = document.getElementById('testimonialsGrid');
