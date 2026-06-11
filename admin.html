@@ -705,12 +705,12 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
       </div>
       <button class="btn btn-gold" onclick="saveSettings('stats')">💾 حفظ الإحصائيات</button>
       <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-        <label style="font-size:.82rem;font-weight:600;color:var(--gold-l);display:block;margin-bottom:7px">عدد أعلى المساهمين المعروضين في منصة الشرف</label>
+        <label style="font-size:.82rem;font-weight:600;color:var(--gold-l);display:block;margin-bottom:7px">🏆 عدد أعلى المساهمين في منصة الشرف</label>
         <div style="display:flex;gap:10px;align-items:center">
           <input class="inp" type="number" id="set-podium-count" min="1" max="10" placeholder="3" style="max-width:100px">
           <button class="btn btn-gold" onclick="saveSettings('podiumCount')">💾 حفظ</button>
         </div>
-        <div style="font-size:.75rem;color:var(--tx2);margin-top:6px">الافتراضي: 3 (منصة الأوائل الثلاثة)</div>
+        <div style="font-size:.75rem;color:var(--tx2);margin-top:6px">الافتراضي: 3</div>
       </div>
     </div>
 
@@ -2278,7 +2278,7 @@ function loadSettings(){
     document.getElementById('set-done-proj').value=s.stats.doneProj||'';
   }
   if(s.url) document.getElementById('set-site-url').value=s.url||'';
-  if(s.podiumCount) { const el=document.getElementById('set-podium-count'); if(el) el.value=s.podiumCount; }
+  if(s.podiumCount){const el=document.getElementById('set-podium-count');if(el)el.value=s.podiumCount;}
   if(s.siteVersion){
     document.getElementById('set-site-version').value = s.siteVersion||'';
     document.getElementById('currentVersionDisplay').textContent = '✅ الإصدار الحالي: ' + s.siteVersion;
@@ -2355,8 +2355,8 @@ function saveSettings(type){
   else if(type==='url'){
     REF.settings.child('url').set(document.getElementById('set-site-url').value.trim()).then(()=>toast('✅ تم حفظ الرابط','ok'));
   } else if(type==='podiumCount'){
-    const v = parseInt(document.getElementById('set-podium-count').value)||3;
-    REF.settings.child('podiumCount').set(v).then(()=>toast(`✅ سيظهر أعلى ${v} مساهمين على الموقع`,'ok'));
+    const v=parseInt(document.getElementById('set-podium-count').value)||3;
+    REF.settings.child('podiumCount').set(v).then(()=>toast('✅ تم الحفظ — سيظهر أعلى '+v+' مساهمين','ok'));
   } else if(type==='version'){
     const v = document.getElementById('set-site-version').value.trim();
     if(!v){ toast('⚠️ أدخل رقم الإصدار','err'); return; }
