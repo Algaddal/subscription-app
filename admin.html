@@ -795,6 +795,50 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
       <button class="btn btn-gold" onclick="saveSettings('joinMsg')">💾 حفظ الرسالة</button>
     </div>
 
+    <!-- ══ إدارة قسم قبل وبعد والفيديوهات ══ -->
+    <div class="setting-card" style="grid-column:1/-1" id="galleryAdmin">
+      <h3>🖼️ إدارة قسم "الفارق الذي صنعناه"</h3>
+      <p style="font-size:.8rem;color:var(--tx2);margin-bottom:16px">أضف صور قبل/بعد أو روابط فيديو يوتيوب</p>
+
+      <!-- نموذج الإضافة -->
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="form-group" style="margin-bottom:0">
+            <label>النوع</label>
+            <select class="inp" id="gl-type" onchange="toggleGlFields()">
+              <option value="before">📸 صورة — قبل</option>
+              <option value="after">✅ صورة — بعد</option>
+              <option value="video">🎬 فيديو</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>التسمية</label>
+            <input class="inp" id="gl-label" placeholder="مثال: قبل الصيانة">
+          </div>
+        </div>
+        <div class="form-group" id="gl-img-group">
+          <label>رابط الصورة (URL)</label>
+          <input class="inp" id="gl-img" placeholder="https://...jpg">
+        </div>
+        <div class="form-group" id="gl-emoji-group">
+          <label>أيقونة (إذا لا يوجد رابط صورة)</label>
+          <input class="inp" id="gl-emoji" placeholder="🏚️">
+        </div>
+        <div class="form-group" id="gl-video-group" style="display:none">
+          <label>رابط يوتيوب</label>
+          <input class="inp" id="gl-video" placeholder="https://youtube.com/watch?v=...">
+        </div>
+        <div class="form-group">
+          <label>الوصف / التعليق</label>
+          <input class="inp" id="gl-caption" placeholder="وصف قصير">
+        </div>
+        <button class="btn btn-gold" onclick="addGalleryItem()">➕ إضافة</button>
+      </div>
+
+      <!-- قائمة العناصر -->
+      <div id="galleryList" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
     <div class="setting-card" style="grid-column:1/-1" id="testimonialsAdmin">
       <h3>🗣️ إدارة الشهادات</h3>
 
@@ -991,6 +1035,7 @@ function startSync(){
   REF.requests.on('value', s=>{ C.requests=s.val()||{}; updateReqCount(); renderRequests(); });
   REF.settings.on('value', s=>{ C.settings=s.val()||{}; loadSettings(); });
   if(typeof db!=='undefined') loadProgress();
+  if(typeof db!=='undefined') loadGallery();
 }
 
 function onMonthsChange(){
@@ -2023,7 +2068,121 @@ function populateMonthSelect() {
     }).join('');
 }
 
+/* ══════════ GALLERY ══════════ */
+let _gallery = {};
+
+function toggleGlFields(){
+  const type = document.getElementById('gl-type').value;
+  document.getElementById('gl-img-group').style.display   = type==='video' ? 'none' : '';
+  document.getElementById('gl-emoji-group').style.display = type==='video' ? 'none' : '';
+  document.getElementById('gl-video-group').style.display = type==='video' ? '' : 'none';
+}
+
+function loadGallery(){
+  db.ref('wodnour_gallery').on('value', snap => {
+    _gallery = snap.val() || {};
+    renderGalleryList();
+  });
+}
+
+function renderGalleryList(){
+  const el = document.getElementById('galleryList');
+  if(!el) return;
+  const list = Object.values(_gallery).sort((a,b)=>(a.order||99)-(b.order||99));
+  if(!list.length){ el.innerHTML='<div style="color:var(--tx2);font-size:.82rem">لا توجد عناصر بعد</div>'; return; }
+  el.innerHTML = list.map(item => `
+    <div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 14px">
+      <span style="font-size:1.2rem">${item.type==='video'?'🎬':item.kind==='before'?'📸':'✅'}</span>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:.85rem">${esc(item.label||'')}</div>
+        <div style="font-size:.75rem;color:var(--tx2)">${esc(item.caption||item.imageUrl||item.videoUrl||'')}</div>
+      </div>
+      <button onclick="removeGalleryItem('${item.id}')" style="background:rgba(224,92,92,.12);border:1px solid rgba(224,92,92,.3);color:var(--red);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.8rem">✕</button>
+    </div>`).join('');
+}
+
+function addGalleryItem(){
+  const type  = document.getElementById('gl-type').value;
+  const label = document.getElementById('gl-label').value.trim();
+  const caption = document.getElementById('gl-caption').value.trim();
+  if(!label){ toast('⚠️ أدخل التسمية','err'); return; }
+  const id = 'gl_'+uid();
+  const item = { id, label, caption, order: Object.keys(_gallery).length,
+    type: type==='video' ? 'video' : 'image',
+    kind: type==='before' ? 'before' : type==='after' ? 'after' : null,
+    imageUrl: type!=='video' ? document.getElementById('gl-img').value.trim() : null,
+    emoji:    type!=='video' ? document.getElementById('gl-emoji').value.trim() : null,
+    videoUrl: type==='video' ? document.getElementById('gl-video').value.trim() : null,
+  };
+  db.ref('wodnour_gallery/'+id).set(item).then(()=>{
+    toast('✅ تمت الإضافة','ok');
+    ['gl-label','gl-caption','gl-img','gl-emoji','gl-video'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+  });
+}
+
+function removeGalleryItem(id){
+  if(!confirm('حذف هذا العنصر؟')) return;
+  db.ref('wodnour_gallery/'+id).remove().then(()=>toast('🗑️ تم الحذف','ok'));
+}
+
 /* ══════════ TESTIMONIALS ══════════ */
+/* ══════════ GALLERY ══════════ */
+let _gallery = {};
+
+function toggleGlFields(){
+  const type = document.getElementById('gl-type').value;
+  document.getElementById('gl-img-group').style.display   = type==='video' ? 'none' : '';
+  document.getElementById('gl-emoji-group').style.display = type==='video' ? 'none' : '';
+  document.getElementById('gl-video-group').style.display = type==='video' ? '' : 'none';
+}
+
+function loadGallery(){
+  db.ref('wodnour_gallery').on('value', snap => {
+    _gallery = snap.val() || {};
+    renderGalleryList();
+  });
+}
+
+function renderGalleryList(){
+  const el = document.getElementById('galleryList');
+  if(!el) return;
+  const list = Object.values(_gallery).sort((a,b)=>(a.order||99)-(b.order||99));
+  if(!list.length){ el.innerHTML='<div style="color:var(--tx2);font-size:.82rem">لا توجد عناصر بعد</div>'; return; }
+  el.innerHTML = list.map(item => `
+    <div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:10px 14px">
+      <span style="font-size:1.2rem">${item.type==='video'?'🎬':item.kind==='before'?'📸':'✅'}</span>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:.85rem">${esc(item.label||'')}</div>
+        <div style="font-size:.75rem;color:var(--tx2)">${esc(item.caption||item.imageUrl||item.videoUrl||'')}</div>
+      </div>
+      <button onclick="removeGalleryItem('${item.id}')" style="background:rgba(224,92,92,.12);border:1px solid rgba(224,92,92,.3);color:var(--red);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.8rem">✕</button>
+    </div>`).join('');
+}
+
+function addGalleryItem(){
+  const type  = document.getElementById('gl-type').value;
+  const label = document.getElementById('gl-label').value.trim();
+  const caption = document.getElementById('gl-caption').value.trim();
+  if(!label){ toast('⚠️ أدخل التسمية','err'); return; }
+  const id = 'gl_'+uid();
+  const item = { id, label, caption, order: Object.keys(_gallery).length,
+    type: type==='video' ? 'video' : 'image',
+    kind: type==='before' ? 'before' : type==='after' ? 'after' : null,
+    imageUrl: type!=='video' ? document.getElementById('gl-img').value.trim() : null,
+    emoji:    type!=='video' ? document.getElementById('gl-emoji').value.trim() : null,
+    videoUrl: type==='video' ? document.getElementById('gl-video').value.trim() : null,
+  };
+  db.ref('wodnour_gallery/'+id).set(item).then(()=>{
+    toast('✅ تمت الإضافة','ok');
+    ['gl-label','gl-caption','gl-img','gl-emoji','gl-video'].forEach(id=>{ const e=document.getElementById(id); if(e) e.value=''; });
+  });
+}
+
+function removeGalleryItem(id){
+  if(!confirm('حذف هذا العنصر؟')) return;
+  db.ref('wodnour_gallery/'+id).remove().then(()=>toast('🗑️ تم الحذف','ok'));
+}
+
 /* ══════════ TESTIMONIALS ══════════ */
 let _testimonials = {};  // cache
 let _dragSrcId = null;
