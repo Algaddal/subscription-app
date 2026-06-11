@@ -2182,8 +2182,18 @@ window._checkSiteVersion = function() {
       </div>
 
       <!-- Summary -->
+      <!-- حقل التبرع الحر -->
+      <div id="freeAmtBox" style="display:none;margin-bottom:1rem;">
+        <label style="color:rgba(255,255,255,.7);font-size:.85rem;display:block;margin-bottom:.5rem;">المبلغ (ج.س) <span style="color:#e74c3c">*</span></label>
+        <input type="number" id="freeAmtInput" min="1" placeholder="أدخل المبلغ..."
+          style="width:100%;padding:.85rem 1.1rem;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:12px;color:#fff;font-family:'Tajawal',sans-serif;font-size:1rem;outline:none;text-align:right;"
+          oninput="onFreeAmtChange(this.value)"
+          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+        <div id="freeAmtErr" style="color:#e74c3c;font-size:.78rem;margin-top:.3rem;display:none;">يرجى إدخال مبلغ صحيح</div>
+      </div>
+
       <div id="fSummary" style="background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.25);border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.4rem;display:flex;justify-content:space-between;align-items:center;">
-        <span style="color:rgba(255,255,255,.6);font-size:.88rem;">المبلغ السنوي</span>
+        <span style="color:rgba(255,255,255,.6);font-size:.88rem;">المبلغ</span>
         <span id="fTotalAmt" style="color:var(--gold);font-weight:900;font-size:1.2rem;">١٨٠٠ ج.س</span>
       </div>
 
@@ -2560,8 +2570,11 @@ window._checkSiteVersion = function() {
   function saveJoinRequest(name, phone, location, level) {
     if (!window._reqDb) return;
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5);
-    const annual = LEVEL_ANNUAL[level] || 0;
-    const monthly = annual ? Math.round(annual / 12) : 0;
+    let annual = LEVEL_ANNUAL[level] || 0;
+    if (isFree()) {
+      annual = parseFloat(document.getElementById('freeAmtInput').value) || 0;
+    }
+    const monthly = annual ? Math.round(annual / 12) : annual;
     // استخراج بيانات الخطة من window._subPlans
     const plan = window._subPlans ? window._subPlans.find(p => p.name === level) : null;
     window._reqDb.child(id).set({
@@ -2599,6 +2612,16 @@ window._checkSiteVersion = function() {
     if (e.target === this) closeModal();
   });
 
+  function isFree() {
+    const plan = window._subPlans ? window._subPlans.find(p => p.name === selectedLevel) : null;
+    return !plan || !plan.price || plan.price == 0 || /حر|free/i.test(plan.name||'');
+  }
+
+  function onFreeAmtChange(val) {
+    const amt = parseFloat(val) || 0;
+    document.getElementById('fTotalAmt').textContent = amt > 0 ? amt.toLocaleString('ar-EG') + ' ج.س' : 'أدخل المبلغ';
+  }
+
   function pickLevel(el) {
     document.querySelectorAll('.lvl-opt').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
@@ -2607,8 +2630,17 @@ window._checkSiteVersion = function() {
   }
 
   function updateSummary() {
-    const annual = LEVEL_ANNUAL[selectedLevel] || 0;
-    document.getElementById('fTotalAmt').textContent = annual.toLocaleString('ar-EG') + ' ج.س';
+    const freeBox = document.getElementById('freeAmtBox');
+    if (isFree()) {
+      if (freeBox) freeBox.style.display = 'block';
+      const inp = document.getElementById('freeAmtInput');
+      const amt = inp ? (parseFloat(inp.value) || 0) : 0;
+      document.getElementById('fTotalAmt').textContent = amt > 0 ? amt.toLocaleString('ar-EG') + ' ج.س' : 'أدخل المبلغ';
+    } else {
+      if (freeBox) freeBox.style.display = 'none';
+      const annual = LEVEL_ANNUAL[selectedLevel] || 0;
+      document.getElementById('fTotalAmt').textContent = annual.toLocaleString('ar-EG') + ' ج.س';
+    }
   }
 
   function validateForm() {
@@ -2632,10 +2664,25 @@ window._checkSiteVersion = function() {
   function submitForm() {
     if (!validateForm()) return;
 
+    // التحقق من حقل التبرع الحر
+    if (isFree()) {
+      const freeVal = parseFloat(document.getElementById('freeAmtInput').value) || 0;
+      if (!freeVal) {
+        document.getElementById('freeAmtErr').style.display = 'block';
+        document.getElementById('freeAmtInput').style.borderColor = '#e74c3c';
+        document.getElementById('freeAmtInput').focus();
+        return;
+      }
+      document.getElementById('freeAmtErr').style.display = 'none';
+    }
+
     const name     = document.getElementById('fName').value.trim();
     const phone    = document.getElementById('fPhone').value.trim();
     const location = document.getElementById('fLoc').value.trim();
-    const annual   = LEVEL_ANNUAL[selectedLevel];
+    let annual = LEVEL_ANNUAL[selectedLevel] || 0;
+    if (isFree()) {
+      annual = parseFloat(document.getElementById('freeAmtInput').value) || 0;
+    }
 
     // ── حفظ الطلب في Firebase ──
     saveJoinRequest(name, phone, location, selectedLevel);
