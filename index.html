@@ -2522,6 +2522,8 @@ window._checkSiteVersion = function() {
           // تحديث الهيرو stats
           const heroStat = document.getElementById('hero-schools');
           if (heroStat && s.stats.schools) heroStat.textContent = Number(s.stats.schools).toLocaleString('ar-EG') + '+';
+          const heroDoneStat = document.getElementById('hero-done');
+          if (heroDoneStat && s.stats.doneProj) heroDoneStat.textContent = Number(s.stats.doneProj).toLocaleString('ar-EG');
         }
       });
     } catch(e) { console.warn('Settings load error:', e); }
