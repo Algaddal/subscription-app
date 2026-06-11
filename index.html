@@ -1489,44 +1489,15 @@ window._checkSiteVersion = function() {
       <h2 class="section-title" style="color:#fff">الفارق الذي <span style="color:var(--gold)">صنعناه معاً</span></h2>
     </div>
 
-    <div class="ba-grid reveal">
-      <div class="ba-card before">
-        <div class="ba-card-img">🏚️</div>
-        <span class="ba-label">قبل الصيانة</span>
-        <div class="ba-caption">جدران متشققة، أسقف متهالكة، وفصول لا تليق بطلابنا ومعلمينا.</div>
-      </div>
-      <div class="ba-card after">
-        <div class="ba-card-img">🏫</div>
-        <span class="ba-label" style="background:rgba(74,170,114,0.8)">بعد الصيانة</span>
-        <div class="ba-caption">بيئة نظيفة ومريحة، جدران ملوّنة تبعث البهجة وفضاء يُحفّز على التعلم.</div>
-      </div>
-      <div class="ba-card before">
-        <div class="ba-card-img">🚽</div>
-        <span class="ba-label">قبل التأهيل</span>
-        <div class="ba-caption">مرافق صحية مهجورة تفتقر لأبسط مقومات النظافة والخصوصية.</div>
-      </div>
-      <div class="ba-card after">
-        <div class="ba-card-img">✨</div>
-        <span class="ba-label" style="background:rgba(74,170,114,0.8)">بعد التأهيل</span>
-        <div class="ba-caption">مرافق حديثة نظيفة بمياه جارية وصرف صحي سليم يليق بأبنائنا وبناتنا.</div>
-      </div>
+    <!-- قبل وبعد — ديناميكي من Firebase -->
+    <div class="ba-grid reveal" id="baGrid">
+      <div style="color:rgba(255,255,255,.4);text-align:center;padding:2rem;grid-column:1/-1">⏳ جاري التحميل...</div>
     </div>
 
-    <!-- Videos -->
-    <div class="reveal" style="margin-top:2.5rem;">
-      <h3 style="color:#fff; font-size:1.2rem; margin-bottom:1rem;">🎬 فيديوهات المشاريع</h3>
-      <div class="video-row">
-        <div class="video-thumb">
-          🎥
-          <div class="play-btn">▶</div>
-          <div class="video-label">جولة في المدرسة بعد الصيانة</div>
-        </div>
-        <div class="video-thumb">
-          📹
-          <div class="play-btn">▶</div>
-          <div class="video-label">توثيق أعمال البناء — المرحلة الأولى</div>
-        </div>
-      </div>
+    <!-- فيديوهات — ديناميكية من Firebase -->
+    <div class="reveal" id="videosSection" style="margin-top:2.5rem;display:none">
+      <h3 style="color:#fff;font-size:1.2rem;margin-bottom:1rem;">🎬 فيديوهات المشاريع</h3>
+      <div class="video-row" id="videoRow"></div>
     </div>
   </div>
 </section>
@@ -1995,6 +1966,60 @@ window._checkSiteVersion = function() {
   }
 
   // ══ تحميل الشهادات من Firebase ══
+  // ══ قسم قبل وبعد والفيديوهات ══
+  db.ref('wodnour_gallery').on('value', snap => {
+    const data = snap.val() || {};
+    const items = Object.values(data).sort((a,b)=>(a.order||99)-(b.order||99));
+    const baGrid = document.getElementById('baGrid');
+    const videoRow = document.getElementById('videoRow');
+    const videosSection = document.getElementById('videosSection');
+    if(!baGrid) return;
+
+    const cards = items.filter(i=>i.type!=='video');
+    const videos = items.filter(i=>i.type==='video');
+
+    // قبل وبعد
+    if(!cards.length){
+      baGrid.innerHTML='<div style="color:rgba(255,255,255,.4);text-align:center;padding:2rem;grid-column:1/-1">لا توجد صور بعد</div>';
+    } else {
+      baGrid.innerHTML = cards.map(item => {
+        const isBefore = item.kind === 'before';
+        const imgContent = item.imageUrl
+          ? `<img src="${item.imageUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+          : '';
+        const emoji = item.emoji || (isBefore ? '🏚️' : '🏫');
+        return `<div class="ba-card ${isBefore?'before':'after'}">
+          <div class="ba-card-img" style="${item.imageUrl?'padding:0;overflow:hidden':''}">
+            ${imgContent}
+            <span style="${item.imageUrl?'display:none':''}">${emoji}</span>
+          </div>
+          <span class="ba-label" ${!isBefore?'style="background:rgba(74,170,114,0.8)"':''}>${item.label||''}</span>
+          <div class="ba-caption">${item.caption||''}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // فيديوهات
+    if(videos.length && videoRow){
+      videosSection.style.display='block';
+      videoRow.innerHTML = videos.map(v => {
+        if(v.videoUrl && (v.videoUrl.includes('youtube') || v.videoUrl.includes('youtu.be'))){
+          const vid = v.videoUrl.replace('watch?v=','embed/').replace('youtu.be/','youtube.com/embed/');
+          return `<div class="video-thumb" style="padding:0;overflow:hidden;position:relative">
+            <iframe src="${vid}" style="width:100%;height:100%;border:none" allow="accelerometer;autoplay" allowfullscreen></iframe>
+            <div class="video-label">${v.label||''}</div>
+          </div>`;
+        }
+        return `<div class="video-thumb">
+          🎥<div class="play-btn" onclick="window.open('${v.videoUrl||'#'}','_blank')">▶</div>
+          <div class="video-label">${v.label||''}</div>
+        </div>`;
+      }).join('');
+    } else if(videosSection) {
+      videosSection.style.display='none';
+    }
+  });
+
   // ══ نسب إنجاز المشاريع الجارية ══
   db.ref('wodnour_progress').on('value', snap => {
     const data = snap.val() || {};
