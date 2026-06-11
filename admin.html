@@ -978,7 +978,7 @@ function startSync(){
   REF.projects.on('value', s=>{ C.projects=s.val()||{}; renderProjects(); });
   REF.requests.on('value', s=>{ C.requests=s.val()||{}; updateReqCount(); renderRequests(); });
   REF.settings.on('value', s=>{ C.settings=s.val()||{}; loadSettings(); });
-  loadProgress();
+  if(typeof db!=='undefined') loadProgress();
 }
 
 function onMonthsChange(){
@@ -2201,6 +2201,7 @@ function bumpVersion(){
 
 // ══ نسب الإنجاز ══
 function loadProgress(){
+  if(typeof db==='undefined') return;
   db.ref('wodnour_progress').once('value', snap => {
     const data = snap.val() || {};
     window._progressItems = data;
@@ -2240,6 +2241,7 @@ function removeProgress(i){
 }
 
 function saveProgress(){
+  if(typeof db==='undefined'){toast('⚠️ لم يتم الاتصال بقاعدة البيانات','err');return;}
   const list = window._progressList || [];
   const obj = {};
   list.forEach((p,i) => {
