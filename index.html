@@ -1965,6 +1965,32 @@ window._checkSiteVersion = function() {
     if (el) el.textContent = price ? (Number(price)*12).toLocaleString('ar-SA') + ' ج.س' : 'حسب المبلغ';
   }
 
+  // ══ إرسال تعليق جديد ══
+  window.submitComment = function() {
+    const name = document.getElementById('cm-name').value.trim();
+    const role = document.getElementById('cm-role').value.trim();
+    const text = document.getElementById('cm-text').value.trim();
+    const msg  = document.getElementById('cm-msg');
+    if(!name){ msg.textContent='⚠️ أدخل اسمك'; msg.style.color='#e74c3c'; return; }
+    if(!text){ msg.textContent='⚠️ أدخل شهادتك'; msg.style.color='#e74c3c'; return; }
+    const id = 'cm_'+Date.now().toString(36);
+    db.ref('wodnour_comments/'+id).set({
+      id, name, role, text,
+      status: 'pending',
+      date: new Date().toLocaleDateString('ar-SA'),
+      ts: Date.now()
+    }).then(() => {
+      msg.textContent = '✅ شكراً! شهادتك قيد المراجعة';
+      msg.style.color = 'var(--gold)';
+      document.getElementById('cm-name').value = '';
+      document.getElementById('cm-role').value = '';
+      document.getElementById('cm-text').value = '';
+    }).catch(() => {
+      msg.textContent = '❌ حدث خطأ، حاول مرة أخرى';
+      msg.style.color = '#e74c3c';
+    });
+  };
+
   // ══ تحميل الشهادات من Firebase ══
   // ══ قسم قبل وبعد والفيديوهات ══
   db.ref('wodnour_gallery').on('value', snap => {
@@ -2158,10 +2184,42 @@ window._checkSiteVersion = function() {
     </div>
     <!-- شهادات ديناميكية من Firebase -->
     <div class="quotes-grid visible" id="testimonialsGrid">
-      <!-- loading -->
       <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--green-mid);font-size:.95rem;opacity:.6">
         <div style="font-size:2rem;margin-bottom:10px">⏳</div>
         جاري تحميل الشهادات...
+      </div>
+    </div>
+
+    <!-- نموذج إضافة تعليق -->
+    <div style="margin-top:3rem;background:rgba(255,255,255,.05);border:1px solid rgba(74,170,114,.2);border-radius:20px;padding:2rem;" class="reveal">
+      <h3 style="color:var(--green-light);font-size:1.1rem;font-weight:700;margin-bottom:1.2rem;text-align:center">💬 شاركنا رأيك — أضف شهادتك</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div>
+          <label style="font-size:.82rem;color:rgba(255,255,255,.6);display:block;margin-bottom:5px">الاسم *</label>
+          <input id="cm-name" type="text" placeholder="اسمك الكريم"
+            style="width:100%;padding:10px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-family:'Tajawal',sans-serif;font-size:.9rem;outline:none"
+            onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+        </div>
+        <div>
+          <label style="font-size:.82rem;color:rgba(255,255,255,.6);display:block;margin-bottom:5px">الصفة / الدور</label>
+          <input id="cm-role" type="text" placeholder="مثال: ولي أمر — حي الزهور"
+            style="width:100%;padding:10px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-family:'Tajawal',sans-serif;font-size:.9rem;outline:none"
+            onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+        </div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:.82rem;color:rgba(255,255,255,.6);display:block;margin-bottom:5px">شهادتك *</label>
+        <textarea id="cm-text" placeholder="اكتب شهادتك هنا..." rows="3"
+          style="width:100%;padding:10px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-family:'Tajawal',sans-serif;font-size:.9rem;outline:none;resize:vertical"
+          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(255,255,255,.15)'"></textarea>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="submitComment()"
+          style="background:linear-gradient(135deg,var(--green-mid),var(--green-deep));color:#fff;border:none;padding:11px 28px;border-radius:12px;font-family:'Tajawal',sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s"
+          onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+          إرسال الشهادة ←
+        </button>
+        <span id="cm-msg" style="font-size:.82rem;color:var(--gold)"></span>
       </div>
     </div>
   </div>
