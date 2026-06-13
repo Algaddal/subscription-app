@@ -2359,7 +2359,7 @@ window._checkSiteVersion = function() {
       </div>
 
       <!-- WhatsApp button -->
-      <a id="waBtn" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;padding:1rem;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;font-weight:800;font-size:1rem;border:none;border-radius:14px;cursor:pointer;text-decoration:none;font-family:'Tajawal',sans-serif;transition:transform .2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+      <a id="waBtn" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;padding:1rem;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;font-weight:800;font-size:1rem;border:none;border-radius:14px;cursor:pointer;text-decoration:none;font-family:'Tajawal',sans-serif;transition:transform .2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'" onclick="var h=this.href;if(h&&h!==location.href&&h!=='#'){window.open(h,'_blank');}return false;">
         <span style="font-size:1.3rem;">💬</span> أرسل الإيصال عبر واتساب
       </a>
       <button onclick="closeModal()" style="display:block;width:100%;margin-top:.8rem;padding:.7rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);border-radius:14px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.9rem;transition:all .2s;" onmouseover="this.style.borderColor='rgba(255,255,255,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)'">
