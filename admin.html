@@ -839,6 +839,13 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
       <div id="galleryList" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
 
+    <!-- ══ إدارة التعليقات الواردة ══ -->
+    <div class="setting-card" style="grid-column:1/-1" id="commentsAdmin">
+      <h3>💬 التعليقات الواردة من الزوار</h3>
+      <p style="font-size:.8rem;color:var(--tx2);margin-bottom:16px">راجع التعليقات الواردة وانشرها أو احذفها — المنشورة فقط تظهر في قسم "ماذا قال أبناء المنطقة"</p>
+      <div id="commentsList" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
     <div class="setting-card" style="grid-column:1/-1" id="testimonialsAdmin">
       <h3>🗣️ إدارة الشهادات</h3>
 
@@ -1036,6 +1043,7 @@ function startSync(){
   REF.settings.on('value', s=>{ C.settings=s.val()||{}; loadSettings(); });
   if(typeof db!=='undefined') loadProgress();
   if(typeof db!=='undefined') loadGallery();
+  if(typeof db!=='undefined') loadComments();
 }
 
 function onMonthsChange(){
@@ -2068,6 +2076,63 @@ function populateMonthSelect() {
     }).join('');
 }
 
+/* ══════════ COMMENTS ══════════ */
+function loadComments(){
+  db.ref('wodnour_comments').on('value', snap => {
+    const data = snap.val() || {};
+    const el = document.getElementById('commentsList');
+    if(!el) return;
+    const list = Object.values(data).sort((a,b)=> (b.ts||0)-(a.ts||0));
+    if(!list.length){
+      el.innerHTML='<div style="color:var(--tx2);font-size:.82rem;padding:10px">لا توجد تعليقات بعد</div>';
+      return;
+    }
+    el.innerHTML = list.map(c => {
+      const isPending  = c.status === 'pending';
+      const isApproved = c.status === 'approved';
+      return `<div style="background:var(--s2);border:1px solid ${isApproved?'rgba(63,182,138,.3)':isPending?'rgba(201,168,76,.2)':'var(--border)'};border-radius:12px;padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:3px">${esc(c.name||'')} <span style="font-size:.75rem;color:var(--tx2);font-weight:400">${esc(c.role||'')}</span></div>
+            <div style="font-size:.85rem;color:var(--tx);margin-bottom:6px;line-height:1.6">"${esc(c.text||'')}"</div>
+            <div style="font-size:.72rem;color:var(--tx2)">${c.date||''} — <span style="color:${isApproved?'var(--green)':isPending?'var(--gold-l)':'var(--red)'}">${isApproved?'✅ منشور':isPending?'⏳ قيد المراجعة':'❌ مرفوض'}</span></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            ${!isApproved?`<button onclick="approveComment('${c.id}')" style="background:rgba(63,182,138,.12);border:1px solid rgba(63,182,138,.3);color:var(--green);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.78rem">✅ نشر</button>`:''}
+            ${!isPending?'':``}
+            <button onclick="rejectComment('${c.id}')" style="background:rgba(224,92,92,.1);border:1px solid rgba(224,92,92,.25);color:var(--red);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.78rem">🗑️ حذف</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function approveComment(id){
+  // نشر التعليق — ينتقل لـ wodnour_testimonials ليظهر على الموقع
+  db.ref('wodnour_comments/'+id).once('value', snap => {
+    const c = snap.val();
+    if(!c) return;
+    // احسب الترتيب
+    db.ref('wodnour_testimonials').once('value', tSnap => {
+      const count = Object.keys(tSnap.val()||{}).length;
+      db.ref('wodnour_testimonials/'+id).set({
+        id, name:c.name, role:c.role, text:c.text,
+        visible:true, order:count,
+        date:c.date
+      }).then(()=>{
+        db.ref('wodnour_comments/'+id+'/status').set('approved');
+        toast('✅ تم نشر الشهادة على الموقع','ok');
+      });
+    });
+  });
+}
+
+function rejectComment(id){
+  if(!confirm('حذف هذا التعليق نهائياً؟')) return;
+  db.ref('wodnour_comments/'+id).remove().then(()=>toast('🗑️ تم الحذف','ok'));
+}
+
 /* ══════════ GALLERY ══════════ */
 let _gallery = {};
 
@@ -2126,6 +2191,63 @@ function removeGalleryItem(id){
 }
 
 /* ══════════ TESTIMONIALS ══════════ */
+/* ══════════ COMMENTS ══════════ */
+function loadComments(){
+  db.ref('wodnour_comments').on('value', snap => {
+    const data = snap.val() || {};
+    const el = document.getElementById('commentsList');
+    if(!el) return;
+    const list = Object.values(data).sort((a,b)=> (b.ts||0)-(a.ts||0));
+    if(!list.length){
+      el.innerHTML='<div style="color:var(--tx2);font-size:.82rem;padding:10px">لا توجد تعليقات بعد</div>';
+      return;
+    }
+    el.innerHTML = list.map(c => {
+      const isPending  = c.status === 'pending';
+      const isApproved = c.status === 'approved';
+      return `<div style="background:var(--s2);border:1px solid ${isApproved?'rgba(63,182,138,.3)':isPending?'rgba(201,168,76,.2)':'var(--border)'};border-radius:12px;padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:.9rem;margin-bottom:3px">${esc(c.name||'')} <span style="font-size:.75rem;color:var(--tx2);font-weight:400">${esc(c.role||'')}</span></div>
+            <div style="font-size:.85rem;color:var(--tx);margin-bottom:6px;line-height:1.6">"${esc(c.text||'')}"</div>
+            <div style="font-size:.72rem;color:var(--tx2)">${c.date||''} — <span style="color:${isApproved?'var(--green)':isPending?'var(--gold-l)':'var(--red)'}">${isApproved?'✅ منشور':isPending?'⏳ قيد المراجعة':'❌ مرفوض'}</span></div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            ${!isApproved?`<button onclick="approveComment('${c.id}')" style="background:rgba(63,182,138,.12);border:1px solid rgba(63,182,138,.3);color:var(--green);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.78rem">✅ نشر</button>`:''}
+            ${!isPending?'':``}
+            <button onclick="rejectComment('${c.id}')" style="background:rgba(224,92,92,.1);border:1px solid rgba(224,92,92,.25);color:var(--red);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:.78rem">🗑️ حذف</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function approveComment(id){
+  // نشر التعليق — ينتقل لـ wodnour_testimonials ليظهر على الموقع
+  db.ref('wodnour_comments/'+id).once('value', snap => {
+    const c = snap.val();
+    if(!c) return;
+    // احسب الترتيب
+    db.ref('wodnour_testimonials').once('value', tSnap => {
+      const count = Object.keys(tSnap.val()||{}).length;
+      db.ref('wodnour_testimonials/'+id).set({
+        id, name:c.name, role:c.role, text:c.text,
+        visible:true, order:count,
+        date:c.date
+      }).then(()=>{
+        db.ref('wodnour_comments/'+id+'/status').set('approved');
+        toast('✅ تم نشر الشهادة على الموقع','ok');
+      });
+    });
+  });
+}
+
+function rejectComment(id){
+  if(!confirm('حذف هذا التعليق نهائياً؟')) return;
+  db.ref('wodnour_comments/'+id).remove().then(()=>toast('🗑️ تم الحذف','ok'));
+}
+
 /* ══════════ GALLERY ══════════ */
 
 function toggleGlFields(){
