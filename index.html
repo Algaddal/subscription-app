@@ -10,6 +10,35 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-QFNSCHQE8Y');
+
+  // ── تتبع الأقسام عند التمرير ──
+  document.addEventListener('DOMContentLoaded', function(){
+    const sections = [
+      { id:'about',         label:'عن المبادرة'   },
+      { id:'projects',      label:'المشاريع'       },
+      { id:'gallery',       label:'الصور والفيديو' },
+      { id:'transparency',  label:'الشفافية'       },
+      { id:'subscriptions', label:'الاشتراكات'     },
+      { id:'impact',        label:'الفارق الذي صنعناه' },
+      { id:'join',          label:'انضم إلينا'     },
+      { id:'subscribers',   label:'شركاؤنا'        },
+    ];
+    const seen = new Set();
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting && !seen.has(entry.target.id)){
+          seen.add(entry.target.id);
+          const sec = sections.find(s => s.id === entry.target.id);
+          if(sec) gtag('event', 'section_view', { section_id: sec.id, section_name: sec.label });
+        }
+      });
+    }, { threshold: 0.3 });
+
+    sections.forEach(s => {
+      const el = document.getElementById(s.id);
+      if(el) observer.observe(el);
+    });
+  });
 </script>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -2701,7 +2730,7 @@ window._checkSiteVersion = function() {
       </div>
 
       <!-- WhatsApp button -->
-      <a id="waBtn" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;padding:1rem;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;font-weight:800;font-size:1rem;border:none;border-radius:14px;cursor:pointer;text-decoration:none;font-family:'Tajawal',sans-serif;transition:transform .2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+      <a id="waBtn" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;padding:1rem;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;font-weight:800;font-size:1rem;border:none;border-radius:14px;cursor:pointer;text-decoration:none;font-family:'Tajawal',sans-serif;transition:transform .2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'" onclick="gtag('event','whatsapp_receipt_sent',{event_category:'engagement'});var h=this.href;if(h&&h!==location.href&&h!=='#'){window.open(h,'_blank');}return false;">
         <span style="font-size:1.3rem;">💬</span> أرسل الإيصال عبر واتساب
       </a>
       <button onclick="closeModal()" style="display:block;width:100%;margin-top:.8rem;padding:.7rem;background:transparent;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);border-radius:14px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:.9rem;transition:all .2s;" onmouseover="this.style.borderColor='rgba(255,255,255,.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)'">
@@ -3029,6 +3058,7 @@ window._checkSiteVersion = function() {
     document.getElementById('step1').style.display = 'block';
     document.getElementById('step2').style.display = 'none';
     updateSummary();
+    gtag('event', 'join_modal_open', { event_category: 'engagement' });
   }
 
   function closeModal() {
@@ -3132,6 +3162,12 @@ window._checkSiteVersion = function() {
       `مرفق إيصال التحويل`
     );
     document.getElementById('waBtn').href = `https://wa.me/${WHATSAPP_NUM}?text=${msg}`;
+
+    // تتبع إتمام نموذج الانضمام
+    gtag('event', 'join_form_complete', {
+      event_category: 'engagement',
+      subscription_level: selectedLevel
+    });
 
     // Switch steps with animation
     const box = document.getElementById('joinModalBox');
