@@ -1347,8 +1347,18 @@ function addDashExpense() {
 function delModalExp(expId) {
   const key=_dashActiveMonthKey; if(!key) return;
   const m=C.months[key]; if(!m) return;
-  REF.months.child(key+'/expenses').set((m.expenses||[]).filter(e=>e.id!==expId))
-    .then(()=>{ toast('🗑️ تم','ok'); _refreshModalExp(C.months[key]); });
+  const expenses=(m.expenses||[]).filter(e=>e.id!==expId);
+  const val=expenses.length ? expenses : null;
+  // تحديث الـ cache المحلي فوراً
+  C.months[key].expenses = expenses;
+  _refreshModalExp(C.months[key]);
+  REF.months.child(key+'/expenses').set(val)
+    .then(()=>toast('🗑️ تم','ok'))
+    .catch(err=>{
+      toast('❌ فشل الحذف: '+err.message,'err');
+      C.months[key].expenses = m.expenses;
+      _refreshModalExp(C.months[key]);
+    });
 }
 
 function closeMonthModal() {
@@ -1527,9 +1537,17 @@ function delExpense(id){
   if(!m){ toast('⚠️ بيانات الشهر غير محملة','err'); return; }
   const expenses=(m.expenses||[]).filter(e=>e.id!==id);
   const val = expenses.length ? expenses : null;
+  // تحديث الـ cache المحلي فوراً قبل انتظار Firebase
+  C.months[activeMonthKey].expenses = expenses;
+  renderExpenses();
   REF.months.child(activeMonthKey+'/expenses').set(val)
-    .then(()=>{ toast('🗑️ تم حذف المصروف','ok'); renderExpenses(); })
-    .catch(err=>{ toast('❌ فشل الحذف: '+err.message,'err'); console.error(err); });
+    .then(()=>toast('🗑️ تم حذف المصروف','ok'))
+    .catch(err=>{
+      toast('❌ فشل الحذف: '+err.message,'err');
+      // استعادة الـ cache القديم عند الفشل
+      C.months[activeMonthKey].expenses = m.expenses;
+      renderExpenses();
+    });
 }
 
 function renderExpenses(){
@@ -2494,8 +2512,7 @@ function delTestimonial(id) {
   const t = _testimonials[id];
   openConfirm(`حذف شهادة "${t?.name}"؟`, () =>
     db.ref('wodnour_testimonials/'+id).remove()
-      .then(()=>toast('🗑️ تم الحذف','ok'))
-      .catch(err=>toast('❌ فشل الحذف: '+err.message,'err')));
+      .then(()=>toast('🗑️ تم الحذف','ok')));
 }
 
 /* ══════════ REQUESTS — show amount ══════════ */
