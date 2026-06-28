@@ -1522,11 +1522,14 @@ function addExpense(){
 }
 
 function delExpense(id){
-  if(!activeMonthKey) return;
+  if(!activeMonthKey){ toast('⚠️ لم يتم تحديد الشهر','err'); return; }
   const m=C.months[activeMonthKey];
+  if(!m){ toast('⚠️ بيانات الشهر غير محملة','err'); return; }
   const expenses=(m.expenses||[]).filter(e=>e.id!==id);
-  REF.months.child(activeMonthKey+'/expenses').set(expenses.length ? expenses : null)
-    .then(()=>{ toast('🗑️ تم حذف المصروف','ok'); renderExpenses(); });
+  const val = expenses.length ? expenses : null;
+  REF.months.child(activeMonthKey+'/expenses').set(val)
+    .then(()=>{ toast('🗑️ تم حذف المصروف','ok'); renderExpenses(); })
+    .catch(err=>{ toast('❌ فشل الحذف: '+err.message,'err'); console.error(err); });
 }
 
 function renderExpenses(){
@@ -2491,7 +2494,8 @@ function delTestimonial(id) {
   const t = _testimonials[id];
   openConfirm(`حذف شهادة "${t?.name}"؟`, () =>
     db.ref('wodnour_testimonials/'+id).remove()
-      .then(()=>toast('🗑️ تم الحذف','ok')));
+      .then(()=>toast('🗑️ تم الحذف','ok'))
+      .catch(err=>toast('❌ فشل الحذف: '+err.message,'err')));
 }
 
 /* ══════════ REQUESTS — show amount ══════════ */
