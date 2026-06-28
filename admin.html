@@ -1525,7 +1525,8 @@ function delExpense(id){
   if(!activeMonthKey) return;
   const m=C.months[activeMonthKey];
   const expenses=(m.expenses||[]).filter(e=>e.id!==id);
-  REF.months.child(activeMonthKey+'/expenses').set(expenses);
+  REF.months.child(activeMonthKey+'/expenses').set(expenses.length ? expenses : null)
+    .then(()=>{ toast('🗑️ تم حذف المصروف','ok'); renderExpenses(); });
 }
 
 function renderExpenses(){
@@ -1820,13 +1821,13 @@ const DEFAULT_PLANS_ADMIN = [
 
 let _plans = {};
 
-REF.months.root.child('wodnour_sub_plans').on('value', snap => {
+db.ref('wodnour_sub_plans').on('value', snap => {
   _plans = snap.val() || {};
   // إذا لم تُضبط بعد — احفظ الافتراضية
   if (!Object.keys(_plans).length) {
     const defaults = {};
     DEFAULT_PLANS_ADMIN.forEach(p => defaults[p.id] = p);
-    REF.months.root.child('wodnour_sub_plans').set(defaults);
+    db.ref('wodnour_sub_plans').set(defaults);
     _plans = defaults;
   }
   renderPlansList();
@@ -1934,7 +1935,7 @@ function savePlan() {
     updatedAt: new Date().toLocaleDateString('ar-SA')
   };
 
-  REF.months.root.child('wodnour_sub_plans/' + planId).set(plan).then(() => {
+  db.ref('wodnour_sub_plans/' + planId).set(plan).then(() => {
     toast(`✅ تم حفظ المستوى "${name}" — يظهر على الموقع فوراً`, 'ok');
     cancelEditPlan();
   });
@@ -1957,14 +1958,14 @@ function editPlan(id) {
 }
 
 function togglePlanVisibility(id, visible) {
-  REF.months.root.child('wodnour_sub_plans/' + id + '/visible').set(visible)
+  db.ref('wodnour_sub_plans/' + id + '/visible').set(visible)
     .then(() => toast(visible ? '✅ تم الإظهار' : '🙈 تم الإخفاء', 'ok'));
 }
 
 function deletePlan(id) {
   const p = _plans[id];
   openConfirm(`حذف مستوى "${p?.name}"؟`, () => {
-    REF.months.root.child('wodnour_sub_plans/' + id).remove()
+    db.ref('wodnour_sub_plans/' + id).remove()
       .then(() => toast('🗑️ تم الحذف', 'ok'));
   });
 }
@@ -2310,7 +2311,7 @@ let _dragSrcId = null;
 
 // تهيئة Real-time listener مرة واحدة
 function renderTestimonials() {
-  REF.months.root.child('wodnour_testimonials').on('value', snap => {
+  db.ref('wodnour_testimonials').on('value', snap => {
     _testimonials = snap.val() || {};
     _renderTestimonialsList();
   });
@@ -2419,7 +2420,7 @@ function _reorderByDrop(srcId, targetId) {
   // حفظ الترتيب الجديد
   const updates = {};
   list.forEach((t,i) => { updates[t.id + '/order'] = i+1; });
-  REF.months.root.child('wodnour_testimonials').update(updates)
+  db.ref('wodnour_testimonials').update(updates)
     .then(()=>toast('✅ تم حفظ الترتيب الجديد','ok'));
 }
 
@@ -2432,7 +2433,7 @@ function moveTestimonial(id, dir) {
   const updates = {};
   updates[list[idx].id    + '/order'] = swapIdx + 1;
   updates[list[swapIdx].id + '/order'] = idx + 1;
-  REF.months.root.child('wodnour_testimonials').update(updates)
+  db.ref('wodnour_testimonials').update(updates)
     .then(()=>toast('✅ تم تغيير الترتيب','ok'));
 }
 
@@ -2447,7 +2448,7 @@ function saveTestimonial() {
   if (!text || !name) { toast('⚠️ أدخل النص والاسم','err'); return; }
 
   const id = editId || uid();
-  REF.months.root.child('wodnour_testimonials/'+id).set({
+  db.ref('wodnour_testimonials/'+id).set({
     id, text, name, role, gender, order,
     visible: _testimonials[id]?.visible !== false,
     addedAt: _testimonials[id]?.addedAt || new Date().toLocaleDateString('ar-SA')
@@ -2482,14 +2483,14 @@ function cancelEditTestimonial() {
 }
 
 function toggleTestimonial(id, visible) {
-  REF.months.root.child('wodnour_testimonials/'+id+'/visible').set(visible)
+  db.ref('wodnour_testimonials/'+id+'/visible').set(visible)
     .then(()=>toast(visible?'👁️ ظاهر الآن':'🙈 مخفي الآن','ok'));
 }
 
 function delTestimonial(id) {
   const t = _testimonials[id];
   openConfirm(`حذف شهادة "${t?.name}"؟`, () =>
-    REF.months.root.child('wodnour_testimonials/'+id).remove()
+    db.ref('wodnour_testimonials/'+id).remove()
       .then(()=>toast('🗑️ تم الحذف','ok')));
 }
 
