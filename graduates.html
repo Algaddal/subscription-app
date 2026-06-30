@@ -226,6 +226,45 @@
   .state.show{ display:block; }
   .form-wrap.hide{ display:none; }
 
+  .degree-card{
+    background:#fdfcf9;
+    border:1.5px solid var(--sand);
+    border-radius:14px;
+    padding:1rem 1rem .6rem;
+    margin-bottom:1rem;
+    position:relative;
+  }
+  .degree-card-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:.8rem;
+  }
+  .degree-card-label{
+    font-size:.78rem; font-weight:700; color:var(--gold);
+    letter-spacing:.03em;
+  }
+  .remove-degree-btn{
+    background:none; border:none; color:#b3432f;
+    font-size:.78rem; cursor:pointer; padding:2px 8px;
+    border-radius:8px; transition:background .15s;
+  }
+  .remove-degree-btn:hover{ background:rgba(179,67,47,0.08); }
+
+  .add-degree-btn{
+    width:100%;
+    padding:.7rem;
+    border:1.5px dashed var(--green-mid);
+    border-radius:12px;
+    background:rgba(45,122,79,0.04);
+    color:var(--green-mid);
+    font-family:'Tajawal', sans-serif;
+    font-weight:700;
+    font-size:.88rem;
+    cursor:pointer;
+    margin-bottom:1.4rem;
+    transition:.2s;
+  }
+  .add-degree-btn:hover{ background:rgba(45,122,79,0.09); }
+
   .footer-note{
     margin:0 0 2.5rem;
     font-size:.75rem;
@@ -277,36 +316,21 @@
         <div class="err">الرجاء اختيار البلد</div>
       </div>
 
-      <div class="section-title">البيانات الأكاديمية</div>
-
-      <div class="field" id="f-uni">
-        <label>اسم الجامعة / المعهد<span class="req">*</span></label>
-        <input type="text" id="university" placeholder="مثال: جامعة الخرطوم">
-        <div class="err">الرجاء إدخال اسم الجامعة</div>
-      </div>
-
-      <div class="row2">
-        <div class="field" id="f-major">
-          <label>التخصص<span class="req">*</span></label>
-          <input type="text" id="major" placeholder="مثال: هندسة مدنية">
-          <div class="err">مطلوب</div>
-        </div>
-        <div class="field" id="f-year">
-          <label>سنة التخرج<span class="req">*</span></label>
-          <input type="number" id="year" placeholder="2022" min="1970" max="2026">
-          <div class="err">سنة غير صحيحة</div>
-        </div>
-      </div>
-
       <div class="field">
-        <label>الدرجة العلمية</label>
-        <div class="chips" id="degreeChips">
-          <div class="chip" data-v="بكالوريوس">بكالوريوس</div>
-          <div class="chip" data-v="دبلوم">دبلوم</div>
-          <div class="chip" data-v="ماجستير">ماجستير</div>
-          <div class="chip" data-v="دكتوراه">دكتوراه</div>
+        <label>النوع<span class="req">*</span></label>
+        <div class="chips" id="genderChips">
+          <div class="chip" data-v="ذكر">ذكر</div>
+          <div class="chip" data-v="أنثى">أنثى</div>
         </div>
+        <div class="err" id="genderErr" style="display:none">الرجاء اختيار النوع</div>
       </div>
+
+      <div class="section-title">البيانات الأكاديمية</div>
+      <p class="hint" style="margin:-6px 0 14px">سجّل كل شهادة حصلت عليها — يمكنك إضافة أكثر من شهادة</p>
+
+      <div id="degreesWrap"></div>
+
+      <button type="button" id="addDegreeBtn" class="add-degree-btn">➕ إضافة شهادة أخرى</button>
 
       <div class="section-title">معلومات إضافية</div>
 
@@ -359,14 +383,74 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let degree = "";
+let gender = "";
 let contrib = "";
+let degreeCount = 0;
 
-document.getElementById('degreeChips').addEventListener('click', e=>{
+function degreeCardHTML(idx){
+  return `
+  <div class="degree-card" data-idx="${idx}">
+    <div class="degree-card-head">
+      <span class="degree-card-label">🎓 شهادة ${idx===0?'':'#'+(idx+1)}</span>
+      ${idx>0?`<button type="button" class="remove-degree-btn" data-remove="${idx}">✕ إزالة</button>`:''}
+    </div>
+    <div class="field" id="f-uni-${idx}">
+      <label>اسم الجامعة / المعهد<span class="req">*</span></label>
+      <input type="text" class="uni-input" placeholder="مثال: جامعة الخرطوم">
+      <div class="err">الرجاء إدخال اسم الجامعة</div>
+    </div>
+    <div class="row2">
+      <div class="field" id="f-major-${idx}">
+        <label>التخصص<span class="req">*</span></label>
+        <input type="text" class="major-input" placeholder="مثال: هندسة مدنية">
+        <div class="err">مطلوب</div>
+      </div>
+      <div class="field" id="f-year-${idx}">
+        <label>سنة التخرج<span class="req">*</span></label>
+        <input type="number" class="year-input" placeholder="2022" min="1970" max="2026">
+        <div class="err">سنة غير صحيحة</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>الدرجة العلمية</label>
+      <div class="chips degree-chips">
+        <div class="chip" data-v="بكالوريوس">بكالوريوس</div>
+        <div class="chip" data-v="دبلوم">دبلوم</div>
+        <div class="chip" data-v="ماجستير">ماجستير</div>
+        <div class="chip" data-v="دكتوراه">دكتوراه</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function addDegreeCard(){
+  const wrap = document.getElementById('degreesWrap');
+  const idx = degreeCount++;
+  wrap.insertAdjacentHTML('beforeend', degreeCardHTML(idx));
+}
+
+document.getElementById('addDegreeBtn').addEventListener('click', addDegreeCard);
+addDegreeCard(); // أول شهادة افتراضية
+
+document.getElementById('degreesWrap').addEventListener('click', e=>{
+  if(e.target.classList.contains('chip')){
+    const group = e.target.parentElement;
+    [...group.children].forEach(c=>c.classList.remove('active'));
+    e.target.classList.add('active');
+    return;
+  }
+  if(e.target.dataset.remove !== undefined){
+    e.target.closest('.degree-card').remove();
+    return;
+  }
+});
+
+document.getElementById('genderChips').addEventListener('click', e=>{
   if(!e.target.classList.contains('chip'))return;
   [...e.target.parentElement.children].forEach(c=>c.classList.remove('active'));
   e.target.classList.add('active');
-  degree = e.target.dataset.v;
+  gender = e.target.dataset.v;
+  document.getElementById('genderErr').style.display = 'none';
 });
 document.getElementById('contribChips').addEventListener('click', e=>{
   if(!e.target.classList.contains('chip'))return;
@@ -376,7 +460,8 @@ document.getElementById('contribChips').addEventListener('click', e=>{
 });
 
 function setInvalid(id, invalid){
-  document.getElementById('f-'+id).classList.toggle('invalid', invalid);
+  const el = document.getElementById(id);
+  if(el) el.classList.toggle('invalid', invalid);
 }
 
 document.getElementById('gradForm').addEventListener('submit', async (e)=>{
@@ -385,21 +470,45 @@ document.getElementById('gradForm').addEventListener('submit', async (e)=>{
   const name = document.getElementById('name').value.trim();
   const phone = document.getElementById('phone').value.trim();
   const country = document.getElementById('country').value;
-  const university = document.getElementById('university').value.trim();
-  const major = document.getElementById('major').value.trim();
-  const year = document.getElementById('year').value;
   const job = document.getElementById('job').value.trim();
 
   let valid = true;
-  setInvalid('name', !name); if(!name) valid=false;
-  setInvalid('phone', !/^[0-9]{8,15}$/.test(phone)); if(!/^[0-9]{8,15}$/.test(phone)) valid=false;
-  setInvalid('country', !country); if(!country) valid=false;
-  setInvalid('uni', !university); if(!university) valid=false;
-  setInvalid('major', !major); if(!major) valid=false;
-  setInvalid('year', !(year>=1970 && year<=2026)); if(!(year>=1970 && year<=2026)) valid=false;
+  setInvalid('f-name', !name); if(!name) valid=false;
+  setInvalid('f-phone', !/^[0-9]{8,15}$/.test(phone)); if(!/^[0-9]{8,15}$/.test(phone)) valid=false;
+  setInvalid('f-country', !country); if(!country) valid=false;
+
+  if(!gender){
+    document.getElementById('genderErr').style.display = 'block';
+    valid = false;
+  }
+
+  // جمع كل بطاقات الشهادات
+  const cards = [...document.querySelectorAll('.degree-card')];
+  const degrees = [];
+  cards.forEach(card=>{
+    const idx = card.dataset.idx;
+    const uni = card.querySelector('.uni-input').value.trim();
+    const major = card.querySelector('.major-input').value.trim();
+    const year = card.querySelector('.year-input').value;
+    const degChip = card.querySelector('.degree-chips .chip.active');
+    const degreeLevel = degChip ? degChip.dataset.v : '';
+
+    const uniInvalid = !uni;
+    const majorInvalid = !major;
+    const yearInvalid = !(year>=1970 && year<=2026);
+
+    setInvalid('f-uni-'+idx, uniInvalid); if(uniInvalid) valid=false;
+    setInvalid('f-major-'+idx, majorInvalid); if(majorInvalid) valid=false;
+    setInvalid('f-year-'+idx, yearInvalid); if(yearInvalid) valid=false;
+
+    if(!uniInvalid && !majorInvalid && !yearInvalid){
+      degrees.push({ university: uni, major, year: Number(year), degree: degreeLevel });
+    }
+  });
 
   if(!valid){
-    document.querySelector('.field.invalid').scrollIntoView({behavior:'smooth', block:'center'});
+    const firstInvalid = document.querySelector('.field.invalid') || document.getElementById('genderErr');
+    firstInvalid.scrollIntoView({behavior:'smooth', block:'center'});
     return;
   }
 
@@ -420,10 +529,18 @@ document.getElementById('gradForm').addEventListener('submit', async (e)=>{
       hour12: true
     });
 
+    // أهم شهادة للعرض السريع = آخر شهادة مضافة (الأعلى عادة)
+    const primary = degrees[degrees.length-1] || degrees[0] || {};
+
     await set(newRef, {
-      name, phone, country, university, major,
-      year: Number(year),
-      degree, job, contrib,
+      name, phone, country, gender, job, contrib,
+      degrees,
+      // حقول مسطّحة للتوافق مع لوحة التحكم الحالية وللعرض السريع
+      university: primary.university || '',
+      major: primary.major || '',
+      year: primary.year || '',
+      degree: primary.degree || '',
+      degreesCount: degrees.length,
       submittedAt,
       submittedAtTimestamp: now.getTime()
     });
