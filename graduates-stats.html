@@ -444,7 +444,15 @@
     </div>
 
     <div class="chart-card">
-      <div class="chart-title"><span>📇 دليل الخريجين</span></div>
+      <div class="chart-title">
+        <span>📇 دليل الخريجين</span>
+        <select id="dirSort" style="width:170px">
+          <option value="name-asc">الاسم (أ - ي)</option>
+          <option value="name-desc">الاسم (ي - أ)</option>
+          <option value="newest">الأحدث تسجيلاً</option>
+          <option value="oldest">الأقدم تسجيلاً</option>
+        </select>
+      </div>
       <div class="count-note" id="dirCount"></div>
       <div class="directory-grid" id="directoryGrid"></div>
       <button class="load-more-btn" id="loadMoreBtn" style="display:none">عرض المزيد</button>
@@ -652,6 +660,12 @@ function getFilteredDirectoryPeople(){
 
 function renderDirectory(){
   const people = getFilteredDirectoryPeople();
+  const sort = document.getElementById('dirSort').value;
+  if(sort==='name-asc') people.sort((a,b)=>(a.name||'').localeCompare(b.name||'','ar'));
+  else if(sort==='name-desc') people.sort((a,b)=>(b.name||'').localeCompare(a.name||'','ar'));
+  else if(sort==='newest') people.sort((a,b)=>(b.submittedAtTimestamp||0)-(a.submittedAtTimestamp||0));
+  else if(sort==='oldest') people.sort((a,b)=>(a.submittedAtTimestamp||0)-(b.submittedAtTimestamp||0));
+
   const countEl = document.getElementById('dirCount');
   const grid = document.getElementById('directoryGrid');
   const loadMoreBtn = document.getElementById('loadMoreBtn');
@@ -692,6 +706,11 @@ document.getElementById('loadMoreBtn').addEventListener('click', ()=>{
 });
 
 document.getElementById('searchName').addEventListener('input', ()=>{
+  dirVisibleCount = DIR_PAGE_SIZE;
+  renderDirectory();
+});
+
+document.getElementById('dirSort').addEventListener('change', ()=>{
   dirVisibleCount = DIR_PAGE_SIZE;
   renderDirectory();
 });
