@@ -315,7 +315,7 @@
       </div>
 
       <div class="field" id="f-phone">
-        <label>رقم الواتساب<span class="req">*</span></label>
+        <label>رقم الواتساب <span style="color:#9a9180; font-weight:400;">(اختياري)</span></label>
         <input type="tel" id="phone" placeholder="مثال: 966501234567" inputmode="numeric" style="direction:ltr; text-align:right;">
         <div class="hint">مع رمز الدولة، بدون + أو صفر في البداية</div>
         <div class="err">رقم غير صحيح، تأكد من رمز الدولة</div>
@@ -493,7 +493,8 @@ document.getElementById('gradForm').addEventListener('submit', async (e)=>{
 
   let valid = true;
   setInvalid('f-name', !name); if(!name) valid=false;
-  setInvalid('f-phone', !/^[0-9]{8,15}$/.test(phone)); if(!/^[0-9]{8,15}$/.test(phone)) valid=false;
+  const phoneInvalid = phone && !/^[0-9]{8,15}$/.test(phone);
+  setInvalid('f-phone', phoneInvalid); if(phoneInvalid) valid=false;
   setInvalid('f-country', !country); if(!country) valid=false;
 
   if(!gender){
