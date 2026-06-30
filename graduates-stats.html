@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إحصائيات الخريجين | ودنور الدائم</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-deep: #1a4a2e;
+    --green-mid: #2d7a4f;
+    --green-light: #4aaa72;
+    --gold: #c9a84c;
+    --gold-light: #e8c97e;
+    --cream: #f8f4ed;
+    --sand: #e8dcc8;
+    --dark: #0d2318;
+    --text-body: #2a3d2f;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Tajawal', sans-serif;
+    background: var(--cream);
+    color: var(--text-body);
+    min-height:100vh;
+  }
+
+  /* ===== top band ===== */
+  .top-band{
+    width:100%;
+    background: var(--green-deep);
+    position:relative;
+    overflow:hidden;
+    padding:3rem 1.5rem 5rem;
+    text-align:center;
+  }
+  .top-band::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(60deg, transparent, transparent 40px, rgba(201,168,76,0.04) 40px, rgba(201,168,76,0.04) 41px),
+      repeating-linear-gradient(-60deg, transparent, transparent 40px, rgba(201,168,76,0.04) 40px, rgba(201,168,76,0.04) 41px);
+  }
+  .hero-circle{
+    position:absolute; border-radius:50%;
+    border:1px solid rgba(201,168,76,0.15);
+    animation: pulse-ring 4s ease-in-out infinite;
+  }
+  .hero-circle:nth-child(1){ width:220px; height:220px; top:-60px; left:-60px; }
+  .hero-circle:nth-child(2){ width:340px; height:340px; bottom:-150px; right:-100px; animation-delay:1.2s; }
+  @keyframes pulse-ring{
+    0%,100%{ opacity:.3; transform:scale(1); }
+    50%{ opacity:.7; transform:scale(1.05); }
+  }
+  .back-link{
+    position:relative; z-index:2;
+    display:inline-flex; align-items:center; gap:6px;
+    color: rgba(255,255,255,0.7);
+    text-decoration:none;
+    font-size:.82rem;
+    margin-bottom:1.2rem;
+    padding:.4rem .9rem;
+    border-radius:50px;
+    border:1px solid rgba(255,255,255,0.15);
+    transition:.2s;
+  }
+  .back-link:hover{
+    color:#fff;
+    border-color: rgba(201,168,76,0.5);
+    background: rgba(201,168,76,0.1);
+  }
+  .badge{
+    position:relative; z-index:2;
+    display:inline-block;
+    background: rgba(201,168,76,0.15);
+    border:1px solid rgba(201,168,76,0.4);
+    color: var(--gold-light);
+    padding:.4rem 1.4rem;
+    border-radius:50px;
+    font-size:.8rem;
+    letter-spacing:1.5px;
+    margin-bottom:1rem;
+  }
+  .top-band h1{
+    position:relative; z-index:2;
+    font-family:'Amiri', serif;
+    color:#fff;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    margin-bottom:.6rem;
+  }
+  .top-band p{
+    position:relative; z-index:2;
+    color: rgba(255,255,255,0.75);
+    font-size:.95rem;
+    max-width:480px;
+    margin:0 auto;
+    line-height:1.9;
+  }
+
+  .wrap{
+    max-width:1100px;
+    margin:-3rem auto 0;
+    padding:0 1.4rem 4rem;
+    position:relative;
+    z-index:3;
+  }
+
+  /* ===== summary stats ===== */
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:14px;
+    margin-bottom:1.6rem;
+  }
+  .stat-card{
+    background:#fff;
+    border:1px solid var(--sand);
+    border-radius:18px;
+    padding:1.4rem 1.2rem;
+    text-align:center;
+    box-shadow:0 14px 34px rgba(13,35,24,0.07);
+  }
+  .stat-card .ico{ font-size:1.6rem; margin-bottom:.4rem; }
+  .stat-card .val{
+    font-family:'Amiri', serif;
+    font-size:1.9rem;
+    font-weight:700;
+    color: var(--green-deep);
+    line-height:1;
+  }
+  .stat-card .lbl{
+    font-size:.78rem;
+    color:#7c8a80;
+    margin-top:.4rem;
+  }
+
+  /* ===== filters ===== */
+  .filters-card{
+    background:#fff;
+    border:1px solid var(--sand);
+    border-radius:18px;
+    padding:1.2rem 1.4rem;
+    margin-bottom:1.6rem;
+    box-shadow:0 14px 34px rgba(13,35,24,0.07);
+  }
+  .filters-title{
+    font-family:'Amiri', serif;
+    font-size:1.05rem;
+    color:var(--green-deep);
+    margin-bottom:.9rem;
+  }
+  .filters-row{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:.7rem;
+  }
+  select{
+    width:100%;
+    padding:.65rem .8rem;
+    border:1.5px solid var(--sand);
+    border-radius:10px;
+    background:#fdfcf9;
+    font-family:'Tajawal', sans-serif;
+    font-size:.85rem;
+    color:var(--text-body);
+    outline:none;
+    cursor:pointer;
+  }
+  select:focus{ border-color:var(--green-mid); }
+  .reset-btn{
+    margin-top:.8rem;
+    background:none;
+    border:none;
+    color:var(--green-mid);
+    font-family:'Tajawal', sans-serif;
+    font-size:.8rem;
+    font-weight:700;
+    cursor:pointer;
+    text-decoration:underline;
+    padding:0;
+  }
+
+  /* ===== chart section ===== */
+  .chart-card{
+    background:#fff;
+    border:1px solid var(--sand);
+    border-radius:18px;
+    padding:1.4rem;
+    margin-bottom:1.6rem;
+    box-shadow:0 14px 34px rgba(13,35,24,0.07);
+  }
+  .chart-title{
+    font-family:'Amiri', serif;
+    font-size:1.1rem;
+    color:var(--green-deep);
+    margin-bottom:1rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .chart-tabs{
+    display:flex;
+    gap:.4rem;
+    background:var(--cream);
+    border-radius:10px;
+    padding:3px;
+  }
+  .chart-tab{
+    padding:.4rem .9rem;
+    border-radius:8px;
+    font-size:.78rem;
+    font-weight:700;
+    color:#7c8a80;
+    cursor:pointer;
+    user-select:none;
+    transition:.15s;
+  }
+  .chart-tab.active{
+    background:var(--green-deep);
+    color:#fff;
+  }
+
+  .bar-row{
+    display:flex;
+    align-items:center;
+    gap:.8rem;
+    margin-bottom:.65rem;
+  }
+  .bar-label{
+    width:150px;
+    flex-shrink:0;
+    font-size:.8rem;
+    color:var(--text-body);
+    text-align:left;
+    direction:ltr;
+    text-overflow:ellipsis;
+    overflow:hidden;
+    white-space:nowrap;
+  }
+  .bar-track{
+    flex:1;
+    height:22px;
+    background:var(--cream);
+    border-radius:50px;
+    overflow:hidden;
+    position:relative;
+  }
+  .bar-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--green-mid), var(--green-light));
+    border-radius:50px;
+    transition:width .6s ease;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    padding-left:8px;
+  }
+  .bar-val{
+    font-size:.72rem;
+    font-weight:700;
+    color:#fff;
+    white-space:nowrap;
+  }
+  .empty-note{
+    text-align:center;
+    color:#9a9180;
+    font-size:.85rem;
+    padding:2rem 0;
+  }
+
+  /* ===== gender donut ===== */
+  .gender-row{
+    display:flex;
+    align-items:center;
+    gap:1.6rem;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .donut{
+    width:140px; height:140px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+  .gender-legend{ display:flex; flex-direction:column; gap:.6rem; }
+  .legend-item{ display:flex; align-items:center; gap:.5rem; font-size:.85rem; }
+  .legend-dot{ width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+
+  .footer-note{
+    text-align:center;
+    font-size:.75rem;
+    color:#a89f8b;
+    padding-top:1rem;
+  }
+
+  @media(max-width:640px){
+    .wrap{ margin-top:-2rem; }
+    .bar-label{ width:100px; font-size:.72rem; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="top-band">
+    <div class="hero-circle"></div>
+    <div class="hero-circle"></div>
+    <a href="index.html" class="back-link">→ الرجوع إلى الصفحة الرئيسية</a>
+    <div class="badge">مبادرة وحدة وتعمير ودنور الدائم</div>
+    <h1>📊 إحصائيات خريجي ودنور</h1>
+    <p>لمحة عن خريجي مدينتنا، توزيعهم حسب التخصص والجامعة والمكان — شبكة تجمعنا أينما كنا.</p>
+  </div>
+
+  <div class="wrap">
+
+    <div class="stats-grid">
+      <div class="stat-card"><div class="ico">🎓</div><div class="val" id="st-total">—</div><div class="lbl">إجمالي الخريجين</div></div>
+      <div class="stat-card"><div class="ico">🏛️</div><div class="val" id="st-unis">—</div><div class="lbl">جامعة ومعهد</div></div>
+      <div class="stat-card"><div class="ico">📘</div><div class="val" id="st-majors">—</div><div class="lbl">تخصص مختلف</div></div>
+      <div class="stat-card"><div class="ico">🌍</div><div class="val" id="st-countries">—</div><div class="lbl">دولة إقامة</div></div>
+    </div>
+
+    <div class="filters-card">
+      <div class="filters-title">🔍 فلترة البيانات</div>
+      <div class="filters-row">
+        <select id="f-university"><option value="">كل الجامعات</option></select>
+        <select id="f-major"><option value="">كل التخصصات</option></select>
+        <select id="f-year"><option value="">كل سنوات التخرج</option></select>
+        <select id="f-country"><option value="">كل الدول</option></select>
+      </div>
+      <button class="reset-btn" id="resetBtn">↺ إعادة ضبط الفلاتر</button>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">
+        <span id="chartHeading">عدد الخريجين حسب التخصص</span>
+        <div class="chart-tabs">
+          <div class="chart-tab active" data-dim="major">التخصص</div>
+          <div class="chart-tab" data-dim="university">الجامعة</div>
+          <div class="chart-tab" data-dim="country">الدولة</div>
+          <div class="chart-tab" data-dim="year">سنة التخرج</div>
+        </div>
+      </div>
+      <div id="chartBody"></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title"><span>👫 التوزيع حسب النوع</span></div>
+      <div class="gender-row">
+        <svg class="donut" id="genderDonut" viewBox="0 0 36 36"></svg>
+        <div class="gender-legend" id="genderLegend"></div>
+      </div>
+    </div>
+
+    <div class="footer-note">wadnouraldaim.com — بيانات إحصائية مجمّعة فقط، بدون أي أسماء أو معلومات تواصل شخصية</div>
+
+  </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  databaseURL: "https://subscription-app-865cd-default-rtdb.firebaseio.com"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let RAW = [];      // كل خريج كسجل واحد {gender, country, degrees:[...]}
+let ROWS = [];      // كل شهادة كصف مستقل {gender, country, university, major, year}
+let currentDim = 'major';
+
+function flatten(graduates){
+  const rows = [];
+  graduates.forEach(g=>{
+    const degList = Array.isArray(g.degrees) && g.degrees.length ? g.degrees
+      : (g.university ? [{university:g.university, major:g.major, year:g.year}] : []);
+    degList.forEach(d=>{
+      rows.push({
+        gender: g.gender || '',
+        country: g.country || '',
+        university: d.university || '',
+        major: d.major || '',
+        year: d.year || ''
+      });
+    });
+  });
+  return rows;
+}
+
+function populateFilters(){
+  const unis = [...new Set(ROWS.map(r=>r.university).filter(Boolean))].sort();
+  const majors = [...new Set(ROWS.map(r=>r.major).filter(Boolean))].sort();
+  const years = [...new Set(ROWS.map(r=>r.year).filter(Boolean))].sort((a,b)=>b-a);
+  const countries = [...new Set(ROWS.map(r=>r.country).filter(Boolean))].sort();
+
+  document.getElementById('f-university').innerHTML = '<option value="">كل الجامعات</option>' + unis.map(u=>`<option value="${u}">${u}</option>`).join('');
+  document.getElementById('f-major').innerHTML = '<option value="">كل التخصصات</option>' + majors.map(m=>`<option value="${m}">${m}</option>`).join('');
+  document.getElementById('f-year').innerHTML = '<option value="">كل سنوات التخرج</option>' + years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  document.getElementById('f-country').innerHTML = '<option value="">كل الدول</option>' + countries.map(c=>`<option value="${c}">${c}</option>`).join('');
+}
+
+function getFilteredRows(){
+  const uni = document.getElementById('f-university').value;
+  const major = document.getElementById('f-major').value;
+  const year = document.getElementById('f-year').value;
+  const country = document.getElementById('f-country').value;
+  return ROWS.filter(r=>{
+    if(uni && r.university !== uni) return false;
+    if(major && r.major !== major) return false;
+    if(year && String(r.year) !== year) return false;
+    if(country && r.country !== country) return false;
+    return true;
+  });
+}
+
+function getFilteredGraduates(){
+  // للإحصاء على مستوى الشخص (وليس الشهادة) — نحسب من طابق أي شهادة منه الفلاتر
+  const uni = document.getElementById('f-university').value;
+  const major = document.getElementById('f-major').value;
+  const year = document.getElementById('f-year').value;
+  const country = document.getElementById('f-country').value;
+  if(!uni && !major && !year && !country) return RAW;
+  return RAW.filter(g=>{
+    if(country && g.country !== country) return false;
+    const degList = Array.isArray(g.degrees) && g.degrees.length ? g.degrees
+      : (g.university ? [{university:g.university, major:g.major, year:g.year}] : []);
+    return degList.some(d=>
+      (!uni || d.university===uni) &&
+      (!major || d.major===major) &&
+      (!year || String(d.year)===year)
+    );
+  });
+}
+
+const DIM_LABELS = {
+  major: 'عدد الخريجين حسب التخصص',
+  university: 'عدد الخريجين حسب الجامعة',
+  country: 'عدد الخريجين حسب الدولة',
+  year: 'عدد الخريجين حسب سنة التخرج'
+};
+
+function renderChart(){
+  document.getElementById('chartHeading').textContent = DIM_LABELS[currentDim];
+  const rows = getFilteredRows();
+  const counts = {};
+  rows.forEach(r=>{
+    const key = r[currentDim] || '—';
+    counts[key] = (counts[key]||0) + 1;
+  });
+  let entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  if(currentDim==='year') entries = Object.entries(counts).sort((a,b)=>b[0]-a[0]);
+  entries = entries.slice(0, 12); // أعلى ١٢ فقط لوضوح الرسم
+
+  const body = document.getElementById('chartBody');
+  if(!entries.length){
+    body.innerHTML = '<div class="empty-note">لا توجد بيانات مطابقة للفلاتر الحالية</div>';
+    return;
+  }
+  const max = Math.max(...entries.map(e=>e[1]));
+  body.innerHTML = entries.map(([label,count])=>{
+    const pct = Math.max(6, Math.round((count/max)*100));
+    return `<div class="bar-row">
+      <div class="bar-label" title="${label}">${label}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pct}%">
+          <span class="bar-val">${count.toLocaleString('ar-EG')}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderGenderDonut(){
+  const grads = getFilteredGraduates();
+  const male = grads.filter(g=>g.gender==='ذكر').length;
+  const female = grads.filter(g=>g.gender==='أنثى').length;
+  const unknown = grads.length - male - female;
+  const total = grads.length || 1;
+
+  const malePct = (male/total)*100;
+  const femalePct = (female/total)*100;
+  const unkPct = (unknown/total)*100;
+
+  const donut = document.getElementById('genderDonut');
+  const c = 2 * Math.PI * 15.915; // محيط دائرة نصف قطرها مقياسي لـ viewBox 36
+  let offset = 0;
+  const segs = [
+    { pct: malePct, color: '#2d7a4f' },
+    { pct: femalePct, color: '#c9a84c' },
+    { pct: unkPct, color: '#d8cfb8' }
+  ];
+  let circles = '';
+  segs.forEach(s=>{
+    if(s.pct<=0) return;
+    const dash = (s.pct/100) * c;
+    circles += `<circle cx="18" cy="18" r="15.915" fill="transparent" stroke="${s.color}" stroke-width="5"
+      stroke-dasharray="${dash} ${c-dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 18 18)"/>`;
+    offset += dash;
+  });
+  donut.innerHTML = circles || `<circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#e8dcc8" stroke-width="5"/>`;
+
+  document.getElementById('genderLegend').innerHTML = `
+    <div class="legend-item"><span class="legend-dot" style="background:#2d7a4f"></span> ذكور — ${male.toLocaleString('ar-EG')} (${Math.round(malePct)}٪)</div>
+    <div class="legend-item"><span class="legend-dot" style="background:#c9a84c"></span> إناث — ${female.toLocaleString('ar-EG')} (${Math.round(femalePct)}٪)</div>
+    ${unknown>0?`<div class="legend-item"><span class="legend-dot" style="background:#d8cfb8"></span> غير محدد — ${unknown.toLocaleString('ar-EG')}</div>`:''}
+  `;
+}
+
+function renderSummaryStats(){
+  const grads = getFilteredGraduates();
+  const rows = getFilteredRows();
+  document.getElementById('st-total').textContent = grads.length.toLocaleString('ar-EG');
+  document.getElementById('st-unis').textContent = new Set(rows.map(r=>r.university).filter(Boolean)).size.toLocaleString('ar-EG');
+  document.getElementById('st-majors').textContent = new Set(rows.map(r=>r.major).filter(Boolean)).size.toLocaleString('ar-EG');
+  document.getElementById('st-countries').textContent = new Set(grads.map(g=>g.country).filter(Boolean)).size.toLocaleString('ar-EG');
+}
+
+function renderAll(){
+  renderSummaryStats();
+  renderChart();
+  renderGenderDonut();
+}
+
+document.querySelectorAll('.chart-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.chart-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    currentDim = tab.dataset.dim;
+    renderChart();
+  });
+});
+
+['f-university','f-major','f-year','f-country'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', renderAll);
+});
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  ['f-university','f-major','f-year','f-country'].forEach(id=>{
+    document.getElementById(id).value = '';
+  });
+  renderAll();
+});
+
+(async function init(){
+  try{
+    const snap = await get(ref(db, 'graduates'));
+    const data = snap.val() || {};
+    RAW = Object.values(data);
+    ROWS = flatten(RAW);
+    populateFilters();
+    renderAll();
+  }catch(err){
+    console.error(err);
+    document.getElementById('chartBody').innerHTML = '<div class="empty-note">تعذّر تحميل البيانات، الرجاء المحاولة لاحقاً</div>';
+  }
+})();
+</script>
+</body>
+</html>
