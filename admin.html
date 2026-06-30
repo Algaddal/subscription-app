@@ -281,6 +281,7 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
     <button class="ntab" onclick="showPage('projects')" id="tab-projects">🏗️ <span>المشاريع</span></button>
     <button class="ntab" onclick="showPage('plans')" id="tab-plans">💳 <span>مستويات الاشتراك</span></button>
     <button class="ntab" onclick="showPage('requests')" id="tab-requests">📬 <span>طلبات الانضمام</span> <span class="badge" id="reqCount" style="display:none">0</span></button>
+    <button class="ntab" onclick="showPage('graduates')" id="tab-graduates">🎓 <span>الخريجون</span> <span class="badge" id="gradCount" style="display:none">0</span></button>
     <button class="ntab" onclick="showPage('settings')" id="tab-settings">⚙️ <span>الإعدادات</span></button>
   </div>
   <div class="nav-right">
@@ -672,10 +673,48 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
         <p style="font-size:.78rem;margin-top:6px">ستظهر هنا عند تعبئة نموذج الانضمام في الموقع</p>
       </div>
     </div>
-  </div>
 </div>
 
-<!-- ══════ PAGE: SETTINGS ══════ -->
+<!-- ══════ PAGE: GRADUATES ══════ -->
+<div class="page" id="page-graduates">
+  <div class="pg-title">🎓 سجل الخريجين</div>
+  <div class="stats-row">
+    <div class="stat gold"><div class="stat-ico">🎓</div><div class="stat-lbl">إجمالي الخريجين</div><div class="stat-val" id="grad-total">0</div></div>
+    <div class="stat green"><div class="stat-ico">🏛️</div><div class="stat-lbl">عدد الجامعات</div><div class="stat-val" id="grad-unis">0</div></div>
+    <div class="stat blue"><div class="stat-ico">🤝</div><div class="stat-lbl">مستعدون للمساهمة</div><div class="stat-val" id="grad-willing">0</div></div>
+    <div class="stat red"><div class="stat-ico">🌍</div><div class="stat-lbl">عدد الدول</div><div class="stat-val" id="grad-countries">0</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">قائمة الخريجين</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input type="text" class="inp btn-sm" id="gradSearch" placeholder="ابحث بالاسم أو الجامعة أو التخصص..." style="width:220px" oninput="renderGraduates()">
+        <select class="inp btn-sm" id="gradCountryFilter" onchange="renderGraduates()" style="width:140px">
+          <option value="">كل الدول</option>
+        </select>
+        <select class="inp btn-sm" id="gradYearFilter" onchange="renderGraduates()" style="width:120px">
+          <option value="">كل السنوات</option>
+        </select>
+        <select class="inp btn-sm" id="gradSort" onchange="renderGraduates()" style="width:140px">
+          <option value="desc">الأحدث تسجيلاً</option>
+          <option value="asc">الأقدم تسجيلاً</option>
+          <option value="year-desc">الأحدث تخرجاً</option>
+          <option value="year-asc">الأقدم تخرجاً</option>
+          <option value="name">الاسم أبجدياً</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="exportGraduatesExcel()">📥 تصدير Excel</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div id="gradList"></div>
+      <div id="gradEmpty" style="text-align:center;padding:40px;color:var(--tx2)">
+        <div style="font-size:2.5rem;opacity:.3;margin-bottom:10px">🎓</div>
+        <p>لا يوجد خريجون مسجلون بعد</p>
+        <p style="font-size:.78rem;margin-top:6px">ستظهر هنا بيانات كل من يسجل عبر نموذج الخريجين في الموقع</p>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="page" id="page-settings">
   <div class="pg-title">⚙️ إعدادات الموقع</div>
   <div class="settings-grid">
@@ -948,11 +987,12 @@ const REF = {
   subscribers: db.ref('wodnour_subscribers'),
   projects:    db.ref('wodnour_projects'),
   requests:    db.ref('wodnour_requests'),
+  graduates:   db.ref('graduates'),
   settings:    db.ref('wodnour_settings'),
 };
 
 // cache
-let C = { months:{}, subscribers:{}, projects:{}, requests:{}, settings:{} };
+let C = { months:{}, subscribers:{}, projects:{}, requests:{}, settings:{}, graduates:{} };
 let currentRole = null;
 let activeMonthKey = null;
 let allSubsData = [], filtSubsData = [];
@@ -1031,6 +1071,7 @@ function showPage(name){
   if(name==='projects') renderProjects();
   if(name==='plans') { renderPlansList(); renderPlansPreview(); }
   if(name==='requests') renderRequests();
+  if(name==='graduates') renderGraduates();
   if(name==='settings') loadSettings();
 }
 
@@ -1040,6 +1081,7 @@ function startSync(){
   REF.subscribers.on('value', s=>{ C.subscribers=s.val()||{}; renderHonorList(); updateReqCount(); });
   REF.projects.on('value', s=>{ C.projects=s.val()||{}; renderProjects(); });
   REF.requests.on('value', s=>{ C.requests=s.val()||{}; updateReqCount(); renderRequests(); });
+  REF.graduates.on('value', s=>{ C.graduates=s.val()||{}; updateGradCount(); renderGraduates(); });
   REF.settings.on('value', s=>{ C.settings=s.val()||{}; loadSettings(); });
   if(typeof db!=='undefined') loadProgress();
   if(typeof db!=='undefined') loadGallery();
@@ -1826,6 +1868,95 @@ function acceptReq(id){
 
 function delReq(id){
   openConfirm('حذف هذا الطلب؟',()=>REF.requests.child(id).remove().then(()=>toast('🗑️ تم الحذف','ok')));
+}
+
+/* ══════════ GRADUATES ══════════ */
+function updateGradCount(){
+  const n=Object.keys(C.graduates).length;
+  const badge=document.getElementById('gradCount');
+  badge.textContent=n; badge.style.display=n?'inline-flex':'none';
+}
+
+function populateGradFilters(all){
+  const countrySel=document.getElementById('gradCountryFilter');
+  const yearSel=document.getElementById('gradYearFilter');
+  const curCountry=countrySel.value, curYear=yearSel.value;
+  const countries=[...new Set(all.map(g=>g.country).filter(Boolean))].sort();
+  const years=[...new Set(all.map(g=>g.year).filter(Boolean))].sort((a,b)=>b-a);
+  countrySel.innerHTML='<option value="">كل الدول</option>'+countries.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  yearSel.innerHTML='<option value="">كل السنوات</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  countrySel.value=curCountry; yearSel.value=curYear;
+}
+
+function renderGraduates(){
+  const all=Object.entries(C.graduates).map(([id,g])=>({id,...g}));
+  populateGradFilters(all);
+
+  const q=(document.getElementById('gradSearch').value||'').trim().toLowerCase();
+  const countryF=document.getElementById('gradCountryFilter').value;
+  const yearF=document.getElementById('gradYearFilter').value;
+  const sort=document.getElementById('gradSort').value;
+
+  let list=all.filter(g=>{
+    if(countryF && g.country!==countryF) return false;
+    if(yearF && String(g.year)!==yearF) return false;
+    if(q){
+      const hay=`${g.name||''} ${g.university||''} ${g.major||''} ${g.job||''}`.toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  list.sort((a,b)=>{
+    if(sort==='asc') return (a.submittedAtTimestamp||0)-(b.submittedAtTimestamp||0);
+    if(sort==='year-desc') return (b.year||0)-(a.year||0);
+    if(sort==='year-asc') return (a.year||0)-(b.year||0);
+    if(sort==='name') return (a.name||'').localeCompare(b.name||'','ar');
+    return (b.submittedAtTimestamp||0)-(a.submittedAtTimestamp||0);
+  });
+
+  document.getElementById('grad-total').textContent=toAr(all.length);
+  document.getElementById('grad-unis').textContent=toAr(new Set(all.map(g=>g.university).filter(Boolean)).size);
+  document.getElementById('grad-willing').textContent=toAr(all.filter(g=>g.contrib==='نعم').length);
+  document.getElementById('grad-countries').textContent=toAr(new Set(all.map(g=>g.country).filter(Boolean)).size);
+
+  const el=document.getElementById('gradList');
+  document.getElementById('gradEmpty').style.display=list.length?'none':'block';
+  const canWrite=currentRole&&ROLE_CFG[currentRole].canWrite;
+
+  el.innerHTML=list.map(g=>`<div class="req-item">
+    <div class="req-info">
+      <div class="req-name">${esc(g.name)}</div>
+      <div class="req-meta">
+        <span>📞 ${esc(g.phone)||'—'}</span>
+        <span>🌍 ${esc(g.country)||'—'}</span>
+        <span>🏛️ ${esc(g.university)||'—'}</span>
+        <span>📘 ${esc(g.major)||'—'}</span>
+        <span>🎓 ${esc(g.degree)||'—'} · ${g.year||'—'}</span>
+        ${g.job?`<span>💼 ${esc(g.job)}</span>`:''}
+        ${g.contrib?`<span style="color:${g.contrib==='نعم'?'var(--gold-l)':'var(--tx2)'};font-weight:${g.contrib==='نعم'?'700':'400'}">🤝 ${esc(g.contrib)}</span>`:''}
+        <span>🗓️ ${esc(g.submittedAt)||'—'}</span>
+      </div>
+    </div>
+    ${canWrite?`<div class="req-actions">
+      <button class="btn btn-ghost btn-sm" onclick="delGrad('${g.id}')">🗑️</button>
+    </div>`:''}
+  </div>`).join('');
+}
+
+function delGrad(id){
+  openConfirm('حذف بيانات هذا الخريج؟',()=>REF.graduates.child(id).remove().then(()=>toast('🗑️ تم الحذف','ok')));
+}
+
+function exportGraduatesExcel(){
+  const all=Object.values(C.graduates);
+  const ws=XLSX.utils.json_to_sheet(all.map(g=>({
+    'الاسم':g.name,'الهاتف':g.phone,'الدولة':g.country,
+    'الجامعة':g.university,'التخصص':g.major,'الدرجة':g.degree,'سنة التخرج':g.year,
+    'مجال العمل':g.job,'مستعد للمساهمة':g.contrib,'تاريخ التسجيل':g.submittedAt
+  })));
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'الخريجون');
+  XLSX.writeFile(wb,'خريجو_ودنور.xlsx');
 }
 
 /* ══════════ SUBSCRIPTION PLANS ══════════ */
