@@ -53,6 +53,23 @@
     0%,100%{ opacity:.3; transform:scale(1); }
     50%{ opacity:.7; transform:scale(1.05); }
   }
+  .back-link{
+    position:relative; z-index:2;
+    display:inline-flex; align-items:center; gap:6px;
+    color: rgba(255,255,255,0.7);
+    text-decoration:none;
+    font-size:.82rem;
+    margin-bottom:1.2rem;
+    padding:.4rem .9rem;
+    border-radius:50px;
+    border:1px solid rgba(255,255,255,0.15);
+    transition:.2s;
+  }
+  .back-link:hover{
+    color:#fff;
+    border-color: rgba(201,168,76,0.5);
+    background: rgba(201,168,76,0.1);
+  }
   .badge{
     position:relative; z-index:2;
     display:inline-block;
@@ -289,6 +306,7 @@
   <div class="top-band">
     <div class="hero-circle"></div>
     <div class="hero-circle"></div>
+    <a href="index.html" class="back-link">→ الرجوع إلى الصفحة الرئيسية</a>
     <div class="badge">مبادرة وحدة وتعمير ودنور الدائم</div>
     <h1>📊 إحصائيات خريجي ودنور</h1>
     <p>لمحة عن خريجي مدينتنا، توزيعهم حسب التخصص والجامعة والمكان — شبكة تجمعنا أينما كنا.</p>
