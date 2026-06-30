@@ -288,6 +288,93 @@
   .legend-item{ display:flex; align-items:center; gap:.5rem; font-size:.85rem; }
   .legend-dot{ width:12px; height:12px; border-radius:50%; flex-shrink:0; }
 
+  /* ===== directory ===== */
+  .search-box{
+    margin-bottom:.7rem;
+  }
+  .search-box input{
+    width:100%;
+    padding:.7rem .9rem;
+    border:1.5px solid var(--sand);
+    border-radius:10px;
+    background:#fdfcf9;
+    font-family:'Tajawal', sans-serif;
+    font-size:.85rem;
+    color:var(--text-body);
+    outline:none;
+  }
+  .search-box input:focus{ border-color:var(--green-mid); }
+
+  .directory-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:12px;
+  }
+  .person-card{
+    background:var(--cream);
+    border:1px solid var(--sand);
+    border-radius:14px;
+    padding:1rem 1.1rem;
+    transition:.2s;
+  }
+  .person-card:hover{
+    border-color:var(--gold);
+    transform:translateY(-2px);
+    box-shadow:0 10px 24px rgba(13,35,24,0.08);
+  }
+  .person-name{
+    font-weight:700;
+    font-size:.92rem;
+    color:var(--green-deep);
+    margin-bottom:.5rem;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .person-degree{
+    font-size:.78rem;
+    color:#5b6a63;
+    line-height:1.7;
+    padding-right:1.4rem;
+    position:relative;
+    margin-bottom:.25rem;
+  }
+  .person-degree::before{
+    content:"🎓";
+    position:absolute;
+    right:0;
+    font-size:.75rem;
+  }
+  .person-degree:last-child{ margin-bottom:0; }
+  .person-meta{
+    font-size:.72rem;
+    color:#9a9180;
+    margin-top:.5rem;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .count-note{
+    font-size:.8rem;
+    color:#7c8a80;
+    margin-bottom:1rem;
+  }
+  .load-more-btn{
+    width:100%;
+    margin-top:1rem;
+    padding:.7rem;
+    border:1.5px solid var(--green-mid);
+    border-radius:10px;
+    background:#fff;
+    color:var(--green-mid);
+    font-family:'Tajawal', sans-serif;
+    font-weight:700;
+    font-size:.85rem;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .load-more-btn:hover{ background:rgba(45,122,79,0.06); }
+
   .footer-note{
     text-align:center;
     font-size:.75rem;
@@ -323,6 +410,9 @@
 
     <div class="filters-card">
       <div class="filters-title">🔍 فلترة البيانات</div>
+      <div class="search-box">
+        <input type="text" id="searchName" placeholder="ابحث باسم الخريج...">
+      </div>
       <div class="filters-row">
         <select id="f-university"><option value="">كل الجامعات</option></select>
         <select id="f-major"><option value="">كل التخصصات</option></select>
@@ -353,7 +443,14 @@
       </div>
     </div>
 
-    <div class="footer-note">wadnouraldaim.com — بيانات إحصائية مجمّعة فقط، بدون أي أسماء أو معلومات تواصل شخصية</div>
+    <div class="chart-card">
+      <div class="chart-title"><span>📇 دليل الخريجين</span></div>
+      <div class="count-note" id="dirCount"></div>
+      <div class="directory-grid" id="directoryGrid"></div>
+      <button class="load-more-btn" id="loadMoreBtn" style="display:none">عرض المزيد</button>
+    </div>
+
+    <div class="footer-note">wadnouraldaim.com — قائمة الخريجين وبياناتهم الأكاديمية مُتاحة للعرض العام ضمن هذه الصفحة</div>
 
   </div>
 
@@ -521,7 +618,83 @@ function renderAll(){
   renderSummaryStats();
   renderChart();
   renderGenderDonut();
+  renderDirectory();
 }
+
+let dirVisibleCount = 24;
+const DIR_PAGE_SIZE = 24;
+
+function getFilteredDirectoryPeople(){
+  const uni = document.getElementById('f-university').value;
+  const major = document.getElementById('f-major').value;
+  const year = document.getElementById('f-year').value;
+  const country = document.getElementById('f-country').value;
+  const q = (document.getElementById('searchName').value||'').trim().toLowerCase();
+
+  return RAW.filter(g=>{
+    if(country && g.country !== country) return false;
+    if(q && !(g.name||'').toLowerCase().includes(q)) return false;
+
+    const degList = Array.isArray(g.degrees) && g.degrees.length ? g.degrees
+      : (g.university ? [{university:g.university, major:g.major, year:g.year, degree:g.degree}] : []);
+
+    if(uni || major || year){
+      const matches = degList.some(d=>
+        (!uni || d.university===uni) &&
+        (!major || d.major===major) &&
+        (!year || String(d.year)===year)
+      );
+      if(!matches) return false;
+    }
+    return true;
+  });
+}
+
+function renderDirectory(){
+  const people = getFilteredDirectoryPeople();
+  const countEl = document.getElementById('dirCount');
+  const grid = document.getElementById('directoryGrid');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+  countEl.textContent = `${people.length.toLocaleString('ar-EG')} خريج مطابق`;
+
+  if(!people.length){
+    grid.innerHTML = '<div class="empty-note">لا توجد نتائج مطابقة</div>';
+    loadMoreBtn.style.display = 'none';
+    return;
+  }
+
+  const visible = people.slice(0, dirVisibleCount);
+  grid.innerHTML = visible.map(g=>{
+    const degList = Array.isArray(g.degrees) && g.degrees.length ? g.degrees
+      : (g.university ? [{university:g.university, major:g.major, year:g.year, degree:g.degree}] : []);
+    const genderIco = g.gender==='أنثى' ? '👩' : g.gender==='ذكر' ? '👨' : '🎓';
+    const degreesHTML = degList.map(d=>
+      `<div class="person-degree">${esc(d.degree)||'—'} · ${esc(d.major)||'—'} · ${esc(d.university)||'—'}${d.year?' ('+d.year+')':''}</div>`
+    ).join('');
+    return `<div class="person-card">
+      <div class="person-name">${genderIco} ${esc(g.name)||'—'}</div>
+      ${degreesHTML}
+      <div class="person-meta">${g.country?`🌍 ${esc(g.country)}`:''}</div>
+    </div>`;
+  }).join('');
+
+  loadMoreBtn.style.display = people.length > dirVisibleCount ? 'block' : 'none';
+}
+
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.getElementById('loadMoreBtn').addEventListener('click', ()=>{
+  dirVisibleCount += DIR_PAGE_SIZE;
+  renderDirectory();
+});
+
+document.getElementById('searchName').addEventListener('input', ()=>{
+  dirVisibleCount = DIR_PAGE_SIZE;
+  renderDirectory();
+});
 
 document.querySelectorAll('.chart-tab').forEach(tab=>{
   tab.addEventListener('click', ()=>{
@@ -533,13 +706,18 @@ document.querySelectorAll('.chart-tab').forEach(tab=>{
 });
 
 ['f-university','f-major','f-year','f-country'].forEach(id=>{
-  document.getElementById(id).addEventListener('change', renderAll);
+  document.getElementById(id).addEventListener('change', ()=>{
+    dirVisibleCount = DIR_PAGE_SIZE;
+    renderAll();
+  });
 });
 
 document.getElementById('resetBtn').addEventListener('click', ()=>{
   ['f-university','f-major','f-year','f-country'].forEach(id=>{
     document.getElementById(id).value = '';
   });
+  document.getElementById('searchName').value = '';
+  dirVisibleCount = DIR_PAGE_SIZE;
   renderAll();
 });
 
