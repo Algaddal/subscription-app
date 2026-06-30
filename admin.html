@@ -181,6 +181,11 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
 
 /* JOIN REQUESTS */
 .req-item{background:var(--s2);border:1px solid var(--border);border-radius:11px;padding:13px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.eg-degree-row{background:var(--s2);border:1px solid var(--border);border-radius:11px;padding:12px;display:flex;flex-direction:column;gap:8px;position:relative}
+.eg-degree-row .eg-row-top{display:flex;gap:8px}
+.eg-degree-row .eg-row-bottom{display:flex;gap:8px}
+.eg-degree-row select.inp{flex:1}
+.eg-remove-degree{background:none;border:none;color:var(--red);cursor:pointer;font-size:.8rem;align-self:flex-end}
 .req-info{flex:1;min-width:180px}
 .req-name{font-weight:700;font-size:.88rem}
 .req-meta{font-size:.72rem;color:var(--tx2);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap}
@@ -950,6 +955,55 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
 </div>
 
 <!-- CONFIRM MODAL -->
+<!-- EDIT GRADUATE MODAL -->
+<div class="modal-bg" id="editGradModal">
+  <div class="modal" style="width:640px;max-width:96vw">
+    <h3>✏️ تعديل بيانات الخريج</h3>
+    <input type="hidden" id="eg-id">
+
+    <div class="form-row">
+      <div class="form-group"><label>الاسم الكامل *</label><input class="inp" id="eg-name" placeholder="الاسم الكامل"></div>
+      <div class="form-group"><label>رقم الواتساب</label><input class="inp" id="eg-phone" placeholder="966501234567"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>الدولة</label>
+        <select class="inp" id="eg-country">
+          <option value="">— اختر —</option>
+          <option>السودان</option><option>السعودية</option><option>الإمارات</option>
+          <option>قطر</option><option>مصر</option><option>أخرى</option>
+        </select>
+      </div>
+      <div class="form-group"><label>النوع</label>
+        <select class="inp" id="eg-gender">
+          <option value="">— اختر —</option>
+          <option value="ذكر">ذكر</option>
+          <option value="أنثى">أنثى</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>مجال العمل الحالي</label><input class="inp" id="eg-job" placeholder="مجال العمل"></div>
+      <div class="form-group"><label>مستعد للمساهمة؟</label>
+        <select class="inp" id="eg-contrib">
+          <option value="">— اختر —</option>
+          <option value="نعم">نعم</option>
+          <option value="ربما لاحقاً">ربما لاحقاً</option>
+          <option value="لا حالياً">لا حالياً</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin:14px 0 8px;font-weight:700;font-size:.85rem;color:var(--gold-l)">🎓 الشهادات</div>
+    <div id="eg-degrees" style="display:flex;flex-direction:column;gap:10px;margin-bottom:10px"></div>
+    <button class="btn btn-ghost btn-sm" onclick="addEgDegreeRow()">➕ إضافة شهادة</button>
+
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeEditGrad()">إلغاء</button>
+      <button class="btn btn-gold" style="flex:1" onclick="saveEditGrad()">💾 حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="confirmModal">
   <div class="modal">
     <h3>⚠️ تأكيد الحذف</h3>
@@ -1954,6 +2008,7 @@ function renderGraduates(){
       </div>
     </div>
     ${canWrite?`<div class="req-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openEditGrad('${g.id}')">✏️ تعديل</button>
       <button class="btn btn-ghost btn-sm" onclick="delGrad('${g.id}')">🗑️</button>
     </div>`:''}
   </div>`;
@@ -1963,6 +2018,99 @@ function renderGraduates(){
 function delGrad(id){
   openConfirm('حذف بيانات هذا الخريج؟',()=>REF.graduates.child(id).remove().then(()=>toast('🗑️ تم الحذف','ok')));
 }
+
+/* ══════════ EDIT GRADUATE ══════════ */
+function egDegreeRowHTML(d){
+  d = d || {};
+  return `<div class="eg-degree-row">
+    <button type="button" class="eg-remove-degree" onclick="this.closest('.eg-degree-row').remove()">✕ إزالة الشهادة</button>
+    <div class="eg-row-top">
+      <input class="inp eg-university" placeholder="اسم الجامعة" value="${esc(d.university)}">
+      <input class="inp eg-major" placeholder="التخصص" value="${esc(d.major)}">
+    </div>
+    <div class="eg-row-bottom">
+      <select class="inp eg-degree">
+        <option value="">— الدرجة —</option>
+        <option value="بكالوريوس" ${d.degree==='بكالوريوس'?'selected':''}>بكالوريوس</option>
+        <option value="دبلوم" ${d.degree==='دبلوم'?'selected':''}>دبلوم</option>
+        <option value="ماجستير" ${d.degree==='ماجستير'?'selected':''}>ماجستير</option>
+        <option value="دكتوراه" ${d.degree==='دكتوراه'?'selected':''}>دكتوراه</option>
+      </select>
+      <input class="inp eg-year" type="number" placeholder="سنة التخرج" min="1970" max="2026" value="${d.year||''}" style="max-width:140px">
+    </div>
+  </div>`;
+}
+
+function addEgDegreeRow(d){
+  document.getElementById('eg-degrees').insertAdjacentHTML('beforeend', egDegreeRowHTML(d));
+}
+
+function openEditGrad(id){
+  const g = C.graduates[id]; if(!g) return;
+  document.getElementById('eg-id').value = id;
+  document.getElementById('eg-name').value = g.name || '';
+  document.getElementById('eg-phone').value = g.phone || '';
+  document.getElementById('eg-country').value = g.country || '';
+  document.getElementById('eg-gender').value = g.gender || '';
+  document.getElementById('eg-job').value = g.job || '';
+  document.getElementById('eg-contrib').value = g.contrib || '';
+
+  const degList = Array.isArray(g.degrees) && g.degrees.length ? g.degrees
+    : (g.university ? [{university:g.university, major:g.major, degree:g.degree, year:g.year}] : []);
+  const wrap = document.getElementById('eg-degrees');
+  wrap.innerHTML = '';
+  (degList.length ? degList : [{}]).forEach(d => addEgDegreeRow(d));
+
+  document.getElementById('editGradModal').classList.add('open');
+}
+
+function closeEditGrad(){
+  document.getElementById('editGradModal').classList.remove('open');
+}
+
+function saveEditGrad(){
+  if(!currentRole||!ROLE_CFG[currentRole].canWrite){ toast('🔒 غير مسموح','err'); return; }
+  const id = document.getElementById('eg-id').value;
+  if(!id) return;
+
+  const name = document.getElementById('eg-name').value.trim();
+  if(!name){ toast('⚠️ أدخل الاسم','err'); return; }
+
+  const degreeRows = [...document.querySelectorAll('#eg-degrees .eg-degree-row')];
+  const degrees = degreeRows.map(row => ({
+    university: row.querySelector('.eg-university').value.trim(),
+    major: row.querySelector('.eg-major').value.trim(),
+    degree: row.querySelector('.eg-degree').value,
+    year: Number(row.querySelector('.eg-year').value) || ''
+  })).filter(d => d.university || d.major || d.year);
+
+  const primary = degrees[degrees.length-1] || degrees[0] || {};
+
+  const updated = {
+    ...C.graduates[id],
+    name,
+    phone: document.getElementById('eg-phone').value.trim(),
+    country: document.getElementById('eg-country').value,
+    gender: document.getElementById('eg-gender').value,
+    job: document.getElementById('eg-job').value.trim(),
+    contrib: document.getElementById('eg-contrib').value,
+    degrees,
+    university: primary.university || '',
+    major: primary.major || '',
+    year: primary.year || '',
+    degree: primary.degree || '',
+    degreesCount: degrees.length
+  };
+
+  REF.graduates.child(id).set(updated).then(()=>{
+    toast('✅ تم حفظ التعديلات','ok');
+    closeEditGrad();
+  });
+}
+
+document.getElementById('editGradModal')?.addEventListener('click', function(e){
+  if(e.target===this) closeEditGrad();
+});
 
 function exportGraduatesExcel(){
   const all=Object.values(C.graduates);
