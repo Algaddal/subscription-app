@@ -684,6 +684,7 @@ tbody td{padding:11px 16px;font-size:.84rem;vertical-align:middle}
     <div class="stat green"><div class="stat-ico">🏛️</div><div class="stat-lbl">عدد الجامعات</div><div class="stat-val" id="grad-unis">0</div></div>
     <div class="stat blue"><div class="stat-ico">🤝</div><div class="stat-lbl">مستعدون للمساهمة</div><div class="stat-val" id="grad-willing">0</div></div>
     <div class="stat red"><div class="stat-ico">🌍</div><div class="stat-lbl">عدد الدول</div><div class="stat-val" id="grad-countries">0</div></div>
+    <div class="stat blue"><div class="stat-ico">👫</div><div class="stat-lbl">ذكور / إناث</div><div class="stat-val" id="grad-gender" style="font-size:1.2rem">0 / 0</div></div>
   </div>
   <div class="card">
     <div class="card-head">
@@ -1916,24 +1917,37 @@ function renderGraduates(){
     return (b.submittedAtTimestamp||0)-(a.submittedAtTimestamp||0);
   });
 
+  const allUnis = new Set();
+  all.forEach(g=>{
+    if(Array.isArray(g.degrees)) g.degrees.forEach(d=>{ if(d.university) allUnis.add(d.university); });
+    else if(g.university) allUnis.add(g.university);
+  });
   document.getElementById('grad-total').textContent=toAr(all.length);
-  document.getElementById('grad-unis').textContent=toAr(new Set(all.map(g=>g.university).filter(Boolean)).size);
+  document.getElementById('grad-unis').textContent=toAr(allUnis.size);
   document.getElementById('grad-willing').textContent=toAr(all.filter(g=>g.contrib==='نعم').length);
   document.getElementById('grad-countries').textContent=toAr(new Set(all.map(g=>g.country).filter(Boolean)).size);
+  const maleCount = all.filter(g=>g.gender==='ذكر').length;
+  const femaleCount = all.filter(g=>g.gender==='أنثى').length;
+  document.getElementById('grad-gender').textContent = toAr(maleCount)+' / '+toAr(femaleCount);
 
   const el=document.getElementById('gradList');
   document.getElementById('gradEmpty').style.display=list.length?'none':'block';
   const canWrite=currentRole&&ROLE_CFG[currentRole].canWrite;
 
-  el.innerHTML=list.map(g=>`<div class="req-item">
+  el.innerHTML=list.map(g=>{
+    const degList = Array.isArray(g.degrees) && g.degrees.length ? g.degrees
+      : (g.university ? [{university:g.university, major:g.major, degree:g.degree, year:g.year}] : []);
+    const degreesHTML = degList.map(d=>
+      `<span>🎓 ${esc(d.degree)||'—'} · ${esc(d.major)||'—'} · ${esc(d.university)||'—'} · ${d.year||'—'}</span>`
+    ).join('');
+    const genderIco = g.gender==='أنثى' ? '👩' : g.gender==='ذكر' ? '👨' : '';
+    return `<div class="req-item">
     <div class="req-info">
-      <div class="req-name">${esc(g.name)}</div>
+      <div class="req-name">${genderIco?genderIco+' ':''}${esc(g.name)}</div>
       <div class="req-meta">
         <span>📞 ${esc(g.phone)||'—'}</span>
         <span>🌍 ${esc(g.country)||'—'}</span>
-        <span>🏛️ ${esc(g.university)||'—'}</span>
-        <span>📘 ${esc(g.major)||'—'}</span>
-        <span>🎓 ${esc(g.degree)||'—'} · ${g.year||'—'}</span>
+        ${degreesHTML}
         ${g.job?`<span>💼 ${esc(g.job)}</span>`:''}
         ${g.contrib?`<span style="color:${g.contrib==='نعم'?'var(--gold-l)':'var(--tx2)'};font-weight:${g.contrib==='نعم'?'700':'400'}">🤝 ${esc(g.contrib)}</span>`:''}
         <span>🗓️ ${esc(g.submittedAt)||'—'}</span>
@@ -1942,7 +1956,8 @@ function renderGraduates(){
     ${canWrite?`<div class="req-actions">
       <button class="btn btn-ghost btn-sm" onclick="delGrad('${g.id}')">🗑️</button>
     </div>`:''}
-  </div>`).join('');
+  </div>`;
+  }).join('');
 }
 
 function delGrad(id){
@@ -1951,11 +1966,16 @@ function delGrad(id){
 
 function exportGraduatesExcel(){
   const all=Object.values(C.graduates);
-  const ws=XLSX.utils.json_to_sheet(all.map(g=>({
-    'الاسم':g.name,'الهاتف':g.phone,'الدولة':g.country,
-    'الجامعة':g.university,'التخصص':g.major,'الدرجة':g.degree,'سنة التخرج':g.year,
-    'مجال العمل':g.job,'مستعد للمساهمة':g.contrib,'تاريخ التسجيل':g.submittedAt
-  })));
+  const ws=XLSX.utils.json_to_sheet(all.map(g=>{
+    const degList = Array.isArray(g.degrees) && g.degrees.length ? g.degrees
+      : (g.university ? [{university:g.university, major:g.major, degree:g.degree, year:g.year}] : []);
+    const degreesText = degList.map(d=>`${d.degree||''} - ${d.major||''} - ${d.university||''} (${d.year||''})`).join(' | ');
+    return {
+      'الاسم':g.name,'النوع':g.gender||'','الهاتف':g.phone,'الدولة':g.country,
+      'الشهادات':degreesText,'عدد الشهادات':degList.length,
+      'مجال العمل':g.job,'مستعد للمساهمة':g.contrib,'تاريخ التسجيل':g.submittedAt
+    };
+  }));
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'الخريجون');
   XLSX.writeFile(wb,'خريجو_ودنور.xlsx');
 }
