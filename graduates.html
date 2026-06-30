@@ -412,11 +412,20 @@ document.getElementById('gradForm').addEventListener('submit', async (e)=>{
 
   try{
     const newRef = push(ref(db, 'graduates'));
+    const now = new Date();
+    const submittedAt = now.toLocaleString('ar-SA', {
+      timeZone: 'Asia/Riyadh',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: true
+    });
+
     await set(newRef, {
       name, phone, country, university, major,
       year: Number(year),
       degree, job, contrib,
-      submittedAt: new Date().toISOString()
+      submittedAt,
+      submittedAtTimestamp: now.getTime()
     });
     document.getElementById('formWrap').classList.add('hide');
     document.getElementById('successState').classList.add('show');
