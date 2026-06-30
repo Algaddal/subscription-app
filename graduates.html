@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سجل الخريجين | ودنور الدائم</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-deep: #1a4a2e;
+    --green-mid: #2d7a4f;
+    --green-light: #4aaa72;
+    --gold: #c9a84c;
+    --gold-light: #e8c97e;
+    --cream: #f8f4ed;
+    --sand: #e8dcc8;
+    --dark: #0d2318;
+    --text-body: #2a3d2f;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Tajawal', sans-serif;
+    background: var(--cream);
+    color: var(--text-body);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  /* ===== top band, mirrors hero treatment ===== */
+  .top-band{
+    width:100%;
+    background: var(--green-deep);
+    position:relative;
+    overflow:hidden;
+    padding:3rem 1.5rem 4rem;
+    text-align:center;
+  }
+  .top-band::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(60deg, transparent, transparent 40px, rgba(201,168,76,0.04) 40px, rgba(201,168,76,0.04) 41px),
+      repeating-linear-gradient(-60deg, transparent, transparent 40px, rgba(201,168,76,0.04) 40px, rgba(201,168,76,0.04) 41px);
+  }
+  .hero-circle{
+    position:absolute; border-radius:50%;
+    border:1px solid rgba(201,168,76,0.15);
+    animation: pulse-ring 4s ease-in-out infinite;
+  }
+  .hero-circle:nth-child(1){ width:220px; height:220px; top:-60px; left:-60px; }
+  .hero-circle:nth-child(2){ width:340px; height:340px; bottom:-120px; right:-100px; animation-delay:1.2s; }
+  @keyframes pulse-ring{
+    0%,100%{ opacity:.3; transform:scale(1); }
+    50%{ opacity:.7; transform:scale(1.05); }
+  }
+
+  .emblem{
+    width:84px; height:84px;
+    margin:0 auto 1.4rem;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:2rem;
+    box-shadow:0 0 50px rgba(201,168,76,.4), 0 0 100px rgba(201,168,76,.15);
+    position:relative; z-index:2;
+  }
+
+  .top-band .badge{
+    position:relative; z-index:2;
+    display:inline-block;
+    background: rgba(201,168,76,0.15);
+    border:1px solid rgba(201,168,76,0.4);
+    color: var(--gold-light);
+    padding:.4rem 1.4rem;
+    border-radius:50px;
+    font-size:.8rem;
+    letter-spacing:1.5px;
+    margin-bottom:1rem;
+  }
+  .top-band h1{
+    position:relative; z-index:2;
+    font-family:'Amiri', serif;
+    color:#fff;
+    font-size: clamp(1.7rem, 5vw, 2.4rem);
+    margin-bottom:.7rem;
+  }
+  .top-band p{
+    position:relative; z-index:2;
+    color: rgba(255,255,255,0.75);
+    font-size:.95rem;
+    max-width:440px;
+    margin:0 auto;
+    line-height:1.9;
+  }
+
+  /* ===== form card ===== */
+  .form-wrap{
+    width:100%;
+    max-width:560px;
+    margin-top:-2.4rem;
+    padding:0 1.4rem 3rem;
+    position:relative;
+    z-index:3;
+  }
+  form{
+    background:#fff;
+    border:1px solid var(--sand);
+    border-radius:22px;
+    padding:2rem 1.7rem 1.7rem;
+    box-shadow:0 20px 50px rgba(13,35,24,0.12);
+  }
+
+  .section-title{
+    font-family:'Amiri', serif;
+    font-size:1.05rem;
+    color: var(--green-deep);
+    margin:0 0 1.1rem;
+    display:flex; align-items:center; gap:.6rem;
+  }
+  .section-title::after{ content:""; flex:1; height:1px; background: var(--sand); }
+  .section-title:not(:first-child){ margin-top:1.8rem; }
+
+  .field{ margin-bottom:1rem; }
+  label{
+    display:block;
+    font-size:.85rem;
+    font-weight:500;
+    color: var(--green-mid);
+    margin-bottom:.4rem;
+  }
+  label .req{ color: var(--gold); margin-left:3px; }
+
+  input, select{
+    width:100%;
+    padding:.8rem .9rem;
+    border:1.5px solid var(--sand);
+    border-radius:12px;
+    background:#fdfcf9;
+    font-family:'Tajawal', sans-serif;
+    font-size:.92rem;
+    color: var(--text-body);
+    outline:none;
+    transition: border-color .25s, box-shadow .25s;
+  }
+  input::placeholder{ color:#a59c87; }
+  input:focus, select:focus{
+    border-color: var(--green-mid);
+    box-shadow: 0 0 0 3px rgba(45,122,79,0.12);
+  }
+
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:.85rem; }
+  @media (max-width:480px){ .row2{ grid-template-columns:1fr; } }
+
+  .hint{ font-size:.75rem; color:#9a9180; margin-top:.3rem; }
+  .err{ font-size:.78rem; color:#b3432f; margin-top:.3rem; display:none; }
+  .field.invalid input, .field.invalid select{ border-color:#b3432f; }
+  .field.invalid .err{ display:block; }
+
+  .chips{ display:flex; flex-wrap:wrap; gap:.5rem; }
+  .chip{
+    padding:.5rem .95rem;
+    border:1.5px solid var(--sand);
+    border-radius:50px;
+    font-size:.82rem;
+    cursor:pointer;
+    user-select:none;
+    color: var(--green-mid);
+    background:#fdfcf9;
+    transition:.2s;
+  }
+  .chip.active{
+    background: var(--green-mid);
+    border-color: var(--green-mid);
+    color:#fff;
+  }
+
+  button[type=submit]{
+    width:100%;
+    margin-top:1.6rem;
+    padding:1rem;
+    border:none;
+    border-radius:14px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--dark);
+    font-family:'Tajawal', sans-serif;
+    font-weight:800;
+    font-size:1rem;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:.6rem;
+    transition: transform .2s, box-shadow .2s;
+  }
+  button[type=submit]:hover{ transform:translateY(-2px); box-shadow:0 8px 24px rgba(201,168,76,.4); }
+  button[type=submit]:disabled{ opacity:.6; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  .spinner{
+    width:16px; height:16px;
+    border:2px solid rgba(13,35,24,.3);
+    border-top-color: var(--dark);
+    border-radius:50%;
+    animation:spin .7s linear infinite;
+    display:none;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .state{
+    width:100%; max-width:560px;
+    margin-top:-2.4rem;
+    padding:2.4rem 1.7rem 3rem;
+    position:relative; z-index:3;
+    text-align:center;
+    display:none;
+  }
+  .state .card{
+    background:#fff;
+    border:1px solid var(--sand);
+    border-radius:22px;
+    padding:3rem 1.7rem;
+    box-shadow:0 20px 50px rgba(13,35,24,0.12);
+  }
+  .state svg{ width:54px; height:54px; margin-bottom:1rem; }
+  .state h2{ font-family:'Amiri', serif; color: var(--green-deep); margin-bottom:.6rem; font-size:1.4rem; }
+  .state p{ color:#6b7a70; line-height:1.8; font-size:.92rem; }
+  .state.show{ display:block; }
+  .form-wrap.hide{ display:none; }
+
+  .footer-note{
+    margin:0 0 2.5rem;
+    font-size:.75rem;
+    color:#a89f8b;
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+  <div class="top-band">
+    <div class="hero-circle"></div>
+    <div class="hero-circle"></div>
+    <div class="emblem">🎓</div>
+    <div class="badge">مبادرة وحدة وتعمير ودنور الدائم</div>
+    <h1>سجل خريجي ودنور</h1>
+    <p>سجّل بياناتك لتكون جزءاً من شبكة خريجي مدينتنا — توثيقاً لمسيرتك، وربطاً بأبناء البلد أينما كانوا.</p>
+  </div>
+
+  <div class="form-wrap" id="formWrap">
+    <form id="gradForm" novalidate>
+
+      <div class="section-title">البيانات الشخصية</div>
+
+      <div class="field" id="f-name">
+        <label>الاسم الكامل<span class="req">*</span></label>
+        <input type="text" id="name" placeholder="مثال: محمد أحمد عبدالله">
+        <div class="err">الرجاء إدخال الاسم الكامل</div>
+      </div>
+
+      <div class="field" id="f-phone">
+        <label>رقم الواتساب<span class="req">*</span></label>
+        <input type="tel" id="phone" placeholder="مثال: 966501234567" inputmode="numeric" style="direction:ltr; text-align:right;">
+        <div class="hint">مع رمز الدولة، بدون + أو صفر في البداية</div>
+        <div class="err">رقم غير صحيح، تأكد من رمز الدولة</div>
+      </div>
+
+      <div class="field" id="f-country">
+        <label>بلد الإقامة الحالي<span class="req">*</span></label>
+        <select id="country">
+          <option value="">اختر البلد</option>
+          <option>السودان</option>
+          <option>السعودية</option>
+          <option>الإمارات</option>
+          <option>قطر</option>
+          <option>مصر</option>
+          <option>أخرى</option>
+        </select>
+        <div class="err">الرجاء اختيار البلد</div>
+      </div>
+
+      <div class="section-title">البيانات الأكاديمية</div>
+
+      <div class="field" id="f-uni">
+        <label>اسم الجامعة / المعهد<span class="req">*</span></label>
+        <input type="text" id="university" placeholder="مثال: جامعة الخرطوم">
+        <div class="err">الرجاء إدخال اسم الجامعة</div>
+      </div>
+
+      <div class="row2">
+        <div class="field" id="f-major">
+          <label>التخصص<span class="req">*</span></label>
+          <input type="text" id="major" placeholder="مثال: هندسة مدنية">
+          <div class="err">مطلوب</div>
+        </div>
+        <div class="field" id="f-year">
+          <label>سنة التخرج<span class="req">*</span></label>
+          <input type="number" id="year" placeholder="2022" min="1970" max="2026">
+          <div class="err">سنة غير صحيحة</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>الدرجة العلمية</label>
+        <div class="chips" id="degreeChips">
+          <div class="chip" data-v="بكالوريوس">بكالوريوس</div>
+          <div class="chip" data-v="دبلوم">دبلوم</div>
+          <div class="chip" data-v="ماجستير">ماجستير</div>
+          <div class="chip" data-v="دكتوراه">دكتوراه</div>
+        </div>
+      </div>
+
+      <div class="section-title">معلومات إضافية</div>
+
+      <div class="field">
+        <label>مجال العمل الحالي</label>
+        <input type="text" id="job" placeholder="مثال: مهندس مشاريع في شركة...">
+      </div>
+
+      <div class="field">
+        <label>هل أنت مستعد للمساهمة في أنشطة المبادرة؟</label>
+        <div class="chips" id="contribChips">
+          <div class="chip" data-v="نعم">نعم</div>
+          <div class="chip" data-v="ربما لاحقاً">ربما لاحقاً</div>
+          <div class="chip" data-v="لا حالياً">لا حالياً</div>
+        </div>
+      </div>
+
+      <button type="submit">
+        <span class="spinner" id="spin"></span>
+        <span id="btnText">تسجيل بياناتي</span>
+      </button>
+    </form>
+  </div>
+
+  <div class="state" id="successState">
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#2d7a4f" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
+      <h2>تم التسجيل بنجاح</h2>
+      <p>شكراً لانضمامك إلى سجل خريجي ودنور الدائم. بياناتك أصبحت جزءاً من شبكة أبناء المدينة.</p>
+    </div>
+  </div>
+
+  <div class="state" id="errorState">
+    <div class="card">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#b3432f" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      <h2>تعذّر إرسال البيانات</h2>
+      <p>الرجاء التحقق من اتصال الإنترنت والمحاولة مرة أخرى.</p>
+    </div>
+  </div>
+
+  <div class="footer-note">wadnouraldaim.com — جميع البيانات محفوظة بسرية تامة</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  databaseURL: "https://subscription-app-865cd-default-rtdb.firebaseio.com"
+};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+let degree = "";
+let contrib = "";
+
+document.getElementById('degreeChips').addEventListener('click', e=>{
+  if(!e.target.classList.contains('chip'))return;
+  [...e.target.parentElement.children].forEach(c=>c.classList.remove('active'));
+  e.target.classList.add('active');
+  degree = e.target.dataset.v;
+});
+document.getElementById('contribChips').addEventListener('click', e=>{
+  if(!e.target.classList.contains('chip'))return;
+  [...e.target.parentElement.children].forEach(c=>c.classList.remove('active'));
+  e.target.classList.add('active');
+  contrib = e.target.dataset.v;
+});
+
+function setInvalid(id, invalid){
+  document.getElementById('f-'+id).classList.toggle('invalid', invalid);
+}
+
+document.getElementById('gradForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+
+  const name = document.getElementById('name').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const country = document.getElementById('country').value;
+  const university = document.getElementById('university').value.trim();
+  const major = document.getElementById('major').value.trim();
+  const year = document.getElementById('year').value;
+  const job = document.getElementById('job').value.trim();
+
+  let valid = true;
+  setInvalid('name', !name); if(!name) valid=false;
+  setInvalid('phone', !/^[0-9]{8,15}$/.test(phone)); if(!/^[0-9]{8,15}$/.test(phone)) valid=false;
+  setInvalid('country', !country); if(!country) valid=false;
+  setInvalid('uni', !university); if(!university) valid=false;
+  setInvalid('major', !major); if(!major) valid=false;
+  setInvalid('year', !(year>=1970 && year<=2026)); if(!(year>=1970 && year<=2026)) valid=false;
+
+  if(!valid){
+    document.querySelector('.field.invalid').scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+
+  const btn = e.target.querySelector('button[type=submit]');
+  const spin = document.getElementById('spin');
+  const btnText = document.getElementById('btnText');
+  btn.disabled = true;
+  spin.style.display = 'inline-block';
+  btnText.textContent = 'جارٍ الإرسال...';
+
+  try{
+    const newRef = push(ref(db, 'graduates'));
+    await set(newRef, {
+      name, phone, country, university, major,
+      year: Number(year),
+      degree, job, contrib,
+      submittedAt: new Date().toISOString()
+    });
+    document.getElementById('formWrap').classList.add('hide');
+    document.getElementById('successState').classList.add('show');
+  }catch(err){
+    console.error(err);
+    document.getElementById('formWrap').classList.add('hide');
+    document.getElementById('errorState').classList.add('show');
+  }
+});
+</script>
+</body>
+</html>
