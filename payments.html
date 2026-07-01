@@ -9,19 +9,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{
-  --gold:#C9A84C;--gold-l:#E8C97A;--gold-d:#9A7530;
-  --deep:#0D1117;--s1:#161B22;--s2:#1E2530;--s3:#252D3A;
-  --tx:#F0EDE8;--tx2:#8B9299;
-  --green:#3FB68A;--red:#E05C5C;--blue:#4A9ECC;--purple:#9B59B6;
-  --border:rgba(201,168,76,0.18);
-}
+:root{--gold:#C9A84C;--gold-l:#E8C97A;--gold-d:#9A7530;--deep:#0D1117;--s1:#161B22;--s2:#1E2530;--s3:#252D3A;--tx:#F0EDE8;--tx2:#8B9299;--green:#3FB68A;--red:#E05C5C;--blue:#4A9ECC;--purple:#9B59B6;--border:rgba(201,168,76,0.18)}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--deep);color:var(--tx);font-family:'Cairo',sans-serif;min-height:100vh;padding:24px}
-
-/* LOGIN */
 #loginScreen{position:fixed;inset:0;background:var(--deep);z-index:9999;display:flex;align-items:center;justify-content:center}
-.login-box{background:var(--s1);border:1px solid var(--border);border-radius:24px;padding:40px 36px;width:380px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.login-box{background:var(--s1);border:1px solid var(--border);border-radius:24px;padding:40px 36px;width:380px;max-width:92vw}
 .login-logo{text-align:center;margin-bottom:28px}
 .login-logo .ico{width:64px;height:64px;background:linear-gradient(135deg,var(--gold),var(--gold-d));border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-size:2rem;margin-bottom:12px}
 .login-logo h1{font-family:'Tajawal',sans-serif;font-weight:800;font-size:1.1rem;background:linear-gradient(135deg,var(--gold-l),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -30,45 +22,32 @@ body{background:var(--deep);color:var(--tx);font-family:'Cairo',sans-serif;min-h
 .inp:focus{border-color:var(--gold)}
 .btn-login{width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--deep);font-family:'Cairo',sans-serif;font-weight:800;font-size:.95rem;padding:13px;border-radius:10px;border:none;cursor:pointer}
 .login-err{background:rgba(224,92,92,.1);border:1px solid rgba(224,92,92,.25);border-radius:9px;padding:10px;color:var(--red);font-size:.82rem;margin-bottom:14px;display:none;text-align:center}
-
-/* HEADER */
 .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-.header h1{font-family:'Tajawal',sans-serif;font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--gold-l),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:flex;align-items:center;gap:8px}
+.header h1{font-family:'Tajawal',sans-serif;font-size:1.4rem;font-weight:800;background:linear-gradient(135deg,var(--gold-l),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .header-actions{display:flex;gap:8px;flex-wrap:wrap}
-
-/* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px}
 .stat{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:18px}
 .stat-lbl{font-size:.72rem;color:var(--tx2);margin-bottom:4px}
 .stat-val{font-family:'Tajawal',sans-serif;font-size:1.6rem;font-weight:900}
-.stat.gold .stat-val{color:var(--gold-l)}
-.stat.green .stat-val{color:var(--green)}
-.stat.blue .stat-val{color:var(--blue)}
-.stat.purple .stat-val{color:var(--purple)}
+.stat.gold .stat-val{color:var(--gold-l)}.stat.green .stat-val{color:var(--green)}.stat.blue .stat-val{color:var(--blue)}.stat.purple .stat-val{color:var(--purple)}
 .stat-sub{font-size:.68rem;color:var(--tx2);margin-top:4px}
-
-/* FILTERS */
 .filters{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
 .fg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:140px}
 .fg label{font-size:.75rem;color:var(--gold-l);font-weight:600}
 .fg select,.fg input{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.82rem;outline:none}
-.fg select:focus,.fg input:focus{border-color:var(--gold)}
 .fg select option{background:var(--s2)}
-
-/* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:9px;font-family:'Cairo',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;border:none;transition:all .2s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px)}
 .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--deep)}
 .btn-green{background:linear-gradient(135deg,var(--green),#2a9070);color:#fff}
 .btn-red{background:rgba(224,92,92,.12);border:1px solid rgba(224,92,92,.3);color:var(--red)}
 .btn-blue{background:rgba(74,158,204,.12);border:1px solid rgba(74,158,204,.3);color:var(--blue)}
 .btn-purple{background:rgba(155,89,182,.12);border:1px solid rgba(155,89,182,.3);color:var(--purple)}
 .btn-ghost{background:var(--s3);border:1px solid var(--border);color:var(--tx2)}
-.btn:hover{transform:translateY(-1px)}
 .btn-sm{padding:5px 10px;font-size:.72rem}
-
-/* TABLE */
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 .card{background:var(--s1);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px}
-.card-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
 .card-title{font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:8px}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
@@ -76,14 +55,7 @@ thead th{background:var(--s2);padding:10px 14px;text-align:right;font-size:.72re
 tbody tr{border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s}
 tbody tr:hover{background:rgba(201,168,76,.04)}
 tbody td{padding:10px 14px;font-size:.8rem;white-space:nowrap}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:700}
-.badge-green{background:rgba(63,182,138,.12);border:1px solid rgba(63,182,138,.25);color:var(--green)}
-.badge-red{background:rgba(224,92,92,.12);border:1px solid rgba(224,92,92,.25);color:var(--red)}
-.badge-blue{background:rgba(74,158,204,.12);border:1px solid rgba(74,158,204,.25);color:var(--blue)}
 .empty-state{text-align:center;padding:48px;color:var(--tx2)}
-.empty-state .ico{font-size:2.5rem;margin-bottom:12px}
-
-/* MODAL */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px}
 .modal-bg.open{display:flex}
 .modal{background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:28px;width:500px;max-width:96vw;max-height:90vh;overflow-y:auto}
@@ -93,23 +65,17 @@ tbody td{padding:10px 14px;font-size:.8rem;white-space:nowrap}
 .mgroup label{font-size:.76rem;color:var(--gold-l);font-weight:600}
 .mgroup .inp{margin-bottom:0}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;border-top:1px solid var(--border);padding-top:16px}
-
-/* TRANSFER MODAL */
-.transfer-info{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
-.transfer-info .ti-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(201,168,76,.06);font-size:.82rem}
-.transfer-info .ti-row:last-child{border-bottom:none}
-.transfer-info .ti-row span:first-child{color:var(--tx2)}
-.transfer-info .ti-row span:last-child{color:var(--tx);font-weight:600}
-.month-select{display:flex;flex-direction:column;gap:5px;margin-bottom:16px}
-.month-select label{font-size:.76rem;color:var(--gold-l);font-weight:600}
-
-/* TOAST */
+.ti{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px}
+.ti-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(201,168,76,.06);font-size:.82rem}
+.ti-row:last-child{border-bottom:none}
+.ti-row span:first-child{color:var(--tx2)}
+.ti-row span:last-child{font-weight:600}
+.progress-bar{background:var(--s2);border-radius:8px;height:8px;margin-top:8px;overflow:hidden}
+.progress-fill{background:linear-gradient(90deg,var(--green),var(--gold));height:100%;transition:width .3s}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:12px 24px;font-size:.85rem;font-weight:600;z-index:9999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{border-color:rgba(63,182,138,.4);color:var(--green)}
 .toast.err{border-color:rgba(224,92,92,.4);color:var(--red)}
-
-/* LOADING */
 .loading{display:flex;align-items:center;justify-content:center;padding:40px;gap:12px;color:var(--tx2)}
 .spinner{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -117,7 +83,6 @@ tbody td{padding:10px 14px;font-size:.8rem;white-space:nowrap}
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">
@@ -127,71 +92,39 @@ tbody td{padding:10px 14px;font-size:.8rem;white-space:nowrap}
     </div>
     <div class="login-err" id="loginErr">كلمة المرور غير صحيحة</div>
     <label class="lbl">كلمة المرور</label>
-    <input class="inp" type="password" id="pwInput" placeholder="أدخل كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+    <input class="inp" type="password" id="pwInput" placeholder="أدخل كلمة المرور">
     <button class="btn-login" onclick="doLogin()">دخول</button>
   </div>
 </div>
 
-<!-- MAIN -->
 <div id="mainApp" style="display:none">
-
   <div class="header">
     <h1>🧾 سجل الإيصالات</h1>
     <div class="header-actions">
-      <button class="btn btn-blue" onclick="exportExcel()">📥 تصدير Excel</button>
+      <button class="btn btn-purple" onclick="openBulkTransfer()">📤 ترحيل الكل</button>
+      <button class="btn btn-blue" onclick="exportExcel()">📥 Excel</button>
       <button class="btn btn-ghost" onclick="location.href='admin.html'">← لوحة التحكم</button>
     </div>
   </div>
 
-  <!-- STATS -->
-  <div class="stats-row" id="statsRow">
-    <div class="stat gold">
-      <div class="stat-lbl">إجمالي الإيصالات</div>
-      <div class="stat-val" id="statTotal">-</div>
-      <div class="stat-sub">جنيه سوداني</div>
-    </div>
-    <div class="stat green">
-      <div class="stat-lbl">عدد العمليات</div>
-      <div class="stat-val" id="statCount">-</div>
-      <div class="stat-sub">إيصال مسجل</div>
-    </div>
-    <div class="stat blue">
-      <div class="stat-lbl">إجمالي الشهر الحالي</div>
-      <div class="stat-val" id="statMonth">-</div>
-      <div class="stat-sub" id="statMonthName">-</div>
-    </div>
-    <div class="stat purple">
-      <div class="stat-lbl">عدد عمليات الشهر</div>
-      <div class="stat-val" id="statMonthCount">-</div>
-      <div class="stat-sub">هذا الشهر</div>
-    </div>
+  <div class="stats-row">
+    <div class="stat gold"><div class="stat-lbl">إجمالي الإيصالات</div><div class="stat-val" id="statTotal">-</div><div class="stat-sub">جنيه سوداني</div></div>
+    <div class="stat green"><div class="stat-lbl">عدد العمليات</div><div class="stat-val" id="statCount">-</div><div class="stat-sub">إيصال مسجل</div></div>
+    <div class="stat blue"><div class="stat-lbl">إجمالي هذا الشهر</div><div class="stat-val" id="statMonth">-</div><div class="stat-sub" id="statMonthName">-</div></div>
+    <div class="stat purple"><div class="stat-lbl">عمليات هذا الشهر</div><div class="stat-val" id="statMonthCount">-</div><div class="stat-sub">إيصال</div></div>
   </div>
 
-  <!-- FILTERS -->
   <div class="filters">
-    <div class="fg">
-      <label>🔍 بحث</label>
-      <input type="text" id="searchInput" placeholder="اسم أو رقم عملية..." oninput="applyFilters()">
-    </div>
-    <div class="fg">
-      <label>📅 الشهر</label>
-      <select id="monthFilter" onchange="applyFilters()">
-        <option value="">كل الأشهر</option>
-      </select>
-    </div>
-    <div class="fg" style="min-width:80px;max-width:120px">
-      <label>عرض</label>
+    <div class="fg"><label>🔍 بحث</label><input type="text" id="searchInput" placeholder="اسم أو رقم عملية..." oninput="applyFilters()"></div>
+    <div class="fg"><label>📅 الشهر</label><select id="monthFilter" onchange="applyFilters()"><option value="">كل الأشهر</option></select></div>
+    <div class="fg" style="min-width:80px;max-width:110px"><label>عرض</label>
       <select id="limitFilter" onchange="applyFilters()">
-        <option value="50">50</option>
-        <option value="100">100</option>
-        <option value="200">200</option>
-        <option value="0">الكل</option>
+        <option value="50">50</option><option value="100">100</option><option value="200">200</option><option value="0">الكل</option>
       </select>
     </div>
-    <button class="btn btn-ghost btn-sm" onclick="resetFilters()">↺ إعادة تعيين</button>
+    <button class="btn btn-ghost btn-sm" onclick="resetFilters()">↺ إعادة</button>
   </div>
 
-  <!-- TABLE -->
   <div class="card">
     <div class="card-head">
       <div class="card-title">📋 قائمة الإيصالات</div>
@@ -200,106 +133,89 @@ tbody td{padding:10px 14px;font-size:.8rem;white-space:nowrap}
     <div class="tbl-wrap">
       <div class="loading" id="loadingEl"><div class="spinner"></div> جاري التحميل...</div>
       <table id="paymentsTable" style="display:none">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>المرسل</th>
-            <th>من حساب</th>
-            <th>إلى حساب</th>
-            <th>المبلغ</th>
-            <th>التاريخ</th>
-            <th>رقم العملية</th>
-            <th>التعليق</th>
-            <th>إجراءات</th>
-          </tr>
-        </thead>
+        <thead><tr><th>#</th><th>المرسل</th><th>من حساب</th><th>المبلغ</th><th>التاريخ</th><th>رقم العملية</th><th>التعليق</th><th>إجراءات</th></tr></thead>
         <tbody id="tableBody"></tbody>
       </table>
-      <div class="empty-state" id="emptyState" style="display:none">
-        <div class="ico">📭</div>
-        <p>لا توجد إيصالات مطابقة</p>
-      </div>
+      <div class="empty-state" id="emptyState" style="display:none"><div style="font-size:2.5rem;margin-bottom:12px">📭</div><p>لا توجد إيصالات مطابقة</p></div>
     </div>
   </div>
 </div>
 
-<!-- EDIT MODAL -->
+<!-- EDIT -->
 <div class="modal-bg" id="editModal">
   <div class="modal">
     <h2>✏️ تعديل الإيصال</h2>
     <input type="hidden" id="editKey">
     <div class="mrow">
-      <div class="mgroup">
-        <label>اسم المرسل</label>
-        <input class="inp" id="editName" placeholder="اسم المرسل">
-      </div>
-      <div class="mgroup">
-        <label>من حساب</label>
-        <input class="inp" id="editFromAcc" placeholder="رقم الحساب">
-      </div>
+      <div class="mgroup"><label>اسم المرسل</label><input class="inp" id="editName"></div>
+      <div class="mgroup"><label>من حساب</label><input class="inp" id="editFromAcc"></div>
     </div>
     <div class="mrow">
-      <div class="mgroup">
-        <label>إلى حساب</label>
-        <input class="inp" id="editToAcc" placeholder="رقم الحساب">
-      </div>
-      <div class="mgroup">
-        <label>المبلغ</label>
-        <input class="inp" id="editAmount" placeholder="المبلغ" type="number">
-      </div>
+      <div class="mgroup"><label>إلى حساب</label><input class="inp" id="editToAcc"></div>
+      <div class="mgroup"><label>المبلغ</label><input class="inp" id="editAmount" type="number"></div>
     </div>
     <div class="mrow">
-      <div class="mgroup">
-        <label>التاريخ</label>
-        <input class="inp" id="editDate" placeholder="DD-Mon-YYYY HH:MM:SS">
-      </div>
-      <div class="mgroup">
-        <label>رقم العملية</label>
-        <input class="inp" id="editTxId" placeholder="رقم العملية">
-      </div>
+      <div class="mgroup"><label>التاريخ</label><input class="inp" id="editDate"></div>
+      <div class="mgroup"><label>رقم العملية</label><input class="inp" id="editTxId"></div>
     </div>
-    <div class="mrow">
-      <div class="mgroup" style="flex:2">
-        <label>التعليق</label>
-        <input class="inp" id="editComment" placeholder="التعليق">
-      </div>
-    </div>
+    <div class="mrow"><div class="mgroup" style="flex:2"><label>التعليق</label><input class="inp" id="editComment"></div></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeEdit()">إلغاء</button>
-      <button class="btn btn-gold" onclick="saveEdit()">💾 حفظ التعديلات</button>
+      <button class="btn btn-ghost" onclick="closeModal('editModal')">إلغاء</button>
+      <button class="btn btn-gold" onclick="saveEdit()">💾 حفظ</button>
     </div>
   </div>
 </div>
 
-<!-- TRANSFER MODAL -->
+<!-- TRANSFER SINGLE -->
 <div class="modal-bg" id="transferModal">
   <div class="modal">
     <h2>📤 ترحيل لاشتراكات الشهر</h2>
-    <div class="transfer-info" id="transferInfo"></div>
-    <div class="month-select">
-      <label>اختر الشهر المراد الترحيل إليه</label>
-      <select class="inp" id="transferMonth">
-        <option value="">-- اختر الشهر --</option>
-      </select>
+    <div class="ti" id="transferInfo"></div>
+    <div class="mgroup" style="margin-bottom:16px">
+      <label>اختر الشهر</label>
+      <select class="inp" id="transferMonth" style="margin-bottom:0"></select>
     </div>
     <div style="background:rgba(201,168,76,.06);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:.78rem;color:var(--tx2);margin-bottom:16px">
-      ⚠️ سيتم إضافة هذا الإيصال كاشتراك في الشهر المختار في جدول <strong>wohda_months</strong>
+      سيُضاف كسجل في <strong>wohda_months</strong> بحقول: name, amount, rank, transaction_id
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeTransfer()">إلغاء</button>
+      <button class="btn btn-ghost" onclick="closeModal('transferModal')">إلغاء</button>
       <button class="btn btn-purple" onclick="doTransfer()">📤 ترحيل</button>
     </div>
   </div>
 </div>
 
-<!-- DELETE CONFIRM -->
+<!-- BULK TRANSFER -->
+<div class="modal-bg" id="bulkModal">
+  <div class="modal">
+    <h2>📤 ترحيل الكل</h2>
+    <div style="background:rgba(74,158,204,.06);border:1px solid rgba(74,158,204,.2);border-radius:10px;padding:14px;margin-bottom:16px;font-size:.82rem">
+      سيتم ترحيل <strong id="bulkCount" style="color:var(--blue)">0</strong> إيصال من القائمة الحالية
+      <div style="color:var(--tx2);margin-top:4px;font-size:.75rem">الإيصالات المكررة في الشهر ستُتجاهل تلقائياً</div>
+    </div>
+    <div class="mgroup" style="margin-bottom:16px">
+      <label>اختر الشهر</label>
+      <select class="inp" id="bulkMonth" style="margin-bottom:0"></select>
+    </div>
+    <div id="bulkProgress" style="display:none;margin-bottom:16px">
+      <div style="font-size:.78rem;color:var(--tx2);margin-bottom:6px" id="bulkProgressText">جاري الترحيل...</div>
+      <div class="progress-bar"><div class="progress-fill" id="bulkProgressFill" style="width:0%"></div></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('bulkModal')" id="bulkCancelBtn">إلغاء</button>
+      <button class="btn btn-purple" id="bulkBtn" onclick="doBulkTransfer()">📤 ترحيل الكل</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE -->
 <div class="modal-bg" id="deleteModal">
   <div class="modal">
     <h2>🗑️ تأكيد الحذف</h2>
-    <p style="color:var(--tx2);margin-bottom:20px;font-size:.88rem">هل أنت متأكد من حذف هذا الإيصال؟ لا يمكن التراجع عن هذا الإجراء.</p>
-    <div class="transfer-info" id="deleteInfo"></div>
+    <p style="color:var(--tx2);margin-bottom:16px;font-size:.88rem">هل أنت متأكد؟ لا يمكن التراجع.</p>
+    <div class="ti" id="deleteInfo"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeDelete()">إلغاء</button>
+      <button class="btn btn-ghost" onclick="closeModal('deleteModal')">إلغاء</button>
       <button class="btn btn-red" onclick="confirmDelete()">🗑️ حذف نهائياً</button>
     </div>
   </div>
@@ -308,30 +224,34 @@ tbody td{padding:10px 14px;font-size:.8rem;white-space:nowrap}
 <div class="toast" id="toast"></div>
 
 <script>
-// ══════════ CONFIG ══════════
 const FIREBASE_URL = 'https://subscription-app-865cd-default-rtdb.firebaseio.com';
-const PAYMENTS_PATH = 'payments';
-const WOHDA_MONTHS_PATH = 'wohda_months';
-const PASSWORD = 'admin2024'; // غيّر هذه كلمة المرور
+const DEFAULT_PW = '@P19872320';
+const MONTH_NAMES = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
-// ══════════ FIREBASE INIT ══════════
-firebase.initializeApp({ databaseURL: FIREBASE_URL }, 'payments-app');
-const db = firebase.database(firebase.app('payments-app'));
+firebase.initializeApp({ databaseURL: FIREBASE_URL }, 'pay-app');
+const db = firebase.database(firebase.app('pay-app'));
 
-// ══════════ STATE ══════════
-let allPayments = [];
-let filteredPayments = [];
-let currentDeleteKey = null;
-let currentTransferData = null;
-let currentTransferKey = null;
+let allPayments = [], filteredPayments = [];
+let currentDeleteKey = null, currentTransferKey = null, currentTransferData = null;
 
-// ══════════ LOGIN ══════════
+function getMonthLabel(key) {
+  const [y, m] = key.split('-');
+  return MONTH_NAMES[parseInt(m)-1] + ' ' + y;
+}
+
+function toNum(v) { return parseFloat(String(v||'0').replace(/,/g,'')) || 0; }
+function fmt(n) { return n.toLocaleString('ar-EG', {minimumFractionDigits:0, maximumFractionDigits:0}); }
+function parseDate(str) {
+  if (!str) return 0;
+  try { return new Date(str.replace(/(\d+)-([A-Za-z]+)-(\d+)/, '$1 $2 $3')).getTime() || 0; } catch { return 0; }
+}
+
+// LOGIN
 function doLogin() {
   const pw = document.getElementById('pwInput').value;
-  // سنحمل كلمة المرور من Firebase
   db.ref('wodnour_settings/passwords').once('value', snap => {
-    const passwords = snap.val() || {};
-    if (pw === (passwords.admin || PASSWORD) || pw === (passwords.accountant || '')) {
+    const p = snap.val() || {};
+    if (pw === (p.admin || DEFAULT_PW) || pw === (p.accountant || '')) {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('mainApp').style.display = 'block';
       initApp();
@@ -340,26 +260,33 @@ function doLogin() {
     }
   });
 }
+document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
-// ══════════ INIT ══════════
 function initApp() {
   loadPayments();
-  populateMonthOptions();
-  document.getElementById('pwInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') doLogin();
+  populateMonthSelects();
+}
+
+function populateMonthSelects() {
+  const now = new Date();
+  const curKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  ['transferMonth','bulkMonth'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">-- اختر الشهر --</option>';
+    for (let i = -1; i <= 11; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      sel.innerHTML += `<option value="${key}">${getMonthLabel(key)}</option>`;
+    }
+    sel.value = curKey;
   });
 }
 
-// ══════════ LOAD PAYMENTS ══════════
 function loadPayments() {
-  db.ref(PAYMENTS_PATH).on('value', snap => {
+  db.ref('payments').on('value', snap => {
     const data = snap.val() || {};
     allPayments = Object.entries(data).map(([key, val]) => ({ key, ...val }));
-    // ترتيب من الأحدث للأقدم
-    allPayments.sort((a, b) => {
-      const da = parseDate(a.date), db2 = parseDate(b.date);
-      return db2 - da;
-    });
+    allPayments.sort((a, b) => parseDate(b.date) - parseDate(a.date));
     updateStats();
     populateMonthFilter();
     applyFilters();
@@ -368,77 +295,56 @@ function loadPayments() {
   });
 }
 
-// ══════════ PARSE DATE ══════════
-function parseDate(str) {
-  if (!str) return 0;
-  try {
-    const parts = str.split(' ');
-    return new Date(parts[0].split('-').join(' ') + ' ' + (parts[1] || '')).getTime() || 0;
-  } catch { return 0; }
-}
-
-// ══════════ STATS ══════════
 function updateStats() {
-  const total = allPayments.reduce((s, p) => s + parseFloat(String(p.amount || '0').replace(/,/g, '')), 0);
-  document.getElementById('statTotal').textContent = total.toLocaleString('ar-EG', {maximumFractionDigits: 0});
-  document.getElementById('statCount').textContent = allPayments.length.toLocaleString('ar-EG');
-
+  const total = allPayments.reduce((s, p) => s + toNum(p.amount), 0);
+  document.getElementById('statTotal').textContent = fmt(total);
+  document.getElementById('statCount').textContent = allPayments.length;
   const now = new Date();
-  const monthPayments = allPayments.filter(p => {
+  const mp = allPayments.filter(p => {
     const d = new Date(parseDate(p.date));
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
-  const monthTotal = monthPayments.reduce((s, p) => s + parseFloat(String(p.amount || '0').replace(/,/g, '')), 0);
-  document.getElementById('statMonth').textContent = monthTotal.toLocaleString('ar-EG', {maximumFractionDigits: 0});
-  document.getElementById('statMonthCount').textContent = monthPayments.length.toLocaleString('ar-EG');
-  document.getElementById('statMonthName').textContent = now.toLocaleDateString('ar-EG', {month:'long', year:'numeric'});
+  const mt = mp.reduce((s, p) => s + toNum(p.amount), 0);
+  document.getElementById('statMonth').textContent = fmt(mt);
+  document.getElementById('statMonthCount').textContent = mp.length;
+  document.getElementById('statMonthName').textContent = MONTH_NAMES[now.getMonth()] + ' ' + now.getFullYear();
 }
 
-// ══════════ POPULATE MONTH FILTER ══════════
 function populateMonthFilter() {
   const months = new Set();
   allPayments.forEach(p => {
     if (!p.date) return;
     const d = new Date(parseDate(p.date));
-    if (!isNaN(d)) months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+    if (!isNaN(d.getTime())) months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
   });
   const sel = document.getElementById('monthFilter');
   const cur = sel.value;
   sel.innerHTML = '<option value="">كل الأشهر</option>';
   [...months].sort().reverse().forEach(m => {
-    const [y, mo] = m.split('-');
-    const label = new Date(y, mo-1, 1).toLocaleDateString('ar-EG', {month:'long', year:'numeric'});
-    sel.innerHTML += `<option value="${m}">${label}</option>`;
+    sel.innerHTML += `<option value="${m}">${getMonthLabel(m)}</option>`;
   });
-  sel.value = cur;
+  if (cur) sel.value = cur;
 }
 
-// ══════════ APPLY FILTERS ══════════
 function applyFilters() {
-  const search = document.getElementById('searchInput').value.trim().toLowerCase();
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
   const month = document.getElementById('monthFilter').value;
   const limit = parseInt(document.getElementById('limitFilter').value) || 0;
 
   filteredPayments = allPayments.filter(p => {
-    const matchSearch = !search ||
-      (p.sender_name||'').toLowerCase().includes(search) ||
-      (p.transaction_id||'').toLowerCase().includes(search) ||
-      (p.from_account||'').toLowerCase().includes(search) ||
-      (p.comment||'').toLowerCase().includes(search);
-
-    let matchMonth = true;
+    const ms = !q || [p.sender_name,p.transaction_id,p.from_account,p.comment].some(x => (x||'').toLowerCase().includes(q));
+    let mm = true;
     if (month) {
       const d = new Date(parseDate(p.date));
-      const pm = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-      matchMonth = pm === month;
+      mm = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}` === month;
     }
-
-    return matchSearch && matchMonth;
+    return ms && mm;
   });
 
-  const displayed = limit > 0 ? filteredPayments.slice(0, limit) : filteredPayments;
-  renderTable(displayed);
-  document.getElementById('tableInfo').textContent = `${displayed.length.toLocaleString()} من ${filteredPayments.length.toLocaleString()} إيصال`;
+  const shown = limit > 0 ? filteredPayments.slice(0, limit) : filteredPayments;
+  renderTable(shown);
+  document.getElementById('tableInfo').textContent = `${shown.length} من ${filteredPayments.length} إيصال`;
+  document.getElementById('bulkCount').textContent = filteredPayments.length;
 }
 
 function resetFilters() {
@@ -448,66 +354,49 @@ function resetFilters() {
   applyFilters();
 }
 
-// ══════════ RENDER TABLE ══════════
 function renderTable(payments) {
   const tbody = document.getElementById('tableBody');
   tbody.innerHTML = '';
-
-  if (payments.length === 0) {
-    document.getElementById('emptyState').style.display = 'block';
-    document.getElementById('paymentsTable').style.display = 'none';
-    return;
-  }
-
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('paymentsTable').style.display = 'table';
-
+  document.getElementById('emptyState').style.display = payments.length ? 'none' : 'block';
+  document.getElementById('paymentsTable').style.display = payments.length ? 'table' : 'none';
   payments.forEach((p, i) => {
-    const amount = parseFloat(String(p.amount || '0').replace(/,/g, ''));
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td style="color:var(--tx2)">${i + 1}</td>
+      <td style="color:var(--tx2)">${i+1}</td>
       <td style="font-weight:600;color:var(--gold-l)">${p.sender_name || '<span style="color:var(--tx2)">-</span>'}</td>
-      <td style="font-family:monospace;font-size:.75rem;color:var(--tx2)">${p.from_account || '-'}</td>
-      <td style="font-family:monospace;font-size:.75rem;color:var(--tx2)">${p.to_account || '-'}</td>
-      <td style="font-weight:700;color:var(--green)">${amount.toLocaleString('ar-EG', {minimumFractionDigits:2, maximumFractionDigits:2})} ج.س</td>
-      <td style="color:var(--tx2);font-size:.75rem">${p.date || '-'}</td>
-      <td style="font-family:monospace;font-size:.72rem;color:var(--blue)">${p.transaction_id || '-'}</td>
-      <td style="color:var(--tx2);max-width:120px;overflow:hidden;text-overflow:ellipsis" title="${p.comment||''}">${p.comment || '-'}</td>
+      <td style="font-family:monospace;font-size:.72rem;color:var(--tx2)">${p.from_account||'-'}</td>
+      <td style="font-weight:700;color:var(--green)">${fmt(toNum(p.amount))} ج.س</td>
+      <td style="color:var(--tx2);font-size:.72rem">${p.date||'-'}</td>
+      <td style="font-family:monospace;font-size:.7rem;color:var(--blue)">${p.transaction_id||'-'}</td>
+      <td style="color:var(--tx2);max-width:100px;overflow:hidden;text-overflow:ellipsis" title="${p.comment||''}">${p.comment||'-'}</td>
       <td>
-        <div style="display:flex;gap:6px">
+        <div style="display:flex;gap:5px">
           <button class="btn btn-blue btn-sm" onclick="openEdit('${p.key}')">✏️</button>
           <button class="btn btn-purple btn-sm" onclick="openTransfer('${p.key}')">📤</button>
           <button class="btn btn-red btn-sm" onclick="openDelete('${p.key}')">🗑️</button>
         </div>
-      </td>
-    `;
+      </td>`;
     tbody.appendChild(tr);
   });
 }
 
-// ══════════ EDIT ══════════
+// EDIT
 function openEdit(key) {
-  const p = allPayments.find(x => x.key === key);
-  if (!p) return;
+  const p = allPayments.find(x => x.key===key); if(!p) return;
   document.getElementById('editKey').value = key;
-  document.getElementById('editName').value = p.sender_name || '';
-  document.getElementById('editFromAcc').value = p.from_account || '';
-  document.getElementById('editToAcc').value = p.to_account || '';
-  document.getElementById('editAmount').value = p.amount || '';
-  document.getElementById('editDate').value = p.date || '';
-  document.getElementById('editTxId').value = p.transaction_id || '';
-  document.getElementById('editComment').value = p.comment || '';
+  document.getElementById('editName').value = p.sender_name||'';
+  document.getElementById('editFromAcc').value = p.from_account||'';
+  document.getElementById('editToAcc').value = p.to_account||'';
+  document.getElementById('editAmount').value = p.amount||'';
+  document.getElementById('editDate').value = p.date||'';
+  document.getElementById('editTxId').value = p.transaction_id||'';
+  document.getElementById('editComment').value = p.comment||'';
   document.getElementById('editModal').classList.add('open');
-}
-
-function closeEdit() {
-  document.getElementById('editModal').classList.remove('open');
 }
 
 function saveEdit() {
   const key = document.getElementById('editKey').value;
-  const update = {
+  db.ref(`payments/${key}`).update({
     sender_name: document.getElementById('editName').value.trim(),
     from_account: document.getElementById('editFromAcc').value.trim(),
     to_account: document.getElementById('editToAcc').value.trim(),
@@ -515,156 +404,134 @@ function saveEdit() {
     date: document.getElementById('editDate').value.trim(),
     transaction_id: document.getElementById('editTxId').value.trim(),
     comment: document.getElementById('editComment').value.trim(),
-  };
-  db.ref(`${PAYMENTS_PATH}/${key}`).update(update).then(() => {
-    toast('✅ تم حفظ التعديلات', 'ok');
-    closeEdit();
-  }).catch(() => toast('❌ خطأ في الحفظ', 'err'));
+  }).then(()=>{ toast('✅ تم الحفظ','ok'); closeModal('editModal'); })
+    .catch(()=>toast('❌ خطأ في الحفظ','err'));
 }
 
-// ══════════ DELETE ══════════
+// DELETE
 function openDelete(key) {
-  const p = allPayments.find(x => x.key === key);
-  if (!p) return;
+  const p = allPayments.find(x => x.key===key); if(!p) return;
   currentDeleteKey = key;
   document.getElementById('deleteInfo').innerHTML = `
-    <div class="ti-row"><span>المرسل</span><span>${p.sender_name || '-'}</span></div>
-    <div class="ti-row"><span>المبلغ</span><span style="color:var(--red)">${p.amount} ج.س</span></div>
-    <div class="ti-row"><span>رقم العملية</span><span>${p.transaction_id || '-'}</span></div>
-    <div class="ti-row"><span>التاريخ</span><span>${p.date || '-'}</span></div>
-  `;
+    <div class="ti-row"><span>المرسل</span><span>${p.sender_name||'-'}</span></div>
+    <div class="ti-row"><span>المبلغ</span><span style="color:var(--red)">${fmt(toNum(p.amount))} ج.س</span></div>
+    <div class="ti-row"><span>رقم العملية</span><span>${p.transaction_id||'-'}</span></div>`;
   document.getElementById('deleteModal').classList.add('open');
-}
-
-function closeDelete() {
-  document.getElementById('deleteModal').classList.remove('open');
-  currentDeleteKey = null;
 }
 
 function confirmDelete() {
   if (!currentDeleteKey) return;
-  db.ref(`${PAYMENTS_PATH}/${currentDeleteKey}`).remove().then(() => {
-    toast('✅ تم حذف الإيصال', 'ok');
-    closeDelete();
-  }).catch(() => toast('❌ خطأ في الحذف', 'err'));
+  db.ref(`payments/${currentDeleteKey}`).remove()
+    .then(()=>{ toast('✅ تم الحذف','ok'); closeModal('deleteModal'); currentDeleteKey=null; })
+    .catch(()=>toast('❌ خطأ','err'));
 }
 
-// ══════════ TRANSFER ══════════
-function populateMonthOptions() {
-  // الشهر الحالي + 6 أشهر سابقة + شهر قادم
-  const sel = document.getElementById('transferMonth');
-  const now = new Date();
-  for (let i = -1; i <= 6; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    const label = d.toLocaleDateString('ar-EG', {month:'long', year:'numeric'});
-    sel.innerHTML += `<option value="${key}">${label}</option>`;
-  }
-  // اختار الشهر الحالي افتراضياً
-  const curKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  sel.value = curKey;
-}
-
+// TRANSFER SINGLE
 function openTransfer(key) {
-  const p = allPayments.find(x => x.key === key);
-  if (!p) return;
-  currentTransferKey = key;
-  currentTransferData = p;
+  const p = allPayments.find(x => x.key===key); if(!p) return;
+  currentTransferKey=key; currentTransferData=p;
   document.getElementById('transferInfo').innerHTML = `
-    <div class="ti-row"><span>المرسل</span><span style="color:var(--gold-l);font-weight:700">${p.sender_name || '-'}</span></div>
-    <div class="ti-row"><span>من حساب</span><span>${p.from_account || '-'}</span></div>
-    <div class="ti-row"><span>المبلغ</span><span style="color:var(--green);font-weight:700">${parseFloat(String(p.amount||'0').replace(/,/g,'')).toLocaleString()} ج.س</span></div>
-    <div class="ti-row"><span>التاريخ</span><span>${p.date || '-'}</span></div>
-    <div class="ti-row"><span>رقم العملية</span><span>${p.transaction_id || '-'}</span></div>
-  `;
+    <div class="ti-row"><span>المرسل</span><span style="color:var(--gold-l)">${p.sender_name||p.comment||'-'}</span></div>
+    <div class="ti-row"><span>المبلغ</span><span style="color:var(--green)">${fmt(toNum(p.amount))} ج.س</span></div>
+    <div class="ti-row"><span>رقم العملية</span><span>${p.transaction_id||'-'}</span></div>
+    <div class="ti-row"><span>التاريخ</span><span>${p.date||'-'}</span></div>`;
   document.getElementById('transferModal').classList.add('open');
 }
 
-function closeTransfer() {
-  document.getElementById('transferModal').classList.remove('open');
-  currentTransferKey = null;
-  currentTransferData = null;
+async function doTransfer() {
+  const monthKey = document.getElementById('transferMonth').value;
+  if (!monthKey || !currentTransferData) { toast('⚠️ اختر الشهر','err'); return; }
+  const ok = await transferOne(currentTransferData, monthKey);
+  if (ok) { toast('✅ تم الترحيل بنجاح','ok'); closeModal('transferModal'); }
 }
 
-function doTransfer() {
-  const monthKey = document.getElementById('transferMonth').value;
-  if (!monthKey || !currentTransferData) {
-    toast('⚠️ اختر الشهر أولاً', 'err');
-    return;
+async function transferOne(p, monthKey) {
+  const snap = await db.ref(`wohda_months/${monthKey}`).once('value');
+  const monthData = snap.val() || {};
+  const existing = monthData.data || [];
+  if (p.transaction_id && existing.some(x => x.transaction_id === p.transaction_id)) {
+    toast('⚠️ مرحّل مسبقاً لهذا الشهر','err');
+    return false;
+  }
+  const [y, m] = monthKey.split('-');
+  existing.push({
+    name: p.sender_name || p.comment || 'غير محدد',
+    amount: toNum(p.amount),
+    rank: existing.length + 1,
+    transaction_id: p.transaction_id || '',
+    date: p.date || '',
+    from_account: p.from_account || '',
+  });
+  await db.ref(`wohda_months/${monthKey}`).update({
+    data: existing,
+    label: MONTH_NAMES[parseInt(m)-1] + ' ' + y,
+    month: m,
+    year: y,
+    savedAt: new Date().toLocaleDateString('ar-EG'),
+  });
+  return true;
+}
+
+// BULK TRANSFER
+function openBulkTransfer() {
+  document.getElementById('bulkCount').textContent = filteredPayments.length;
+  document.getElementById('bulkProgress').style.display = 'none';
+  document.getElementById('bulkProgressFill').style.width = '0%';
+  document.getElementById('bulkBtn').disabled = false;
+  document.getElementById('bulkCancelBtn').disabled = false;
+  document.getElementById('bulkModal').classList.add('open');
+}
+
+async function doBulkTransfer() {
+  const monthKey = document.getElementById('bulkMonth').value;
+  if (!monthKey) { toast('⚠️ اختر الشهر','err'); return; }
+  const list = [...filteredPayments];
+  if (!list.length) { toast('⚠️ لا توجد إيصالات','err'); return; }
+
+  document.getElementById('bulkBtn').disabled = true;
+  document.getElementById('bulkCancelBtn').disabled = true;
+  document.getElementById('bulkProgress').style.display = 'block';
+
+  let done=0, skipped=0, failed=0;
+  for (const p of list) {
+    try {
+      const ok = await transferOne(p, monthKey);
+      if (ok) done++; else skipped++;
+    } catch { failed++; }
+    const pct = Math.round(((done+skipped+failed)/list.length)*100);
+    document.getElementById('bulkProgressFill').style.width = pct + '%';
+    document.getElementById('bulkProgressText').textContent = `${done+skipped+failed} من ${list.length} — محوّل: ${done} | متكرر: ${skipped} | خطأ: ${failed}`;
   }
 
-  const p = currentTransferData;
-  const amount = parseFloat(String(p.amount || '0').replace(/,/g, ''));
-  const name = p.sender_name || p.comment || 'غير محدد';
-
-  // قراءة بيانات الشهر الحالية ثم إضافة السجل الجديد
-  db.ref(`${WOHDA_MONTHS_PATH}/${monthKey}`).once('value', snap => {
-    const monthData = snap.val() || { data: [] };
-    const existing = monthData.data || [];
-
-    // تحقق من عدم التكرار
-    const isDup = existing.some(x => x.transaction_id === p.transaction_id);
-    if (isDup) {
-      toast('⚠️ هذا الإيصال مرحّل مسبقاً لهذا الشهر', 'err');
-      return;
-    }
-
-    const newRecord = {
-      name: name,
-      amount: amount,
-      transaction_id: p.transaction_id || '',
-      date: p.date || '',
-      from_account: p.from_account || '',
-      transferred_from: 'payments',
-      transferred_at: new Date().toISOString(),
-    };
-
-    existing.push(newRecord);
-    db.ref(`${WOHDA_MONTHS_PATH}/${monthKey}/data`).set(existing).then(() => {
-      toast(`✅ تم الترحيل لشهر ${monthKey}`, 'ok');
-      closeTransfer();
-    }).catch(() => toast('❌ خطأ في الترحيل', 'err'));
-  });
+  toast(`✅ انتهى: ${done} محوّل، ${skipped} متكرر`, 'ok');
+  document.getElementById('bulkBtn').disabled = false;
+  document.getElementById('bulkCancelBtn').disabled = false;
+  setTimeout(()=>closeModal('bulkModal'), 2000);
 }
 
-// ══════════ EXPORT EXCEL ══════════
+// EXPORT
 function exportExcel() {
-  const data = filteredPayments.map((p, i) => ({
-    '#': i + 1,
-    'المرسل': p.sender_name || '',
-    'من حساب': p.from_account || '',
-    'إلى حساب': p.to_account || '',
-    'المبلغ': parseFloat(String(p.amount||'0').replace(/,/g,'')),
-    'التاريخ': p.date || '',
-    'رقم العملية': p.transaction_id || '',
-    'التعليق': p.comment || '',
+  const data = filteredPayments.map((p,i) => ({
+    '#': i+1, 'المرسل': p.sender_name||'', 'من حساب': p.from_account||'',
+    'إلى حساب': p.to_account||'', 'المبلغ': toNum(p.amount),
+    'التاريخ': p.date||'', 'رقم العملية': p.transaction_id||'', 'التعليق': p.comment||'',
   }));
-
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'الإيصالات');
-
   const now = new Date();
-  const filename = `ايصالات_ودنور_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.xlsx`;
-  XLSX.writeFile(wb, filename);
-  toast('✅ تم تصدير الملف', 'ok');
+  XLSX.writeFile(wb, `ايصالات_ودنور_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}.xlsx`);
+  toast('✅ تم التصدير','ok');
 }
 
-// ══════════ TOAST ══════════
-function toast(msg, type = 'ok') {
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function toast(msg, type='ok') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast ${type} show`;
-  setTimeout(() => t.classList.remove('show'), 3200);
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3200);
 }
-
-// Close modals on background click
-['editModal','transferModal','deleteModal'].forEach(id => {
-  document.getElementById(id).addEventListener('click', e => {
-    if (e.target === document.getElementById(id)) {
-      document.getElementById(id).classList.remove('open');
-    }
-  });
+['editModal','transferModal','bulkModal','deleteModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => { if(e.target===document.getElementById(id)) closeModal(id); });
 });
 </script>
 </body>
